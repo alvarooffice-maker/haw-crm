@@ -26,17 +26,19 @@ jobs:
 
       - name: Gerar config.js com secrets
         run: |
-          cat > public/config.js << EOF
+          cat > public/config.js << 'CONFIGEOF'
           window.HAW_CONFIG = {
-            supabaseUrl: '${{ secrets.SUPABASE_URL }}',
-            supabaseKey: '${{ secrets.SUPABASE_ANON_KEY }}',
+            supabaseUrl: 'SUPABASE_URL_PLACEHOLDER',
+            supabaseKey: 'SUPABASE_KEY_PLACEHOLDER',
             appVersion:  '1.0.0',
             appName:     'HAW CRM',
           };
-          EOF
+          CONFIGEOF
+          sed -i "s|SUPABASE_URL_PLACEHOLDER|${{ secrets.SUPABASE_URL }}|g" public/config.js
+          sed -i "s|SUPABASE_KEY_PLACEHOLDER|${{ secrets.SUPABASE_ANON_KEY }}|g" public/config.js
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
