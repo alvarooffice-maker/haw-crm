@@ -3,63 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HAW CRM · Óticas HAW</title>
+<title>HAW Vision · CRM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>
+// HAW Vision — config loader (nunca bloqueia)
+window.HAW_CONFIG = {supabaseUrl:"",supabaseKey:"",appVersion:"1.0.0",appName:"HAW Vision"};
+(function(){
+  var s = document.createElement('script');
+  s.src = 'config.js';
+  s.onerror = function(){ console.warn('[HAW] config.js ausente — modo offline'); };
+  document.head.appendChild(s);
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --gold:#C9A84C;--gold-light:#E8C97A;--gold-pale:#F5EDD5;--gold-deep:#8B6914;
-  --black:#0D0D0D;--dark:#141414;--dark2:#1C1C1C;--dark3:#242424;--dark4:#2E2E2E;
-  --white:#FAFAF8;--off:#F2F0EC;--muted:#8A8680;--border:#2A2A2A;--border-light:#E8E4DC;
+  /* HAW VISION — Identidade visual oficial */
+  --gold:#F5C518;--gold-light:#FFD84D;--gold-pale:#FFF8DC;--gold-deep:#C49A00;
+  --black:#0E1628;--dark:#131E35;--dark2:#192340;--dark3:#1F2B4A;--dark4:#253355;
+  --white:#FFFFFF;--off:#F4F6FB;--muted:#8492A6;--border:#1F2B4A;--border-light:#E2E8F0;
   --green:#2E7D52;--green-l:#E8F5EE;
   --red:#8B2E2E;--red-l:#F5E8E8;
   --blue:#2E5C8B;--blue-l:#E8F0F5;
   --amber:#8B6D2E;--amber-l:#F5EEE8;
   --rad:8px;--rad-lg:12px;--rad-xl:16px;
-  --font-display:'Cormorant Garamond',serif;
+  --font-display:'Nunito',sans-serif;
   --font-body:'DM Sans',sans-serif;
 }
-body{font-family:var(--font-body);background:var(--off);color:var(--black);font-size:13px;min-height:100vh;line-height:1.5}
+body{font-family:var(--font-body);background:#EEF2FA;color:var(--black);font-size:13px;min-height:100vh;line-height:1.5}
 
 /* ── LAYOUT ── */
 .shell{display:flex;height:100vh;overflow:hidden}
 
 /* ── SIDEBAR ── */
-.sidebar{width:230px;background:var(--black);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;border-right:1px solid #1A1A1A}
-.sb-logo{padding:24px 20px 20px;border-bottom:1px solid #1A1A1A}
+.sidebar{width:230px;background:#0E1628;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;border-right:1px solid #1A1A1A}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid #1F2B4A}
 .sb-logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .sb-logosvg{width:32px;height:32px;flex-shrink:0}
 .sb-brand{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--gold);letter-spacing:.5px;line-height:1}
 .sb-tagline{font-size:10px;color:#555;letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
 .sb-badge{display:inline-block;font-size:9px;background:linear-gradient(135deg,var(--gold-deep),var(--gold));color:var(--black);padding:2px 8px;border-radius:99px;margin-top:8px;font-weight:600;letter-spacing:.05em}
-.sb-section{padding:16px 14px 4px;font-size:9px;font-weight:600;color:#3A3A3A;text-transform:uppercase;letter-spacing:.15em}
-.sb-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:#666;font-size:12px;border-radius:var(--rad);margin:1px 8px;transition:all .15s;border:none;background:transparent;width:calc(100% - 16px);text-align:left;font-family:var(--font-body)}
-.sb-item:hover{background:var(--dark3);color:#AAA}
-.sb-item.active{background:linear-gradient(135deg,var(--gold-deep)20,var(--gold)15);background:rgba(201,168,76,.12);color:var(--gold);border-left:2px solid var(--gold);border-radius:0 var(--rad) var(--rad) 0;margin-left:8px;padding-left:12px}
+.sb-section{padding:16px 14px 4px;font-size:9px;font-weight:600;color:#3A5A8A;text-transform:uppercase;letter-spacing:.15em}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:#7090B8;font-size:12px;border-radius:var(--rad);margin:1px 8px;transition:all .15s;border:none;background:transparent;width:calc(100% - 16px);text-align:left;font-family:var(--font-body)}
+.sb-item:hover{background:rgba(245,197,24,.08);color:#C8D8F0}
+.sb-item.active{background:rgba(245,197,24,.12);color:var(--gold);border-left:3px solid var(--gold);border-radius:0 var(--rad) var(--rad) 0;margin-left:8px;padding-left:12px}
 .sb-item .si{font-size:15px;width:18px;text-align:center;flex-shrink:0;opacity:.7}
 .sb-item.active .si{opacity:1}
-.sb-count{margin-left:auto;background:rgba(201,168,76,.2);font-size:10px;padding:1px 7px;border-radius:99px;color:var(--gold);font-weight:600}
-.sb-item.active .sb-count{background:rgba(201,168,76,.3)}
-.sb-bottom{margin-top:auto;padding:16px;border-top:1px solid #1A1A1A}
+.sb-count{margin-left:auto;background:rgba(245,197,24,.2);font-size:10px;padding:1px 7px;border-radius:99px;color:var(--gold);font-weight:600}
+.sb-item.active .sb-count{background:rgba(245,197,24,.3)}
+.sb-bottom{margin-top:auto;padding:16px;border-top:1px solid #1F2B4A}
 .sb-user{display:flex;align-items:center;gap:10px}
 .sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold-deep),var(--gold));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--black);flex-shrink:0}
 .sb-uname{font-size:12px;color:#AAA;font-weight:500}
 .sb-urole{font-size:10px;color:#555}
-.sb-date{font-size:10px;color:#3A3A3A;text-align:center;margin-top:12px;letter-spacing:.05em}
+.sb-date{font-size:10px;color:#3A5A8A;text-align:center;margin-top:12px;letter-spacing:.05em}
 
 /* ── MAIN ── */
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column;background:var(--off)}
-.topbar{background:var(--white);border-bottom:1px solid var(--border-light);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:40}
+.topbar{background:#FFFFFF;border-bottom:1px solid #D1DCF0;padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:40}
 .page-title{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--black);letter-spacing:.2px}
 .page-sub{font-size:11px;color:var(--muted);margin-top:1px}
 .topbar-right{display:flex;align-items:center;gap:12px}
 .tb-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rad);border:none;cursor:pointer;font-size:12px;font-family:var(--font-body);font-weight:500;transition:all .15s}
-.tb-btn-gold{background:linear-gradient(135deg,var(--gold-deep),var(--gold));color:var(--black)}
+.tb-btn-gold{background:var(--gold);color:var(--black);font-weight:700}
 .tb-btn-gold:hover{opacity:.9;transform:translateY(-1px)}
 .tb-btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border-light)}
 .tb-btn-ghost:hover{background:var(--off);color:var(--black)}
@@ -105,7 +115,7 @@ tr:hover td{background:#FAFAF5}
 .badge-gray{background:#F0EFED;color:var(--muted)}
 
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rad);border:none;cursor:pointer;font-size:12px;font-family:var(--font-body);font-weight:500;transition:all .15s}
-.btn-gold{background:linear-gradient(135deg,var(--gold-deep),var(--gold));color:var(--black)}
+.btn-gold{background:var(--gold);color:var(--black);font-weight:700}
 .btn-gold:hover{opacity:.9}
 .btn-ghost{background:transparent;border:1px solid var(--border-light);color:var(--muted)}
 .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
@@ -129,7 +139,7 @@ tr:hover td{background:#FAFAF5}
 .pipeline-col-header{padding:10px 12px;border-radius:var(--rad) var(--rad) 0 0;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid transparent}
 .pipeline-col-body{background:var(--off);border:1px solid var(--border-light);border-top:none;border-radius:0 0 var(--rad) var(--rad);padding:8px;min-height:300px}
 .pipeline-card{background:var(--white);border:1px solid var(--border-light);border-radius:var(--rad);padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all .15s}
-.pipeline-card:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 12px rgba(201,168,76,.1)}
+.pipeline-card:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 12px rgba(245,197,24,.1)}
 .pc-name{font-size:12px;font-weight:600;margin-bottom:3px}
 .pc-produto{font-size:10px;color:var(--muted);margin-bottom:6px}
 .pc-meta{display:flex;align-items:center;justify-content:space-between}
@@ -137,10 +147,10 @@ tr:hover td{background:#FAFAF5}
 .pc-dias{font-size:10px;color:var(--muted)}
 
 /* Col colors */
-.col-lead .pipeline-col-header{background:#1A1A2E;color:#8B9FD4;border-bottom-color:#3D4F8A}
+.col-lead .pipeline-col-header{background:#0E1628;color:#7B9FE4;border-bottom-color:#3D4F8A}
 .col-atend .pipeline-col-header{background:#1A2E1A;color:#7DB87D;border-bottom-color:#3A7A3A}
 .col-prop .pipeline-col-header{background:#2E2A1A;color:#D4B86A;border-bottom-color:#8A7A3A}
-.col-pedido .pipeline-col-header{background:rgba(201,168,76,.08);color:var(--gold);border-bottom-color:var(--gold)}
+.col-pedido .pipeline-col-header{background:rgba(245,197,24,.08);color:var(--gold);border-bottom-color:var(--gold)}
 .col-lab .pipeline-col-header{background:#1A1E2E;color:#7AAECC;border-bottom-color:#3A6A8A}
 .col-pronto .pipeline-col-header{background:#1A2E2E;color:#7ACCCC;border-bottom-color:#3A8A8A}
 .col-entregue .pipeline-col-header{background:#2E1A2E;color:#CC88CC;border-bottom-color:#8A3A8A}
@@ -169,7 +179,7 @@ tr:hover td{background:#FAFAF5}
 .rank-bar-wrap{flex:1}
 .rank-name{font-size:12px;font-weight:600;margin-bottom:4px}
 .rank-bar{height:5px;background:var(--off);border-radius:99px;overflow:hidden}
-.rank-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+.rank-fill{height:100%;border-radius:99px;background:var(--gold)}
 .rank-val{font-size:13px;font-weight:700;color:var(--gold-deep);font-family:var(--font-display);flex-shrink:0}
 
 /* ── FORMS / MODALS ── */
@@ -188,7 +198,7 @@ tr:hover td{background:#FAFAF5}
 .form-group{display:flex;flex-direction:column;gap:5px}
 .form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .form-input{padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--rad);font-size:13px;font-family:var(--font-body);color:var(--black);background:var(--white);outline:none;transition:all .15s;width:100%}
-.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1)}
+.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,197,24,.1)}
 .form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23888' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
 .form-divider{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--gold-deep);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--gold-pale)}
 
@@ -250,16 +260,23 @@ tr:hover td{background:#FAFAF5}
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
     <div class="sb-logo-mark">
-      <svg class="sb-logosvg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="16" cy="16" r="14" stroke="#C9A84C" stroke-width="1.5"/>
-        <ellipse cx="16" cy="16" rx="8" ry="5" stroke="#C9A84C" stroke-width="1.2"/>
-        <circle cx="16" cy="16" r="2.5" fill="#C9A84C"/>
-        <line x1="2" y1="16" x2="30" y2="16" stroke="#C9A84C" stroke-width=".8" stroke-dasharray="2 2"/>
+      <svg width="110" height="48" viewBox="0 0 220 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- HAW lettering faithful to brand -->
+        <!-- H -->
+        <rect x="0" y="8" width="22" height="44" rx="5" fill="#F5C518"/>
+        <rect x="0" y="8" width="52" height="20" rx="5" fill="#F5C518"/>
+        <rect x="30" y="8" width="22" height="44" rx="5" fill="#F5C518"/>
+        <!-- A (stylized with rounded top) -->
+        <path d="M62 52 L78 8 Q82 2 86 8 L102 52 Z" fill="#F5C518" rx="4"/>
+        <rect x="68" y="32" width="28" height="12" rx="3" fill="#0E1628"/>
+        <!-- W first V -->
+        <path d="M110 8 L124 52 Q126 56 128 52 L138 20" fill="none" stroke="#F5C518" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- W second V -->
+        <path d="M138 20 L148 52 Q150 56 152 52 L166 8" fill="none" stroke="#F5C518" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- VISION text -->
+        <text x="60" y="76" font-family="Arial Black, sans-serif" font-size="13" font-weight="900" fill="#F5C518" letter-spacing="6" text-anchor="middle">VISION</text>
       </svg>
-      <span class="sb-brand">HAW</span>
     </div>
-    <div class="sb-tagline">Óticas · CRM</div>
-    <span class="sb-badge">Sistema de Gestão</span>
   </div>
 
   <div class="sb-section">Principal</div>
@@ -769,7 +786,13 @@ tr:hover td{background:#FAFAF5}
     </div>
   </div>
 </div>
+
+
+
+
+
 <script>
+
 // ══════════════════════════════════════════════
 // HAW CRM — JavaScript Engine
 // ══════════════════════════════════════════════
@@ -993,8 +1016,8 @@ function globalSearch(q){
   renderClientesData(clis);
   renderPedidosData(peds);
 }
-</script>
-<script>
+
+
 // ── SALVAR CLIENTE ──
 function salvarCliente(){
   const nome=document.getElementById('cli-nome').value.trim();
@@ -1367,7 +1390,7 @@ function gerarPDF(){
   const html=`<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:40px;color:#111">
     <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #C9A84C;padding-bottom:20px;margin-bottom:24px">
       <div>
-        <div style="font-size:28px;font-weight:700;color:#C9A84C;letter-spacing:1px">HAW ÓTICAS</div>
+        <div style="font-size:28px;font-weight:900;color:#F5C518;letter-spacing:2px;font-family:Arial Black,sans-serif">HAW VISION</div>
         <div style="font-size:12px;color:#888;margin-top:4px">Orçamento Comercial</div>
       </div>
       <div style="text-align:right;font-size:12px;color:#555">
@@ -1381,7 +1404,7 @@ function gerarPDF(){
       ${cli.telefone?`<div style="font-size:13px;color:#555;margin-top:2px">${cli.telefone}</div>`:''}
     </div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
-      <thead><tr style="background:#111;color:#C9A84C">
+      <thead><tr style="background:#111;color:#F5C518">
         <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.08em">Item</th>
         <th style="padding:10px 12px;text-align:center;font-size:11px">Qtd</th>
         <th style="padding:10px 12px;text-align:right;font-size:11px">Unitário</th>
@@ -1395,7 +1418,7 @@ function gerarPDF(){
       </tr>`).join('')}</tbody>
     </table>
     ${desc>0?`<div style="text-align:right;margin-bottom:8px;font-size:13px;color:#888">Subtotal: ${fmtMoney(sub)} | Desconto: ${desc}%</div>`:''}
-    <div style="text-align:right;border-top:2px solid #C9A84C;padding-top:12px">
+    <div style="text-align:right;border-top:2px solid #F5C518;padding-top:12px">
       <span style="font-size:14px;color:#888;margin-right:12px">TOTAL</span>
       <span style="font-size:28px;font-weight:700;color:#C9A84C">${fmtMoney(total)}</span>
     </div>
@@ -1414,8 +1437,8 @@ function toast(msg){
   t.textContent=msg;t.style.opacity='1';
   clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.opacity='0',2500);
 }
-</script>
-<script>
+
+
 // ══════════════════════════════════════════════
 // RENDER FUNCTIONS
 // ══════════════════════════════════════════════
@@ -1503,7 +1526,7 @@ function renderFatChart(){
     months.push(label);vals.push(v);
   }
   if(chartFat)chartFat.destroy();
-  chartFat=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{data:vals,backgroundColor:'rgba(201,168,76,.7)',borderColor:'rgba(201,168,76,1)',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'R$'+v.toLocaleString('pt-BR')}},x:{grid:{display:false}}}}});
+  chartFat=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{data:vals,backgroundColor:'rgba(245,197,24,.7)',borderColor:'rgba(245,197,24,1)',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'R$'+v.toLocaleString('pt-BR')}},x:{grid:{display:false}}}}});
 }
 
 // ── PIPELINE ──
@@ -1708,7 +1731,7 @@ function renderRelatorioCharts(){
     if(chartFunil)chartFunil.destroy();
     chartFunil=new Chart(ctxFunil,{type:'bar',data:{
       labels:PIPELINE_STAGES.map(s=>s.label),
-      datasets:[{data:PIPELINE_STAGES.map(s=>peds.filter(p=>p.status===s.key).length),backgroundColor:'rgba(201,168,76,.6)',borderColor:'rgba(201,168,76,1)',borderWidth:1,borderRadius:4}]
+      datasets:[{data:PIPELINE_STAGES.map(s=>peds.filter(p=>p.status===s.key).length),backgroundColor:'rgba(245,197,24,.6)',borderColor:'rgba(245,197,24,1)',borderWidth:1,borderRadius:4}]
     },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
   }
   const ctxVend=document.getElementById('chart-vendedor');
@@ -1718,7 +1741,7 @@ function renderRelatorioCharts(){
     const vals=vendedores.map(v=>DB.pedidos.filter(p=>!p.deleted&&p.vendedorId===v.id&&['entregue','pos_venda'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0));
     chartVendedor=new Chart(ctxVend,{type:'doughnut',data:{
       labels:vendedores.map(v=>v.nome.split(' ')[0]),
-      datasets:[{data:vals,backgroundColor:['rgba(201,168,76,.8)','rgba(46,125,82,.7)','rgba(46,92,139,.7)','rgba(139,109,46,.6)'],borderWidth:0}]
+      datasets:[{data:vals,backgroundColor:['rgba(245,197,24,.8)','rgba(46,125,82,.7)','rgba(46,92,139,.7)','rgba(139,109,46,.6)'],borderWidth:0}]
     },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
   }
 }
@@ -1738,8 +1761,9 @@ function renderConfig(){
   if(DB.settings.supabaseUrl)document.getElementById('cfg-sb-url').value=DB.settings.supabaseUrl;
   if(DB.settings.supabaseKey)document.getElementById('cfg-sb-key').value=DB.settings.supabaseKey;
 }
+
 </script>
 
-<script src="supabase-layer.js"></script>
+<script src="supabase-layer.js" onerror="console.warn('[HAW] supabase-layer offline')"></script>
 </body>
 </html>
