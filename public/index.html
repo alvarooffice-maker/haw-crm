@@ -253,7 +253,37 @@ tr:hover td{background:#FAFAF5}
   .pipeline-col{min-width:unset}
   .form-row{grid-template-columns:1fr}
 }
+/* ── LOGIN SCREEN ── */
+#login-screen{position:fixed;inset:0;background:#13182C;z-index:99999;display:flex;align-items:center;justify-content:center}
+#login-screen.hidden{display:none}
+.login-box{background:#1C2440;border:1px solid #2A3560;border-radius:16px;padding:40px 48px;width:360px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo img{height:64px}
+.login-title{color:#fff;font-size:18px;font-weight:700;text-align:center;margin-bottom:4px}
+.login-sub{color:rgba(255,255,255,.4);font-size:12px;text-align:center;margin-bottom:28px}
+.login-label{color:rgba(255,255,255,.55);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;display:block}
+.login-select,.login-pin{width:100%;padding:12px 14px;background:#13182C;border:1px solid #2A3560;border-radius:8px;color:#fff;font-size:14px;margin-bottom:18px;box-sizing:border-box;outline:none;transition:border-color .2s}
+.login-select:focus,.login-pin:focus{border-color:#F7CF13}
+.login-pin{letter-spacing:.4em;font-size:22px;text-align:center;font-weight:700}
+.login-btn{width:100%;padding:13px;background:#F7CF13;color:#13182C;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.login-btn:hover{opacity:.88}
+.login-err{color:#ff6b6b;font-size:12px;text-align:center;margin-top:12px;min-height:18px}
 </style>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo"><img src="logo.png" alt="HAW Vision"></div>
+    <div class="login-title">HAW Vision CRM</div>
+    <div class="login-sub">Faça login para continuar</div>
+    <label class="login-label">Usuário</label>
+    <select class="login-select" id="login-user"></select>
+    <label class="login-label">PIN (4 dígitos)</label>
+    <input class="login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
 
 <div class="shell">
 <!-- SIDEBAR -->
@@ -305,6 +335,7 @@ tr:hover td{background:#FAFAF5}
     <div class="topbar-right">
       <div class="search-wrap"><input type="text" placeholder="Buscar cliente, pedido…" id="global-search" oninput="globalSearch(this.value)"></div>
       <button class="tb-btn tb-btn-gold" id="tb-action-btn" onclick="tbAction()">+ Novo Pedido</button>
+      <button onclick="doLogout()" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600" title="Sair">↩ Sair</button>
     </div>
   </div>
 
@@ -800,6 +831,8 @@ tr:hover td{background:#FAFAF5}
       <div class="form-row c1"><div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="usr-email" type="email" placeholder="ana@hawoticas.com.br"></div></div>
       <div class="form-row"><div class="form-group"><label class="form-label">Perfil *</label><select class="form-input form-select" id="usr-perfil"><option value="vendedor">Vendedor</option><option value="gestor">Gestor</option><option value="financeiro">Financeiro</option><option value="dono">Dono</option></select></div>
       <div class="form-group"><label class="form-label">Meta mensal (R$)</label><input class="form-input" id="usr-meta" type="number" placeholder="8000"></div></div>
+      <div class="form-row c2"><div class="form-group"><label class="form-label">PIN (4 dígitos) *</label><input class="form-input" id="usr-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+      <div class="form-group"><label class="form-label">Confirmar PIN</label><input class="form-input" id="usr-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-usuario')">Cancelar</button>
@@ -828,6 +861,83 @@ let supabaseClient = null;
 let currentUser = {id:'u1',nome:'Dono HAW',perfil:'dono',initials:'D'};
 let pedidoItensCount = 0;
 let chartFat = null, chartFunil = null, chartVendedor = null, chartFatMensal = null;
+
+// ── ACCESS CONTROL ──
+const PAGE_ACCESS = {
+  vendedor:   ['dashboard','pipeline','clientes','pedidos','receitas','catalogo'],
+  gestor:     ['dashboard','pipeline','clientes','pedidos','receitas','catalogo','financeiro','relatorios'],
+  financeiro: ['dashboard','financeiro','relatorios'],
+  dono:       null, // acesso total
+};
+
+function canAccess(page){
+  const allowed=PAGE_ACCESS[currentUser.perfil];
+  if(allowed===null||allowed===undefined)return true;
+  return allowed.includes(page);
+}
+
+function filterSidebar(){
+  document.querySelectorAll('.sb-item').forEach(btn=>{
+    const m=(btn.getAttribute('onclick')||'').match(/'([a-z]+)'/);
+    if(!m)return;
+    const allowed=PAGE_ACCESS[currentUser.perfil];
+    btn.style.display=(allowed===null||allowed===undefined||allowed.includes(m[1]))?'':'none';
+  });
+}
+
+function populateLoginUsers(){
+  const sel=document.getElementById('login-user');
+  if(!sel)return;
+  sel.innerHTML=DB.usuarios.filter(u=>u.ativo).map(u=>`<option value="${u.id}">${u.nome} (${u.perfil})</option>`).join('');
+}
+
+function doLogin(){
+  const userId=document.getElementById('login-user').value;
+  const pin=document.getElementById('login-pin').value;
+  const errEl=document.getElementById('login-err');
+  const user=DB.usuarios.find(u=>u.id===userId&&u.ativo);
+  if(!user||user.senha!==pin){
+    errEl.textContent='PIN incorreto. Tente novamente.';
+    document.getElementById('login-pin').value='';
+    return;
+  }
+  errEl.textContent='';
+  currentUser={id:user.id,nome:user.nome,perfil:user.perfil,initials:user.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()};
+  sessionStorage.setItem('haw_session',JSON.stringify(currentUser));
+  document.getElementById('login-screen').classList.add('hidden');
+  filterSidebar();
+  renderSidebarUser();
+  const first=(PAGE_ACCESS[currentUser.perfil]||['dashboard'])[0]||'dashboard';
+  nav(first);
+}
+
+function doLogout(){
+  sessionStorage.removeItem('haw_session');
+  currentUser={id:'',nome:'',perfil:'',initials:''};
+  document.getElementById('login-pin').value='';
+  document.getElementById('login-err').textContent='';
+  populateLoginUsers();
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function checkSession(){
+  const raw=sessionStorage.getItem('haw_session');
+  if(raw){
+    try{
+      const s=JSON.parse(raw);
+      const u=DB.usuarios.find(x=>x.id===s.id&&x.ativo);
+      if(u){
+        currentUser={id:u.id,nome:u.nome,perfil:u.perfil,initials:u.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()};
+        document.getElementById('login-screen').classList.add('hidden');
+        filterSidebar();
+        renderSidebarUser();
+        return;
+      }
+    }catch(e){}
+  }
+  populateLoginUsers();
+  document.getElementById('login-screen').classList.remove('hidden');
+}
 
 // ── PIPELINE CONFIG ──
 const PIPELINE_STAGES = [
@@ -860,9 +970,9 @@ function loadFromStorage(){
   if(raw){try{const d=JSON.parse(raw);DB=Object.assign(DB,d)}catch(e){}}
   if(!DB.usuarios.length){
     DB.usuarios=[
-      {id:'u1',nome:'Dono HAW',email:'dono@hawoticas.com.br',perfil:'dono',ativo:true,meta:0},
-      {id:'u2',nome:'Ana Lima',email:'ana@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:8000},
-      {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000},
+      {id:'u1',nome:'Dono HAW',email:'dono@hawoticas.com.br',perfil:'dono',ativo:true,meta:0,senha:'1234'},
+      {id:'u2',nome:'Ana Lima',email:'ana@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:8000,senha:'1111'},
+      {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222'},
     ];
     save();
   }
@@ -882,6 +992,7 @@ const navConfig = {
 };
 let _currentPage = 'dashboard';
 function nav(page){
+  if(!canAccess(page))return;
   _currentPage = page;
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -1376,8 +1487,12 @@ function toggleProduto(id){
 function salvarUsuario(){
   const nome=document.getElementById('usr-nome').value.trim();
   const email=document.getElementById('usr-email').value.trim();
+  const pin=document.getElementById('usr-pin').value.trim();
+  const pin2=document.getElementById('usr-pin2').value.trim();
   if(!nome||!email){alert('Nome e email são obrigatórios');return;}
-  DB.usuarios.push({id:uid(),nome,email,perfil:document.getElementById('usr-perfil').value,meta:parseFloat(document.getElementById('usr-meta').value)||0,ativo:true,createdAt:new Date().toISOString()});
+  if(!pin||pin.length<4){alert('PIN deve ter 4 dígitos');return;}
+  if(pin!==pin2){alert('PINs não coincidem');return;}
+  DB.usuarios.push({id:uid(),nome,email,perfil:document.getElementById('usr-perfil').value,meta:parseFloat(document.getElementById('usr-meta').value)||0,ativo:true,senha:pin,createdAt:new Date().toISOString()});
   save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário criado!');
 }
 function salvarMetas(){
@@ -1970,6 +2085,8 @@ window.salvarCliente=salvarCliente;
 window.salvarPedido=salvarPedido;
 window.salvarReceita=salvarReceita;
 window.salvarProduto=salvarProduto;
+window.doLogin=doLogin;
+window.doLogout=doLogout;
 window.salvarUsuario=salvarUsuario;
 window.salvarMetas=salvarMetas;
 window.salvarEmpresa=salvarEmpresa;
@@ -2018,6 +2135,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderRelatorios();
   renderConfig();
   populateSelects();
+  checkSession();
 });
 </script>
 
