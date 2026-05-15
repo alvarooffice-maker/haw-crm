@@ -852,8 +852,10 @@ let DB = {
   settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7),
     empresa:{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15}}
 };
+window.DB = DB; // expõe para supabase-layer.js e outros scripts externos
 let supabaseClient = null;
 let currentUser = {id:'u1',nome:'Dono HAW',perfil:'dono',initials:'D'};
+window.currentUser = currentUser;
 let pedidoItensCount = 0;
 let chartFat = null, chartFunil = null, chartVendedor = null, chartFatMensal = null;
 
