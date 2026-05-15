@@ -506,18 +506,32 @@ tr:hover td{background:#FAFAF5}
 
     <!-- ══════════════════ RELATÓRIOS ══════════════════ -->
     <div class="tab-panel" id="tab-relatorios">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px" id="rel-kpis"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card">
+          <div class="ch"><span class="ct">Faturamento — Últimos 6 meses</span></div>
+          <div class="chart-wrap"><canvas id="chart-fat-mensal"></canvas></div>
+        </div>
         <div class="card">
           <div class="ch"><span class="ct">Conversão do Pipeline</span></div>
           <div class="chart-wrap"><canvas id="chart-funil"></canvas></div>
         </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
         <div class="card">
           <div class="ch"><span class="ct">Pedidos por Vendedor</span></div>
           <div class="chart-wrap"><canvas id="chart-vendedor"></canvas></div>
         </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Produtos mais vendidos</span></div>
+          <div style="padding:0 16px 16px">
+            <table><thead><tr><th>Produto</th><th style="text-align:right">Qtd vendida</th><th style="text-align:right">Faturado</th></tr></thead>
+            <tbody id="rel-produtos-tbody"></tbody></table>
+          </div>
+        </div>
       </div>
       <div class="card">
-        <div class="ch"><span class="ct">Clientes para Contatar</span></div>
+        <div class="ch"><span class="ct">Clientes para Contatar (11+ meses sem compra)</span></div>
         <table><thead><tr><th>Cliente</th><th>Último pedido</th><th>Meses sem compra</th><th>Telefone</th><th>Ação</th></tr></thead>
         <tbody id="rel-retorno-tbody"></tbody></table>
       </div>
@@ -528,6 +542,7 @@ tr:hover td{background:#FAFAF5}
       <div class="inner-tabs">
         <button class="inner-tab active" onclick="setCfgTab('usuarios',this)">Usuários</button>
         <button class="inner-tab" onclick="setCfgTab('metas',this)">Metas</button>
+        <button class="inner-tab" onclick="setCfgTab('empresa',this)">Empresa</button>
         <button class="inner-tab" onclick="setCfgTab('supabase',this)">Supabase</button>
       </div>
       <div id="cfg-usuarios">
@@ -543,6 +558,26 @@ tr:hover td{background:#FAFAF5}
           <div style="padding:20px">
             <div class="form-row c2" id="metas-form"></div>
             <button class="btn btn-gold" onclick="salvarMetas()">Salvar metas</button>
+          </div>
+        </div>
+      </div>
+      <div id="cfg-empresa" style="display:none">
+        <div class="card">
+          <div class="ch"><span class="ct">Dados da Empresa</span></div>
+          <div style="padding:20px">
+            <div class="form-row c2">
+              <div class="form-group"><label class="form-label">Nome Fantasia</label><input class="form-input" id="emp-nome" placeholder="HAW Vision"></div>
+              <div class="form-group"><label class="form-label">CNPJ</label><input class="form-input" id="emp-cnpj" placeholder="00.000.000/0001-00"></div>
+            </div>
+            <div class="form-row c2">
+              <div class="form-group"><label class="form-label">Telefone</label><input class="form-input" id="emp-tel" placeholder="(91) 99801-9092"></div>
+              <div class="form-group"><label class="form-label">Validade do Orçamento (dias)</label><input class="form-input" id="emp-validade" type="number" placeholder="15" min="1"></div>
+            </div>
+            <div class="form-row c2">
+              <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="emp-cidade" placeholder="Belém"></div>
+              <div class="form-group"><label class="form-label">Estado (sigla)</label><input class="form-input" id="emp-estado" placeholder="PA" maxlength="2"></div>
+            </div>
+            <button class="btn btn-gold" onclick="salvarEmpresa()">Salvar dados da empresa</button>
           </div>
         </div>
       </div>
@@ -584,7 +619,7 @@ tr:hover td{background:#FAFAF5}
       <div class="form-row"><div class="form-group"><label class="form-label">Rua</label><input class="form-input" id="cli-rua" placeholder="Rua das Flores"></div>
       <div class="form-group"><label class="form-label">Número</label><input class="form-input" id="cli-num" placeholder="123"></div></div>
       <div class="form-row c3"><div class="form-group"><label class="form-label">Bairro</label><input class="form-input" id="cli-bairro"></div>
-      <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="cli-cidade" value="Manaus"></div>
+      <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="cli-cidade" value="Belém"></div>
       <div class="form-group"><label class="form-label">UF</label><input class="form-input" id="cli-uf" value="AM" maxlength="2"></div></div>
       <div class="form-row c1"><div class="form-group"><label class="form-label">Observações</label><input class="form-input" id="cli-obs" placeholder="Informações adicionais..."></div></div>
     </div>
@@ -786,12 +821,13 @@ tr:hover td{background:#FAFAF5}
 // ── STATE ──
 let DB = {
   clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],
-  settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7)}
+  settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7),
+    empresa:{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15}}
 };
 let supabaseClient = null;
 let currentUser = {id:'u1',nome:'Dono HAW',perfil:'dono',initials:'D'};
 let pedidoItensCount = 0;
-let chartFat = null, chartFunil = null, chartVendedor = null;
+let chartFat = null, chartFunil = null, chartVendedor = null, chartFatMensal = null;
 
 // ── PIPELINE CONFIG ──
 const PIPELINE_STAGES = [
@@ -965,7 +1001,7 @@ function setCatTab(tab,btn){
   btn.classList.add('active');
 }
 function setCfgTab(tab,btn){
-  ['usuarios','metas','supabase'].forEach(t=>{
+  ['usuarios','metas','empresa','supabase'].forEach(t=>{
     document.getElementById(`cfg-${t}`).style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('.inner-tab').forEach(b=>b.classList.remove('active'));
@@ -1351,6 +1387,21 @@ function salvarMetas(){
   });
   save();toast('Metas salvas!');
 }
+function salvarEmpresa(){
+  const emp=DB.settings.empresa||{};
+  DB.settings.empresa={
+    ...emp,
+    nome:document.getElementById('emp-nome').value.trim()||'HAW Vision',
+    cnpj:document.getElementById('emp-cnpj').value.trim(),
+    telefone:document.getElementById('emp-tel').value.trim(),
+    validade:parseInt(document.getElementById('emp-validade').value)||15,
+    cidade:document.getElementById('emp-cidade').value.trim()||'Belém',
+    estado:document.getElementById('emp-estado').value.trim().toUpperCase()||'PA',
+  };
+  save();
+  toast('Dados da empresa salvos!');
+}
+
 function salvarSupabase(){
   DB.settings.supabaseUrl=document.getElementById('cfg-sb-url').value.trim();
   DB.settings.supabaseKey=document.getElementById('cfg-sb-key').value.trim();
@@ -1368,7 +1419,8 @@ function _buildPDFHtml(pedido, cli){
   const pagMap = {dinheiro:'Dinheiro',cartao_credito:'Cartão de Crédito',cartao_debito:'Cartão de Débito',pix:'PIX',cheque:'Cheque',financiado:'Financiado',outro:'Outro'};
   const pagLabel = pagMap[pedido.pagamento]||pedido.pagamento||'—';
   const hoje = new Date().toLocaleDateString('pt-BR');
-  const validade = new Date(Date.now()+15*86400000).toLocaleDateString('pt-BR');
+  const emp = (DB.settings&&DB.settings.empresa)||{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15};
+  const validade = new Date(Date.now()+(emp.validade||15)*86400000).toLocaleDateString('pt-BR');
   const numPed = pedido.numero || (pedido.id ? pedido.id.toString().slice(-6).toUpperCase() : '------');
 
   return `<div style="font-family:'Segoe UI',Arial,sans-serif;width:794px;margin:0;padding:0;background:#fff;color:#222;box-sizing:border-box">
@@ -1457,9 +1509,9 @@ function _buildPDFHtml(pedido, cli){
         </div>
         <div style="flex:1;background:#f7f8fa;border-radius:8px;padding:16px;font-size:11px;color:#666;line-height:1.7">
           <div style="font-weight:700;color:#13182C;margin-bottom:6px">Contato</div>
-          <div style="font-weight:600;color:#222">HAW Vision</div>
-          <div>Belém – Pará</div>
-          <div>(91) 99801-9092</div>
+          <div style="font-weight:600;color:#222">${emp.nome}</div>
+          <div>${emp.cidade} – ${emp.estado}</div>
+          <div>${emp.telefone}</div>
           <div style="margin-top:4px;color:#13182C;font-weight:600">Obrigado pela preferência! 🙏</div>
         </div>
       </div>
@@ -1471,8 +1523,8 @@ function _buildPDFHtml(pedido, cli){
       <div style="background:#F7CF13;height:2px;border-radius:1px;margin-bottom:14px"></div>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <div style="color:#fff;font-size:11px;font-weight:700;letter-spacing:.05em">HAW Vision</div>
-          <div style="color:rgba(255,255,255,.5);font-size:10px;margin-top:2px">CNPJ: 32.139.400/0001-79 · (91) 99801-9092 · Belém, PA</div>
+          <div style="color:#fff;font-size:11px;font-weight:700;letter-spacing:.05em">${emp.nome}</div>
+          <div style="color:rgba(255,255,255,.5);font-size:10px;margin-top:2px">CNPJ: ${emp.cnpj} · ${emp.telefone} · ${emp.cidade}, ${emp.estado}</div>
         </div>
         <div style="color:rgba(255,255,255,.4);font-size:10px">Orçamento #${numPed}</div>
       </div>
@@ -1799,15 +1851,51 @@ function renderCatalogo(){
 // ── RELATÓRIOS ──
 function renderRelatorios(){
   const now=new Date();
+  const mes=now.toISOString().slice(0,7);
+  const peds=DB.pedidos.filter(p=>!p.deleted);
+  const mesPeds=peds.filter(p=>p.createdAt&&p.createdAt.startsWith(mes)&&['entregue','pos_venda'].includes(p.status));
+  const fatMes=mesPeds.reduce((s,p)=>s+Number(p.total||0),0);
+  const ticket=mesPeds.length?fatMes/mesPeds.length:0;
+  const cliAtivos=DB.clientes.filter(c=>!c.deleted).length;
+  // KPI cards
+  const kpis=[
+    {label:'Faturamento do Mês',val:fmtMoney(fatMes),icon:'💰',color:'var(--gold)'},
+    {label:'Pedidos Entregues',val:mesPeds.length,icon:'📦',color:'var(--green)'},
+    {label:'Ticket Médio',val:fmtMoney(ticket),icon:'🎯',color:'var(--blue)'},
+    {label:'Clientes Ativos',val:cliAtivos,icon:'👤',color:'var(--gold-deep)'},
+  ];
+  const kpiEl=document.getElementById('rel-kpis');
+  if(kpiEl)kpiEl.innerHTML=kpis.map(k=>`<div class="card" style="padding:20px">
+    <div style="font-size:22px;margin-bottom:8px">${k.icon}</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">${k.label}</div>
+    <div style="font-size:22px;font-weight:700;color:${k.color};margin-top:4px">${k.val}</div>
+  </div>`).join('');
+  // Produtos mais vendidos
+  const prodMap={};
+  peds.forEach(p=>(p.itens||[]).forEach(it=>{
+    const key=it.desc||it.descricao||'Item';
+    if(!prodMap[key])prodMap[key]={qtd:0,fat:0};
+    prodMap[key].qtd+=it.qtd||1;
+    prodMap[key].fat+=(it.sub||(it.qtd||1)*(it.preco||0));
+  }));
+  const top5=Object.entries(prodMap).sort((a,b)=>b[1].fat-a[1].fat).slice(0,5);
+  const ptbody=document.getElementById('rel-produtos-tbody');
+  if(ptbody)ptbody.innerHTML=top5.length?top5.map(([nome,d])=>`<tr>
+    <td style="font-weight:500">${nome}</td>
+    <td style="text-align:right">${d.qtd}</td>
+    <td style="text-align:right;font-weight:600;color:var(--gold-deep)">${fmtMoney(d.fat)}</td>
+  </tr>`).join(''):`<tr><td colspan="3"><div class="empty" style="padding:16px"><div class="empty-title">Nenhum produto vendido ainda</div></div></td></tr>`;
+  // Clientes para contatar
   const retorno=DB.clientes.filter(c=>!c.deleted).map(c=>{
-    const ult=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===c.id&&p.status==='entregue').sort((a,b)=>b.createdAt?.localeCompare(a.createdAt))[0];
+    const ult=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===c.id&&p.status==='entregue').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
     if(!ult)return null;
     const m=Math.floor((now-new Date(ult.createdAt))/2592000000);
     if(m>=11)return{c,ult,m};
     return null;
   }).filter(Boolean).sort((a,b)=>b.m-a.m);
   const tbody=document.getElementById('rel-retorno-tbody');
-  tbody.innerHTML=retorno.length?retorno.map(({c,ult,m})=>`<tr>
+  const emp=DB.settings.empresa||{};
+  if(tbody)tbody.innerHTML=retorno.length?retorno.map(({c,ult,m})=>`<tr>
     <td style="font-weight:500">${c.nome}</td>
     <td>${fmtDate(ult.createdAt)}</td>
     <td><span class="badge ${m>=13?'badge-red':'badge-amber'}">${m} meses</span></td>
@@ -1817,14 +1905,25 @@ function renderRelatorios(){
 }
 function renderRelatorioCharts(){
   const peds=DB.pedidos.filter(p=>!p.deleted);
+  // Faturamento últimos 6 meses
+  const ctxFatM=document.getElementById('chart-fat-mensal');
+  if(ctxFatM){
+    if(chartFatMensal)chartFatMensal.destroy();
+    const meses=[];const labels=[];
+    for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);meses.push(d.toISOString().slice(0,7));labels.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));}
+    const vals=meses.map(m=>peds.filter(p=>p.createdAt&&p.createdAt.startsWith(m)&&['entregue','pos_venda'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0));
+    chartFatMensal=new Chart(ctxFatM,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#F7CF13',backgroundColor:'rgba(247,207,19,.12)',borderWidth:2,pointBackgroundColor:'#F7CF13',tension:.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'R$'+v.toLocaleString('pt-BR')}}}}});
+  }
+  // Funil
   const ctxFunil=document.getElementById('chart-funil');
   if(ctxFunil){
     if(chartFunil)chartFunil.destroy();
     chartFunil=new Chart(ctxFunil,{type:'bar',data:{
       labels:PIPELINE_STAGES.map(s=>s.label),
       datasets:[{data:PIPELINE_STAGES.map(s=>peds.filter(p=>p.status===s.key).length),backgroundColor:'rgba(247,207,19,.6)',borderColor:'rgba(247,207,19,1)',borderWidth:1,borderRadius:4}]
-    },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+    },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}});
   }
+  // Vendedor
   const ctxVend=document.getElementById('chart-vendedor');
   if(ctxVend){
     if(chartVendedor)chartVendedor.destroy();
@@ -1832,7 +1931,7 @@ function renderRelatorioCharts(){
     const vals=vendedores.map(v=>DB.pedidos.filter(p=>!p.deleted&&p.vendedorId===v.id&&['entregue','pos_venda'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0));
     chartVendedor=new Chart(ctxVend,{type:'doughnut',data:{
       labels:vendedores.map(v=>v.nome.split(' ')[0]),
-      datasets:[{data:vals,backgroundColor:['rgba(247,207,19,.8)','rgba(46,125,82,.7)','rgba(46,92,139,.7)','rgba(139,109,46,.6)'],borderWidth:0}]
+      datasets:[{data:vals,backgroundColor:['rgba(247,207,19,.85)','rgba(46,125,82,.75)','rgba(46,92,139,.75)','rgba(139,109,46,.65)'],borderWidth:0}]
     },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
   }
 }
@@ -1840,17 +1939,26 @@ function renderRelatorioCharts(){
 // ── CONFIG ──
 function renderConfig(){
   const tbody=document.getElementById('cfg-users-tbody');
-  tbody.innerHTML=DB.usuarios.map(u=>`<tr>
+  if(tbody)tbody.innerHTML=DB.usuarios.map(u=>`<tr>
     <td style="font-weight:500">${u.nome}</td>
     <td style="color:var(--muted)">${u.email}</td>
     <td><span class="badge badge-gold">${u.perfil}</span></td>
     <td><span class="badge ${u.ativo?'badge-green':'badge-gray'}">${u.ativo?'Ativo':'Inativo'}</span></td>
     <td>${fmtMoney(u.meta||0)}/mês</td>
   </tr>`).join('');
-  document.getElementById('metas-form').innerHTML=DB.usuarios.filter(u=>['vendedor','gestor','dono'].includes(u.perfil)).map(u=>`
+  const mf=document.getElementById('metas-form');
+  if(mf)mf.innerHTML=DB.usuarios.filter(u=>['vendedor','gestor','dono'].includes(u.perfil)).map(u=>`
     <div class="form-group"><label class="form-label">${u.nome}</label><input class="form-input" id="meta-${u.id}" type="number" value="${u.meta||0}" placeholder="Meta em R$"></div>`).join('');
-  if(DB.settings.supabaseUrl)document.getElementById('cfg-sb-url').value=DB.settings.supabaseUrl;
-  if(DB.settings.supabaseKey)document.getElementById('cfg-sb-key').value=DB.settings.supabaseKey;
+  // Empresa
+  const emp=DB.settings.empresa||{};
+  const empNome=document.getElementById('emp-nome');if(empNome)empNome.value=emp.nome||'HAW Vision';
+  const empCnpj=document.getElementById('emp-cnpj');if(empCnpj)empCnpj.value=emp.cnpj||'';
+  const empTel=document.getElementById('emp-tel');if(empTel)empTel.value=emp.telefone||'';
+  const empVal=document.getElementById('emp-validade');if(empVal)empVal.value=emp.validade||15;
+  const empCid=document.getElementById('emp-cidade');if(empCid)empCid.value=emp.cidade||'Belém';
+  const empEst=document.getElementById('emp-estado');if(empEst)empEst.value=emp.estado||'PA';
+  if(DB.settings.supabaseUrl){const el=document.getElementById('cfg-sb-url');if(el)el.value=DB.settings.supabaseUrl;}
+  if(DB.settings.supabaseKey){const el=document.getElementById('cfg-sb-key');if(el)el.value=DB.settings.supabaseKey;}
 }
 
 // ── GLOBAL EXPORTS (garante acesso de onclick no HTML) ──
@@ -1864,6 +1972,7 @@ window.salvarReceita=salvarReceita;
 window.salvarProduto=salvarProduto;
 window.salvarUsuario=salvarUsuario;
 window.salvarMetas=salvarMetas;
+window.salvarEmpresa=salvarEmpresa;
 window.salvarSupabase=salvarSupabase;
 window.editarCliente=editarCliente;
 window.editarPedido=editarPedido;
