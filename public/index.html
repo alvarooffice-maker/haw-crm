@@ -1373,14 +1373,12 @@ function _buildPDFHtml(pedido, cli){
   const validade = new Date(Date.now()+15*86400000).toLocaleDateString('pt-BR');
   const numPed = pedido.id ? pedido.id.toString().slice(-6).toUpperCase() : '------';
 
-  return `<div style="font-family:'Segoe UI',Arial,sans-serif;width:794px;min-height:1123px;margin:0;padding:0;background:#fff;color:#222;box-sizing:border-box">
+  return `<div style="font-family:'Segoe UI',Arial,sans-serif;width:794px;margin:0;padding:0;background:#fff;color:#222;box-sizing:border-box">
 
     <!-- HEADER navy -->
-    <div style="background:#13182C;padding:36px 48px 28px;display:flex;align-items:flex-end;justify-content:space-between">
+    <div style="background:#13182C;padding:36px 48px 28px;display:flex;align-items:center;justify-content:space-between">
       <div>
         ${logoHtml}
-        <div style="color:#F7CF13;font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-top:8px;font-weight:600">Ótica &amp; Óptica</div>
-        <div style="color:rgba(255,255,255,.45);font-size:10px;margin-top:2px">Manaus, Amazonas</div>
       </div>
       <div style="text-align:right">
         <div style="background:#F7CF13;color:#13182C;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:4px 14px;border-radius:20px;display:inline-block;margin-bottom:10px">Orçamento</div>
@@ -1462,7 +1460,7 @@ function _buildPDFHtml(pedido, cli){
         <div style="flex:1;background:#f7f8fa;border-radius:8px;padding:16px;font-size:11px;color:#666;line-height:1.7">
           <div style="font-weight:700;color:#13182C;margin-bottom:6px">Contato</div>
           <div>HAW Vision Ótica</div>
-          <div>Manaus – Amazonas</div>
+          <div>Belém – Pará</div>
           <div style="margin-top:4px;color:#13182C;font-weight:600">Obrigado pela preferência! 🙏</div>
         </div>
       </div>
@@ -1471,7 +1469,7 @@ function _buildPDFHtml(pedido, cli){
 
     <!-- FOOTER -->
     <div style="background:#13182C;padding:18px 48px;display:flex;align-items:center;justify-content:space-between;margin-top:auto">
-      <div style="color:rgba(255,255,255,.4);font-size:10px">HAW Vision · Manaus, AM</div>
+      <div style="color:rgba(255,255,255,.4);font-size:10px">HAW Vision · Belém, PA</div>
       <div style="background:#F7CF13;height:2px;flex:1;margin:0 24px;border-radius:1px"></div>
       <div style="color:rgba(255,255,255,.4);font-size:10px">Orçamento #${numPed}</div>
     </div>
