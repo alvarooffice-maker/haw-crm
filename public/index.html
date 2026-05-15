@@ -9,13 +9,8 @@
 <script>
 // HAW Vision — config loader (nunca bloqueia)
 window.HAW_CONFIG = {supabaseUrl:"",supabaseKey:"",appVersion:"1.0.0",appName:"HAW Vision"};
-(function(){
-  var s = document.createElement('script');
-  s.src = 'config.js';
-  s.onerror = function(){ console.warn('[HAW] config.js ausente — modo offline'); };
-  document.head.appendChild(s);
-})();
 </script>
+<script src="config.js" onerror="console.warn('[HAW] config.js ausente — modo offline')"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
