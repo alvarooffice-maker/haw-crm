@@ -23,11 +23,11 @@
     }
   }
 
-  const sb = initSupabase();
-  window._hawSB = sb;
+  // sb é inicializado no DOMContentLoaded, após config.js já ter executado
+  let sb = null;
 
   // ── Estado de sincronização ───────────────────────────────
-  let syncStatus = sb ? 'online' : 'offline';
+  let syncStatus = 'offline';
 
   function setSyncStatus(s) {
     syncStatus = s;
@@ -244,12 +244,16 @@
     sync: syncToSupabase,
     load: loadFromSupabase,
     setupRealtime,
-    client: sb,
+    get client() { return sb; },
   };
 
   // ── AUTO-INIT ─────────────────────────────────────────────
-  // Executar após o DOM carregar
+  // Executar após o DOM carregar — config.js já executou neste ponto
   document.addEventListener('DOMContentLoaded', async () => {
+    // Inicializar Supabase AGORA (config.js já carregou de forma síncrona)
+    sb = initSupabase();
+    window._hawSB = sb;
+
     // Adicionar indicador de status na topbar
     const tbRight = document.querySelector('.topbar-right');
     if (tbRight) {
@@ -268,17 +272,17 @@
         setupRealtime();
         // Re-render tudo com dados do servidor
         setTimeout(() => {
-          if (typeof renderDashboard === 'function') renderDashboard();
-          if (typeof renderPipeline  === 'function') renderPipeline();
-          if (typeof renderClientes  === 'function') renderClientes();
-          if (typeof renderPedidos   === 'function') renderPedidos();
-          if (typeof renderReceitas  === 'function') renderReceitas();
+          if (typeof renderDashboard  === 'function') renderDashboard();
+          if (typeof renderPipeline   === 'function') renderPipeline();
+          if (typeof renderClientes   === 'function') renderClientes();
+          if (typeof renderPedidos    === 'function') renderPedidos();
+          if (typeof renderReceitas   === 'function') renderReceitas();
           if (typeof renderFinanceiro === 'function') renderFinanceiro();
-          if (typeof renderCatalogo  === 'function') renderCatalogo();
+          if (typeof renderCatalogo   === 'function') renderCatalogo();
           if (typeof renderRelatorios === 'function') renderRelatorios();
-          if (typeof renderConfig    === 'function') renderConfig();
-          if (typeof updateNavCounts === 'function') updateNavCounts();
-          if (typeof populateSelects === 'function') populateSelects();
+          if (typeof renderConfig     === 'function') renderConfig();
+          if (typeof updateNavCounts  === 'function') updateNavCounts();
+          if (typeof populateSelects  === 'function') populateSelects();
         }, 200);
       }
     } else {
@@ -288,6 +292,7 @@
 
   // ── OVERRIDE: save() para persistir no Supabase ──────────
   // Aguarda o index.html definir save() e sobrescreve
+  // Usa 'load' (após DOMContentLoaded) — sb já está inicializado
   window.addEventListener('load', () => {
     const originalSave = window.save;
     if (originalSave) {
