@@ -988,7 +988,7 @@ function filterPedidos(f,btn){
 function globalSearch(q){
   if(!q.trim()){renderClientes();renderPedidos();return;}
   const term=q.toLowerCase();
-  const clis=DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||c.telefone.includes(term)||(c.cpf||'').includes(term)));
+  const clis=DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term)));
   const peds=DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term)));
   renderClientesData(clis);
   renderPedidosData(peds);
@@ -1051,8 +1051,8 @@ function excluirCliente(id){
 function verPerfil(id){
   const c=DB.clientes.find(x=>x.id===id);if(!c)return;
   const peds=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===id);
-  const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===id).sort((a,b)=>b.dataReceita.localeCompare(a.dataReceita));
-  const ult=peds.filter(p=>p.status==='entregue').sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];
+  const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===id).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
+  const ult=peds.filter(p=>p.status==='entregue').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
   document.getElementById('perfil-nome-header').textContent=c.nome;
   document.getElementById('perfil-body').innerHTML=`
     <div class="perfil-header">
@@ -1698,7 +1698,7 @@ function renderRelatorios(){
     <td>${fmtDate(ult.createdAt)}</td>
     <td><span class="badge ${m>=13?'badge-red':'badge-amber'}">${m} meses</span></td>
     <td>${c.telefone||'—'}</td>
-    <td><a href="https://wa.me/55${(c.telefone||'').replace(/\D/g,'')}?text=Olá ${encodeURIComponent(c.nome.split(' ')[0])}! É a HAW Óticas. Sua revisão anual está próxima! 👓" target="_blank" class="btn btn-ghost btn-sm">📱 WhatsApp</a></td>
+    <td><a href="https://wa.me/55${(c.telefone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+c.nome.split(' ')[0]+'! É a HAW Vision. Sua revisão anual está próxima! 👓')}" target="_blank" class="btn btn-ghost btn-sm">📱 WhatsApp</a></td>
   </tr>`).join(''):`<tr><td colspan="5"><div class="empty" style="padding:20px"><div class="empty-icon">✅</div><div class="empty-title">Nenhum cliente para contatar</div></div></td></tr>`;
 }
 function renderRelatorioCharts(){
