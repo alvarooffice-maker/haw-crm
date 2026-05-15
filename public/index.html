@@ -920,6 +920,8 @@ function initials(n){return n.split(' ').map(x=>x[0]).slice(0,2).join('').toUppe
 function openModal(id,data={}){
   const el=document.getElementById(id);
   if(!el)return;
+  // Garantir que o modal é filho direto do body (evita conflito com overflow:hidden de ancestors)
+  if(el.parentElement!==document.body)document.body.appendChild(el);
   // reset form inputs
   el.querySelectorAll('input:not([type=hidden]),select,textarea').forEach(i=>{if(i.type!=='hidden')i.value=''});
   if(id==='modal-pedido'){
