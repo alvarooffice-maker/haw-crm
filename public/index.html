@@ -1360,54 +1360,165 @@ function salvarSupabase(){
 }
 
 // ── GERAR PDF ORÇAMENTO ──
+function _buildPDFHtml(pedido, cli){
+  const itens = pedido.itens || [];
+  const sub = itens.reduce((s,i)=>s+(i.sub||((i.qtd||1)*(i.preco||0))),0);
+  const desc = pedido.desconto||0;
+  const total = pedido.total || sub*(1-desc/100);
+  const logoEl = document.getElementById('haw-pdf-logo');
+  const logoHtml = logoEl ? logoEl.innerHTML : '<span style="font-size:22px;font-weight:900;color:#F7CF13;letter-spacing:2px">HAW VISION</span>';
+  const pagMap = {dinheiro:'Dinheiro',cartao_credito:'Cartão de Crédito',cartao_debito:'Cartão de Débito',pix:'PIX',cheque:'Cheque',financiado:'Financiado',outro:'Outro'};
+  const pagLabel = pagMap[pedido.pagamento]||pedido.pagamento||'—';
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const validade = new Date(Date.now()+15*86400000).toLocaleDateString('pt-BR');
+  const numPed = pedido.id ? pedido.id.toString().slice(-6).toUpperCase() : '------';
+
+  return `<div style="font-family:'Segoe UI',Arial,sans-serif;width:794px;min-height:1123px;margin:0;padding:0;background:#fff;color:#222;box-sizing:border-box">
+
+    <!-- HEADER navy -->
+    <div style="background:#13182C;padding:36px 48px 28px;display:flex;align-items:flex-end;justify-content:space-between">
+      <div>
+        ${logoHtml}
+        <div style="color:#F7CF13;font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-top:8px;font-weight:600">Ótica &amp; Óptica</div>
+        <div style="color:rgba(255,255,255,.45);font-size:10px;margin-top:2px">Manaus, Amazonas</div>
+      </div>
+      <div style="text-align:right">
+        <div style="background:#F7CF13;color:#13182C;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:4px 14px;border-radius:20px;display:inline-block;margin-bottom:10px">Orçamento</div>
+        <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:1px">#${numPed}</div>
+        <div style="color:rgba(255,255,255,.5);font-size:11px;margin-top:4px">Emitido: ${hoje}</div>
+        <div style="color:rgba(255,255,255,.5);font-size:11px">Válido até: ${validade}</div>
+      </div>
+    </div>
+
+    <!-- YELLOW STRIPE -->
+    <div style="background:#F7CF13;height:4px"></div>
+
+    <!-- BODY -->
+    <div style="padding:40px 48px">
+
+      <!-- CLIENTE CARD -->
+      <div style="background:#f7f8fa;border-left:4px solid #F7CF13;border-radius:0 8px 8px 0;padding:20px 24px;margin-bottom:32px;display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#888;margin-bottom:6px">Cliente</div>
+          <div style="font-size:20px;font-weight:700;color:#13182C">${cli.nome}</div>
+          ${cli.telefone?`<div style="font-size:12px;color:#666;margin-top:4px">📱 ${cli.telefone}</div>`:''}
+          ${cli.email?`<div style="font-size:12px;color:#666;margin-top:2px">✉️ ${cli.email}</div>`:''}
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#888;margin-bottom:6px">Pagamento</div>
+          <div style="font-size:13px;font-weight:600;color:#13182C">${pagLabel}</div>
+          ${pedido.prevLab?`<div style="font-size:11px;color:#888;margin-top:4px">Previsão lab: ${fmtDate(pedido.prevLab)}</div>`:''}
+        </div>
+      </div>
+
+      <!-- ITENS TABLE -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+        <thead>
+          <tr style="background:#13182C">
+            <th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#F7CF13">Descrição</th>
+            <th style="padding:12px 8px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#F7CF13;width:50px">Qtd</th>
+            <th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#F7CF13;width:110px">Unit.</th>
+            <th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#F7CF13;width:120px">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itens.map((it,i)=>`<tr style="background:${i%2===0?'#fff':'#f7f8fa'};border-bottom:1px solid #eee">
+            <td style="padding:13px 16px;font-size:13px;color:#222">${it.desc||it.descricao||'Item'}</td>
+            <td style="padding:13px 8px;text-align:center;font-size:13px;color:#555">${it.qtd||1}</td>
+            <td style="padding:13px 16px;text-align:right;font-size:13px;color:#555">${fmtMoney(it.preco||0)}</td>
+            <td style="padding:13px 16px;text-align:right;font-size:13px;font-weight:600;color:#13182C">${fmtMoney(it.sub||(it.qtd||1)*(it.preco||0))}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+
+      <!-- TOTALS -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:40px">
+        <div style="min-width:260px">
+          ${desc>0?`
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px;color:#666">
+            <span>Subtotal</span><span>${fmtMoney(sub)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px;color:#e05">
+            <span>Desconto (${desc}%)</span><span>− ${fmtMoney(sub*desc/100)}</span>
+          </div>`:''}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#13182C;border-radius:8px;margin-top:8px">
+            <span style="font-size:13px;font-weight:600;color:#F7CF13;letter-spacing:.08em;text-transform:uppercase">Total</span>
+            <span style="font-size:26px;font-weight:700;color:#F7CF13">${fmtMoney(total)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OBS -->
+      ${pedido.obs?`<div style="background:#fffbea;border:1px solid #F7CF13;border-radius:8px;padding:16px 20px;margin-bottom:32px;font-size:12px;color:#555"><strong style="color:#13182C">Observações:</strong> ${pedido.obs}</div>`:''}
+
+      <!-- INFO BOX -->
+      <div style="display:flex;gap:16px;margin-bottom:0">
+        <div style="flex:1;background:#f7f8fa;border-radius:8px;padding:16px;font-size:11px;color:#666;line-height:1.7">
+          <div style="font-weight:700;color:#13182C;margin-bottom:6px">Condições</div>
+          <div>• Este orçamento é válido por 15 dias</div>
+          <div>• Prazo de entrega conforme acordado</div>
+          <div>• Sujeito à disponibilidade em estoque</div>
+        </div>
+        <div style="flex:1;background:#f7f8fa;border-radius:8px;padding:16px;font-size:11px;color:#666;line-height:1.7">
+          <div style="font-weight:700;color:#13182C;margin-bottom:6px">Contato</div>
+          <div>HAW Vision Ótica</div>
+          <div>Manaus – Amazonas</div>
+          <div style="margin-top:4px;color:#13182C;font-weight:600">Obrigado pela preferência! 🙏</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div style="background:#13182C;padding:18px 48px;display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+      <div style="color:rgba(255,255,255,.4);font-size:10px">HAW Vision · Manaus, AM</div>
+      <div style="background:#F7CF13;height:2px;flex:1;margin:0 24px;border-radius:1px"></div>
+      <div style="color:rgba(255,255,255,.4);font-size:10px">Orçamento #${numPed}</div>
+    </div>
+
+  </div>`;
+}
+
 function gerarPDF(){
   const cliId=document.getElementById('ped-cliente').value;
   const cli=DB.clientes.find(c=>c.id===cliId)||{nome:'Cliente'};
   const itens=getItens();
   const sub=itens.reduce((s,i)=>s+i.sub,0);
-  const desc=parseFloat(document.getElementById('ped-desconto').value)||0;
-  const total=sub*(1-desc/100);
-  const html=`<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:40px;color:#111">
-    <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #C9A84C;padding-bottom:20px;margin-bottom:24px">
-      <div>
-        ' + (document.getElementById('haw-pdf-logo') ? document.getElementById('haw-pdf-logo').innerHTML : '<b>HAW VISION</b>') + '
-        <div style="font-size:12px;color:#888;margin-top:4px">Orçamento Comercial</div>
-      </div>
-      <div style="text-align:right;font-size:12px;color:#555">
-        <div>Data: ${new Date().toLocaleDateString('pt-BR')}</div>
-        <div>Validade: 15 dias</div>
-      </div>
-    </div>
-    <div style="margin-bottom:24px;background:#FAF8F4;padding:16px;border-radius:8px">
-      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Cliente</div>
-      <div style="font-size:18px;font-weight:600">${cli.nome}</div>
-      ${cli.telefone?`<div style="font-size:13px;color:#555;margin-top:2px">${cli.telefone}</div>`:''}
-    </div>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
-      <thead><tr style="background:#111;color:#F7CF13">
-        <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.08em">Item</th>
-        <th style="padding:10px 12px;text-align:center;font-size:11px">Qtd</th>
-        <th style="padding:10px 12px;text-align:right;font-size:11px">Unitário</th>
-        <th style="padding:10px 12px;text-align:right;font-size:11px">Subtotal</th>
-      </tr></thead>
-      <tbody>${itens.map((it,i)=>`<tr style="background:${i%2?'#FAF8F4':'#fff'}">
-        <td style="padding:10px 12px;font-size:13px">${it.desc}</td>
-        <td style="padding:10px 12px;text-align:center;font-size:13px">${it.qtd}</td>
-        <td style="padding:10px 12px;text-align:right;font-size:13px">${fmtMoney(it.preco)}</td>
-        <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:600">${fmtMoney(it.sub)}</td>
-      </tr>`).join('')}</tbody>
-    </table>
-    ${desc>0?`<div style="text-align:right;margin-bottom:8px;font-size:13px;color:#888">Subtotal: ${fmtMoney(sub)} | Desconto: ${desc}%</div>`:''}
-    <div style="text-align:right;border-top:2px solid #F7CF13;padding-top:12px">
-      <span style="font-size:14px;color:#888;margin-right:12px">TOTAL</span>
-      <span style="font-size:28px;font-weight:700;color:#C9A84C">${fmtMoney(total)}</span>
-    </div>
-    <div style="margin-top:40px;font-size:11px;color:#AAA;border-top:1px solid #eee;padding-top:16px;text-align:center">HAW Óticas · Manaus, AM · Este orçamento tem validade de 15 dias</div>
-  </div>`;
+  const descPct=parseFloat(document.getElementById('ped-desconto').value)||0;
+  const total=sub*(1-descPct/100);
+  const pedFake={
+    itens, desconto:descPct, total,
+    pagamento:document.getElementById('ped-pagamento')?.value||'',
+    prevLab:document.getElementById('ped-prev-lab')?.value||'',
+    obs:document.getElementById('ped-obs')?.value||'',
+    id: document.getElementById('modal-pedido').dataset.editId||null,
+  };
+  _downloadPDF(pedFake, cli);
+}
+
+function _downloadPDF(pedido, cli){
   const container=document.createElement('div');
-  container.innerHTML=html;
+  container.style.cssText='position:fixed;left:-9999px;top:0';
+  container.innerHTML=_buildPDFHtml(pedido,cli);
   document.body.appendChild(container);
-  html2pdf().set({margin:10,filename:`Orcamento_HAW_${cli.nome.replace(/ /g,'_')}.pdf`,html2canvas:{scale:2},jsPDF:{format:'a4'}}).from(container).save().then(()=>document.body.removeChild(container));
+  const fname=`Orcamento_HAW_${(cli.nome||'Cliente').replace(/\s+/g,'_')}.pdf`;
+  html2pdf().set({
+    margin:0,
+    filename:fname,
+    html2canvas:{scale:2,useCORS:true,logging:false},
+    jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'}
+  }).from(container).save().then(()=>{
+    document.body.removeChild(container);
+    // WhatsApp share option
+    if(cli.telefone){
+      const tel=cli.telefone.replace(/\D/g,'');
+      const msg=encodeURIComponent(`Olá ${cli.nome.split(' ')[0]}! Segue o orçamento da HAW Vision. Qualquer dúvida estamos à disposição 😊`);
+      const waUrl=`https://wa.me/55${tel}?text=${msg}`;
+      if(confirm('PDF gerado! Deseja enviar mensagem ao cliente via WhatsApp?')){
+        window.open(waUrl,'_blank');
+      }
+    }
+  });
 }
 
 // ── TOAST ──
@@ -1613,9 +1724,8 @@ function renderPedidosData(peds){
 }
 function gerarPDFPedido(id){
   const p=DB.pedidos.find(x=>x.id===id);if(!p)return;
-  // preenchemos modal e geramos
-  editarPedido(id);
-  setTimeout(()=>{gerarPDF();closeModal('modal-pedido');},300);
+  const cli=DB.clientes.find(c=>c.id===p.clienteId)||{nome:'Cliente'};
+  _downloadPDF(p,cli);
 }
 
 // ── RECEITAS ──
