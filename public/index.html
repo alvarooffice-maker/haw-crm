@@ -1497,18 +1497,14 @@ function gerarPDF(){
 }
 
 function _downloadPDF(pedido, cli){
-  const container=document.createElement('div');
-  container.style.cssText='position:fixed;left:-9999px;top:0';
-  container.innerHTML=_buildPDFHtml(pedido,cli);
-  document.body.appendChild(container);
+  const htmlStr=_buildPDFHtml(pedido,cli);
   const fname=`Orcamento_HAW_${(cli.nome||'Cliente').replace(/\s+/g,'_')}.pdf`;
   html2pdf().set({
     margin:0,
     filename:fname,
-    html2canvas:{scale:2,useCORS:true,logging:false},
-    jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'}
-  }).from(container).save().then(()=>{
-    document.body.removeChild(container);
+    html2canvas:{scale:2,useCORS:true,logging:false,allowTaint:true,backgroundColor:'#ffffff'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  }).from(htmlStr,'string').save().then(()=>{
     // WhatsApp share option
     if(cli.telefone){
       const tel=cli.telefone.replace(/\D/g,'');
