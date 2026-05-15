@@ -1488,12 +1488,15 @@ function gerarPDF(){
   const sub=itens.reduce((s,i)=>s+i.sub,0);
   const descPct=parseFloat(document.getElementById('ped-desconto').value)||0;
   const total=sub*(1-descPct/100);
+  const existId=document.getElementById('ped-id').value||null;
+  const existPed=existId?DB.pedidos.find(p=>p.id===existId):null;
   const pedFake={
     itens, desconto:descPct, total,
     pagamento:document.getElementById('ped-pagamento')?.value||'',
     prevLab:document.getElementById('ped-prev-lab')?.value||'',
     obs:document.getElementById('ped-obs')?.value||'',
-    id: document.getElementById('modal-pedido').dataset.editId||null,
+    id:existId,
+    numero:existPed?.numero||null,
   };
   _downloadPDF(pedFake, cli);
 }
