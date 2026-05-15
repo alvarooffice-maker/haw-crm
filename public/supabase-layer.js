@@ -72,8 +72,6 @@
 
   async function syncToSupabase() {
     if (!sb) return;
-    const session = await sbSession();
-    if (!session) return;
     setSyncStatus('syncing');
     try {
       await Promise.all([
@@ -122,8 +120,6 @@
 
   async function loadFromSupabase() {
     if (!sb) return false;
-    const session = await sbSession();
-    if (!session) return false;
     setSyncStatus('syncing');
     try {
       const [clis, recs, prods, peds, itens, users] = await Promise.all([
