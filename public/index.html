@@ -855,7 +855,15 @@ function nav(page){
   document.getElementById('page-title').textContent=cfg.title;
   document.getElementById('page-sub').textContent=cfg.sub;
   const ab=document.getElementById('tb-action-btn');
-  if(cfg.btn){ab.textContent=cfg.btn;ab.style.display='flex';ab.onclick=new Function(cfg.action)}
+  if(cfg.btn){
+    ab.textContent=cfg.btn;ab.style.display='flex';
+    const actionMap={
+      'openModal(\"modal-pedido\")':()=>openModal('modal-pedido'),
+      'openModal(\"modal-cliente\")':()=>openModal('modal-cliente'),
+      'openModal(\"modal-receita\")':()=>openModal('modal-receita'),
+    };
+    ab.onclick=actionMap[cfg.action]||function(){eval(cfg.action)};
+  }
   else ab.style.display='none';
   if(page==='relatorios')setTimeout(renderRelatorioCharts,100);
 }
@@ -1730,6 +1738,46 @@ function renderConfig(){
   if(DB.settings.supabaseUrl)document.getElementById('cfg-sb-url').value=DB.settings.supabaseUrl;
   if(DB.settings.supabaseKey)document.getElementById('cfg-sb-key').value=DB.settings.supabaseKey;
 }
+
+// ── GLOBAL EXPORTS (garante acesso de onclick no HTML) ──
+window.nav=nav;
+window.openModal=openModal;
+window.closeModal=closeModal;
+window.tbAction=tbAction;
+window.salvarCliente=salvarCliente;
+window.salvarPedido=salvarPedido;
+window.salvarReceita=salvarReceita;
+window.salvarProduto=salvarProduto;
+window.salvarUsuario=salvarUsuario;
+window.salvarMetas=salvarMetas;
+window.salvarSupabase=salvarSupabase;
+window.editarCliente=editarCliente;
+window.editarPedido=editarPedido;
+window.excluirCliente=excluirCliente;
+window.excluirPedido=excluirPedido;
+window.abrirStatus=abrirStatus;
+window.confirmarStatus=confirmarStatus;
+window.abrirPedidoParaCliente=abrirPedidoParaCliente;
+window.verPerfil=verPerfil;
+window.perfilTab=perfilTab;
+window.gerarPDF=gerarPDF;
+window.gerarPDFPedido=gerarPDFPedido;
+window.calcTotal=calcTotal;
+window.addItemPedido=addItemPedido;
+window.onItemProdChange=onItemProdChange;
+window.onPedClienteChange=onPedClienteChange;
+window.filterClientes=filterClientes;
+window.filterPedidos=filterPedidos;
+window.setPipelineVendedor=setPipelineVendedor;
+window.addParaStage=addParaStage;
+window.setCatTab=setCatTab;
+window.setCfgTab=setCfgTab;
+window.globalSearch=globalSearch;
+window.editarProduto=editarProduto;
+window.toggleProduto=toggleProduto;
+window.maskCPF=maskCPF;
+window.maskTel=maskTel;
+window.salvarMetas=salvarMetas;
 
 // ── INIT (after all functions defined) ──
 document.addEventListener('DOMContentLoaded',()=>{
