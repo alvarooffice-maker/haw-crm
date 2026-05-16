@@ -106,6 +106,7 @@ tr:hover td{background:#FAFAF5}
 .badge-red{background:var(--red-l);color:var(--red)}
 .badge-gold{background:var(--gold-pale);color:var(--gold-deep)}
 .badge-blue{background:var(--blue-l);color:var(--blue)}
+.badge-navy{background:var(--navy);color:var(--gold)}
 .badge-amber{background:var(--amber-l);color:var(--amber)}
 .badge-gray{background:#F0EFED;color:var(--muted)}
 
@@ -566,37 +567,74 @@ tr:hover td{background:#FAFAF5}
     <!-- ══════════════════ CONFIGURAÇÕES ══════════════════ -->
     <div class="tab-panel" id="tab-config">
       <div class="inner-tabs">
-        <button class="inner-tab active" onclick="setCfgTab('usuarios',this)">Usuários</button>
-        <button class="inner-tab" onclick="setCfgTab('metas',this)">Metas</button>
-        <button class="inner-tab" onclick="setCfgTab('empresa',this)">Empresa</button>
-        <button class="inner-tab" onclick="setCfgTab('supabase',this)">Supabase</button>
+        <button class="inner-tab active" onclick="setCfgTab('usuarios',this)">👤 Usuários</button>
+        <button class="inner-tab" onclick="setCfgTab('metas',this)">🎯 Metas</button>
+        <button class="inner-tab" onclick="setCfgTab('empresa',this)">🏢 Empresa</button>
+        <button class="inner-tab" onclick="setCfgTab('supabase',this)">☁️ Sincronização</button>
       </div>
+
+      <!-- ── USUÁRIOS ── -->
       <div id="cfg-usuarios">
+        <div class="card" style="margin-bottom:12px">
+          <div style="padding:14px 20px">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Perfis de acesso disponíveis</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
+              <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;border-left:3px solid var(--navy)">
+                <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">🧑‍💼 Vendedor</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.4">Dashboard · Pipeline · Clientes · Pedidos · Receitas · Catálogo</div>
+              </div>
+              <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;border-left:3px solid #4a90d9">
+                <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">👔 Gestor</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.4">Tudo do Vendedor + Financeiro e Relatórios</div>
+              </div>
+              <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;border-left:3px solid #27ae60">
+                <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">💰 Financeiro</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.4">Dashboard · Financeiro · Relatórios apenas</div>
+              </div>
+              <div style="background:#fffbea;border-radius:8px;padding:10px 12px;border-left:3px solid var(--gold)">
+                <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">👑 Dono</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.4">Acesso total a todas as áreas do sistema</div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="card">
-          <div class="ch"><span class="ct">Usuários do sistema</span><button class="btn btn-gold btn-sm" onclick="openModal('modal-usuario')">+ Novo usuário</button></div>
-          <table><thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Status</th><th>Meta</th></tr></thead>
-          <tbody id="cfg-users-tbody"></tbody>
+          <div class="ch"><span class="ct">Usuários do sistema</span><button class="btn btn-gold btn-sm" onclick="abrirNovoUsuario()">+ Novo usuário</button></div>
+          <table>
+            <thead><tr><th>Usuário</th><th>Email</th><th>Perfil</th><th style="text-align:center">PIN</th><th>Meta/mês</th><th style="text-align:center">Status</th><th style="text-align:center">Ações</th></tr></thead>
+            <tbody id="cfg-users-tbody"></tbody>
+          </table>
         </div>
       </div>
+
+      <!-- ── METAS ── -->
       <div id="cfg-metas" style="display:none">
         <div class="card">
-          <div class="ch"><span class="ct">Metas mensais</span></div>
+          <div class="ch"><span class="ct">Metas mensais — <span id="metas-mes-label" style="color:var(--muted);font-weight:400"></span></span></div>
           <div style="padding:20px">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+              📊 As metas aparecem no <strong>Ranking do Dashboard</strong> e nos <strong>Relatórios de desempenho</strong>. Configure o valor mensal de vendas esperado para cada vendedor e gestor.
+            </p>
             <div class="form-row c2" id="metas-form"></div>
             <button class="btn btn-gold" onclick="salvarMetas()">Salvar metas</button>
           </div>
         </div>
       </div>
+
+      <!-- ── EMPRESA ── -->
       <div id="cfg-empresa" style="display:none">
         <div class="card">
           <div class="ch"><span class="ct">Dados da Empresa</span></div>
           <div style="padding:20px">
+            <div style="background:#f0f7ff;border:1px solid #cde;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2c5f8a;line-height:1.5">
+              🧾 Estes dados aparecem no <strong>rodapé dos orçamentos em PDF</strong> gerados pelo sistema. Mantenha-os atualizados para que os clientes tenham as informações corretas.
+            </div>
             <div class="form-row c2">
               <div class="form-group"><label class="form-label">Nome Fantasia</label><input class="form-input" id="emp-nome" placeholder="HAW Vision"></div>
               <div class="form-group"><label class="form-label">CNPJ</label><input class="form-input" id="emp-cnpj" placeholder="00.000.000/0001-00"></div>
             </div>
             <div class="form-row c2">
-              <div class="form-group"><label class="form-label">Telefone</label><input class="form-input" id="emp-tel" placeholder="(91) 99801-9092"></div>
+              <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input class="form-input" id="emp-tel" placeholder="(91) 99801-9092"></div>
               <div class="form-group"><label class="form-label">Validade do Orçamento (dias)</label><input class="form-input" id="emp-validade" type="number" placeholder="15" min="1"></div>
             </div>
             <div class="form-row c2">
@@ -607,13 +645,31 @@ tr:hover td{background:#FAFAF5}
           </div>
         </div>
       </div>
+
+      <!-- ── SINCRONIZAÇÃO / SUPABASE ── -->
       <div id="cfg-supabase" style="display:none">
+        <div class="card" style="margin-bottom:12px">
+          <div style="padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:220px">
+              <div style="font-weight:600;font-size:14px;margin-bottom:5px">Status da Sincronização</div>
+              <div id="sb-live-status" style="font-size:13px;color:var(--muted)">Verificando…</div>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="testarConexao()">🔄 Testar conexão</button>
+          </div>
+        </div>
         <div class="card">
-          <div class="ch"><span class="ct">Conexão Supabase</span></div>
+          <div class="ch"><span class="ct">Configuração Supabase</span></div>
           <div style="padding:20px">
+            <div style="background:#fffbea;border:1px solid #f7cf1366;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#7a6000;line-height:1.6">
+              ☁️ <strong>O que é o Supabase?</strong> É o banco de dados na nuvem que mantém todos os dados sincronizados entre os computadores da loja. Sem ele, cada computador salva os dados apenas localmente.<br>
+              <strong>Em produção (GitHub Pages)</strong>, as credenciais são configuradas automaticamente via variáveis de ambiente — normalmente não é necessário alterar aqui.
+            </div>
             <div class="form-row c1"><div class="form-group"><label class="form-label">Supabase URL</label><input class="form-input" id="cfg-sb-url" placeholder="https://xxx.supabase.co" value=""></div></div>
-            <div class="form-row c1"><div class="form-group"><label class="form-label">Anon Key</label><input class="form-input" id="cfg-sb-key" placeholder="eyJ..." value=""></div></div>
-            <button class="btn btn-gold" onclick="salvarSupabase()">Conectar</button>
+            <div class="form-row c1"><div class="form-group"><label class="form-label">Anon Key</label><input class="form-input" id="cfg-sb-key" placeholder="eyJ..." value="" type="password"></div></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-gold" onclick="salvarSupabase()">💾 Salvar configuração</button>
+              <button class="btn btn-ghost btn-sm" onclick="(function(){const el=document.getElementById('cfg-sb-key');el.type=el.type==='password'?'text':'password'})()">👁 Mostrar/ocultar chave</button>
+            </div>
             <div id="sb-status" style="margin-top:12px;font-size:12px;color:var(--muted)">Não conectado — dados salvos localmente</div>
           </div>
         </div>
@@ -818,16 +874,29 @@ tr:hover td{background:#FAFAF5}
 <div class="modal-overlay" id="modal-usuario">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
-      <span class="modal-title">Novo Usuário</span>
+      <span class="modal-title" id="usr-modal-title">Novo Usuário</span>
       <button class="modal-close" onclick="closeModal('modal-usuario')">×</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="usr-id">
       <div class="form-row c1"><div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="usr-nome" placeholder="Ana Lima"></div></div>
       <div class="form-row c1"><div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="usr-email" type="email" placeholder="ana@hawoticas.com.br"></div></div>
-      <div class="form-row"><div class="form-group"><label class="form-label">Perfil *</label><select class="form-input form-select" id="usr-perfil"><option value="vendedor">Vendedor</option><option value="gestor">Gestor</option><option value="financeiro">Financeiro</option><option value="dono">Dono</option></select></div>
-      <div class="form-group"><label class="form-label">Meta mensal (R$)</label><input class="form-input" id="usr-meta" type="number" placeholder="8000"></div></div>
-      <div class="form-row c2"><div class="form-group"><label class="form-label">PIN (4 dígitos) *</label><input class="form-input" id="usr-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
-      <div class="form-group"><label class="form-label">Confirmar PIN</label><input class="form-input" id="usr-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Perfil *</label>
+          <select class="form-input form-select" id="usr-perfil">
+            <option value="vendedor">Vendedor — Vendas e clientes</option>
+            <option value="gestor">Gestor — Vendas + financeiro</option>
+            <option value="financeiro">Financeiro — Só financeiro</option>
+            <option value="dono">Dono — Acesso total</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Meta mensal (R$)</label><input class="form-input" id="usr-meta" type="number" placeholder="8000"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label" id="usr-pin-label">PIN (4 dígitos) *</label><input class="form-input" id="usr-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+        <div class="form-group"><label class="form-label">Confirmar PIN</label><input class="form-input" id="usr-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+      </div>
+      <div id="usr-pin-hint" style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:4px"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-usuario')">Cancelar</button>
@@ -1481,16 +1550,90 @@ function toggleProduto(id){
 }
 
 // ── USUÁRIO ──
+function abrirNovoUsuario(){
+  document.getElementById('usr-id').value='';
+  document.getElementById('usr-modal-title').textContent='Novo Usuário';
+  document.getElementById('usr-pin-label').textContent='PIN (4 dígitos) *';
+  document.getElementById('usr-pin-hint').textContent='';
+  document.getElementById('usr-nome').value='';
+  document.getElementById('usr-email').value='';
+  document.getElementById('usr-perfil').value='vendedor';
+  document.getElementById('usr-meta').value='';
+  document.getElementById('usr-pin').value='';
+  document.getElementById('usr-pin2').value='';
+  openModal('modal-usuario');
+}
+
+function editarUsuario(id){
+  const u=DB.usuarios.find(x=>x.id===id);if(!u)return;
+  document.getElementById('usr-id').value=u.id;
+  document.getElementById('usr-modal-title').textContent='Editar Usuário — '+u.nome;
+  document.getElementById('usr-pin-label').textContent='Novo PIN (4 dígitos)';
+  document.getElementById('usr-pin-hint').textContent='Deixe em branco para manter o PIN atual';
+  document.getElementById('usr-nome').value=u.nome;
+  document.getElementById('usr-email').value=u.email||'';
+  document.getElementById('usr-perfil').value=u.perfil||'vendedor';
+  document.getElementById('usr-meta').value=u.meta||'';
+  document.getElementById('usr-pin').value='';
+  document.getElementById('usr-pin2').value='';
+  openModal('modal-usuario');
+}
+
+function toggleUsuario(id){
+  const i=DB.usuarios.findIndex(u=>u.id===id);if(i<0)return;
+  const usr=DB.usuarios[i];
+  if(usr.perfil==='dono'&&usr.ativo!==false){
+    const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
+    if(donosAtivos.length<=1){toast('❌ Não é possível desativar o único Dono ativo');return;}
+  }
+  DB.usuarios[i].ativo=!(DB.usuarios[i].ativo!==false);
+  save();renderConfig();toast('Usuário '+(DB.usuarios[i].ativo?'ativado ✅':'desativado 🔴')+'!');
+}
+
+async function testarConexao(){
+  const liveEl=document.getElementById('sb-live-status');
+  if(liveEl){liveEl.textContent='🔄 Testando conexão…';liveEl.style.color='var(--gold-deep)';}
+  if(!window.HAW_SB||!window.HAW_SB.isOnline()){
+    if(liveEl){liveEl.innerHTML='🔴 <strong>Offline</strong> — Supabase não conectado. Verifique as credenciais.';liveEl.style.color='var(--red)';}
+    toast('❌ Supabase offline');return;
+  }
+  try{
+    await window.HAW_SB.load();
+    if(liveEl){liveEl.innerHTML='🟢 <strong>Conectado!</strong> Dados sincronizados com sucesso.';liveEl.style.color='var(--green)';}
+    toast('✅ Supabase conectado e sincronizado!');
+  }catch(e){
+    if(liveEl){liveEl.innerHTML='🔴 <strong>Erro na conexão:</strong> '+e.message;liveEl.style.color='var(--red)';}
+    toast('❌ Erro na conexão Supabase');
+  }
+}
+
 function salvarUsuario(){
   const nome=document.getElementById('usr-nome').value.trim();
   const email=document.getElementById('usr-email').value.trim();
   const pin=document.getElementById('usr-pin').value.trim();
   const pin2=document.getElementById('usr-pin2').value.trim();
+  const existId=document.getElementById('usr-id').value;
   if(!nome||!email){alert('Nome e email são obrigatórios');return;}
-  if(!pin||pin.length<4){alert('PIN deve ter 4 dígitos');return;}
-  if(pin!==pin2){alert('PINs não coincidem');return;}
-  DB.usuarios.push({id:uid(),nome,email,perfil:document.getElementById('usr-perfil').value,meta:parseFloat(document.getElementById('usr-meta').value)||0,ativo:true,senha:pin,createdAt:new Date().toISOString()});
-  save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário criado!');
+  if(existId){
+    // Edição
+    if(pin&&pin.length<4){alert('PIN deve ter 4 dígitos');return;}
+    if(pin&&pin!==pin2){alert('PINs não coincidem');return;}
+    const i=DB.usuarios.findIndex(u=>u.id===existId);
+    if(i>=0){
+      DB.usuarios[i].nome=nome;
+      DB.usuarios[i].email=email;
+      DB.usuarios[i].perfil=document.getElementById('usr-perfil').value;
+      DB.usuarios[i].meta=parseFloat(document.getElementById('usr-meta').value)||0;
+      if(pin)DB.usuarios[i].senha=pin;
+    }
+    save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário atualizado! ✅');
+  } else {
+    // Novo
+    if(!pin||pin.length<4){alert('PIN deve ter 4 dígitos');return;}
+    if(pin!==pin2){alert('PINs não coincidem');return;}
+    DB.usuarios.push({id:uid(),nome,email,perfil:document.getElementById('usr-perfil').value,meta:parseFloat(document.getElementById('usr-meta').value)||0,ativo:true,senha:pin,createdAt:new Date().toISOString()});
+    save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário criado! ✅');
+  }
 }
 function salvarMetas(){
   DB.usuarios.forEach(u=>{
@@ -2050,18 +2193,42 @@ function renderRelatorioCharts(){
 
 // ── CONFIG ──
 function renderConfig(){
+  // ── Usuários
   const tbody=document.getElementById('cfg-users-tbody');
-  if(tbody)tbody.innerHTML=DB.usuarios.map(u=>`<tr>
-    <td style="font-weight:500">${u.nome}</td>
-    <td style="color:var(--muted)">${u.email}</td>
-    <td><span class="badge badge-gold">${u.perfil}</span></td>
-    <td><span class="badge ${u.ativo?'badge-green':'badge-gray'}">${u.ativo?'Ativo':'Inativo'}</span></td>
-    <td>${fmtMoney(u.meta||0)}/mês</td>
-  </tr>`).join('');
+  const perfBadge={vendedor:'badge-navy',gestor:'badge-blue',financeiro:'badge-green',dono:'badge-gold'};
+  if(tbody)tbody.innerHTML=DB.usuarios.map(u=>{
+    const ini=u.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+    const ativo=u.ativo!==false;
+    return `<tr style="${ativo?'':'opacity:.55'}">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${ini}</div>
+          <span style="font-weight:500">${u.nome}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:12px">${u.email||'—'}</td>
+      <td><span class="badge ${perfBadge[u.perfil]||'badge-gold'}">${u.perfil}</span></td>
+      <td style="text-align:center;font-size:16px" title="${u.senha?'PIN configurado':'Sem PIN definido'}">${u.senha?'🔐':'⚠️'}</td>
+      <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
+      <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
+      <td style="text-align:center;white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="editarUsuario('${u.id}')" title="Editar usuário" style="padding:4px 8px">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}')" title="${ativo?'Desativar':'Ativar'}" style="padding:4px 8px;margin-left:2px">${ativo?'🔴':'🟢'}</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // ── Metas
   const mf=document.getElementById('metas-form');
-  if(mf)mf.innerHTML=DB.usuarios.filter(u=>['vendedor','gestor','dono'].includes(u.perfil)).map(u=>`
-    <div class="form-group"><label class="form-label">${u.nome}</label><input class="form-input" id="meta-${u.id}" type="number" value="${u.meta||0}" placeholder="Meta em R$"></div>`).join('');
-  // Empresa
+  const ml=document.getElementById('metas-mes-label');
+  if(ml)ml.textContent=new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  if(mf)mf.innerHTML=DB.usuarios.filter(u=>['vendedor','gestor','dono'].includes(u.perfil)&&u.ativo!==false).map(u=>`
+    <div class="form-group">
+      <label class="form-label">${u.nome} <span class="badge badge-gold" style="font-size:9px;vertical-align:middle">${u.perfil}</span></label>
+      <input class="form-input" id="meta-${u.id}" type="number" value="${u.meta||0}" placeholder="Meta em R$">
+    </div>`).join('');
+
+  // ── Empresa
   const emp=DB.settings.empresa||{};
   const empNome=document.getElementById('emp-nome');if(empNome)empNome.value=emp.nome||'HAW Vision';
   const empCnpj=document.getElementById('emp-cnpj');if(empCnpj)empCnpj.value=emp.cnpj||'';
@@ -2069,8 +2236,18 @@ function renderConfig(){
   const empVal=document.getElementById('emp-validade');if(empVal)empVal.value=emp.validade||15;
   const empCid=document.getElementById('emp-cidade');if(empCid)empCid.value=emp.cidade||'Belém';
   const empEst=document.getElementById('emp-estado');if(empEst)empEst.value=emp.estado||'PA';
+
+  // ── Supabase
   if(DB.settings.supabaseUrl){const el=document.getElementById('cfg-sb-url');if(el)el.value=DB.settings.supabaseUrl;}
   if(DB.settings.supabaseKey){const el=document.getElementById('cfg-sb-key');if(el)el.value=DB.settings.supabaseKey;}
+  const liveEl=document.getElementById('sb-live-status');
+  if(liveEl){
+    const online=window.HAW_SB&&window.HAW_SB.isOnline();
+    liveEl.innerHTML=online
+      ?'🟢 <strong>Conectado ao Supabase</strong> — dados sincronizados em tempo real entre todos os computadores'
+      :'🔴 <strong>Offline</strong> — os dados estão sendo salvos apenas localmente neste computador';
+    liveEl.style.color=online?'var(--green)':'var(--red)';
+  }
 }
 
 // ── GLOBAL EXPORTS (garante acesso de onclick no HTML) ──
@@ -2088,6 +2265,10 @@ window.salvarUsuario=salvarUsuario;
 window.salvarMetas=salvarMetas;
 window.salvarEmpresa=salvarEmpresa;
 window.salvarSupabase=salvarSupabase;
+window.abrirNovoUsuario=abrirNovoUsuario;
+window.editarUsuario=editarUsuario;
+window.toggleUsuario=toggleUsuario;
+window.testarConexao=testarConexao;
 window.editarCliente=editarCliente;
 window.editarPedido=editarPedido;
 window.excluirCliente=excluirCliente;
