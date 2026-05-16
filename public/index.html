@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HAW Vision · CRM</title>
+<title>HAW Vision · CRM v2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script>
@@ -961,6 +961,7 @@ function doLogin(){
   const userId=document.getElementById('login-user').value;
   const pin=document.getElementById('login-pin').value;
   const errEl=document.getElementById('login-err');
+  _garantirUsuarios(); // garante defaults se Supabase tiver zerado
   const user=DB.usuarios.find(u=>u.id===userId&&u.ativo);
   if(!user||user.senha!==pin){
     errEl.textContent='PIN incorreto. Tente novamente.';
