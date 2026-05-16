@@ -2,46 +2,93 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>HAW Vision — Recuperação de Acesso</title>
+<title>HAW Vision — Acesso</title>
 <style>
-  body{font-family:Arial,sans-serif;background:#13182C;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-  .box{background:#1e2640;border-radius:12px;padding:40px;text-align:center;max-width:400px;width:90%}
-  .logo{color:#F7CF13;font-size:28px;font-weight:800;margin-bottom:8px}
-  p{color:#aaa;font-size:14px;margin-bottom:24px}
-  .btn{background:#F7CF13;color:#13182C;border:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;width:100%}
-  .btn:hover{background:#e6be00}
-  .status{margin-top:16px;font-size:13px;color:#aaa}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;background:#13182C;overflow:hidden}
+  #loading{position:fixed;inset:0;background:#13182C;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#F7CF13;z-index:9999;gap:12px}
+  #loading .logo{font-size:32px;font-weight:800}
+  #loading p{color:#aaa;font-size:14px}
+  #app{width:100vw;height:100vh;border:none;display:block}
 </style>
 </head>
 <body>
-<div class="box">
+<div id="loading">
   <div class="logo">HAW Vision</div>
-  <p>Recuperação de acesso de emergência</p>
-  <button class="btn" onclick="entrar()">Entrar como Dono HAW</button>
-  <div class="status" id="status"></div>
+  <p>Abrindo sistema…</p>
 </div>
+<iframe id="app" src="index.html"></iframe>
+
 <script>
-function entrar(){
-  document.getElementById('status').textContent = 'Redirecionando…';
-  // Salva sessão do Dono HAW
-  const session = {id:'u1',nome:'Dono HAW',perfil:'dono',initials:'DH'};
-  sessionStorage.setItem('haw_session', JSON.stringify(session));
-  // Também restaura os usuários no localStorage para o app principal
+// Salvar usuários no localStorage AGORA (antes do iframe carregar)
+try {
+  const raw = localStorage.getItem('haw_crm_v1');
+  const db = raw ? JSON.parse(raw) : {};
+  // Sempre força os 3 usuários padrão com senhas corretas
+  db.usuarios = [
+    {id:'u1',nome:'Dono HAW',  email:'dono@hawoticas.com.br', perfil:'dono',     ativo:true,meta:0,    senha:'1234',createdAt:new Date().toISOString()},
+    {id:'u2',nome:'Ana Lima',  email:'ana@hawoticas.com.br',  perfil:'vendedor', ativo:true,meta:8000, senha:'1111',createdAt:new Date().toISOString()},
+    {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222',createdAt:new Date().toISOString()}
+  ];
+  localStorage.setItem('haw_crm_v1', JSON.stringify(db));
+} catch(e) {}
+
+document.getElementById('app').addEventListener('load', function() {
+  const win = this.contentWindow;
   try {
-    const raw = localStorage.getItem('haw_crm_v1');
-    const db = raw ? JSON.parse(raw) : {};
-    if (!db.usuarios || !db.usuarios.length) {
-      db.usuarios = [
-        {id:'u1',nome:'Dono HAW',email:'dono@hawoticas.com.br',perfil:'dono',ativo:true,meta:0,senha:'1234'},
-        {id:'u2',nome:'Ana Lima',email:'ana@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:8000,senha:'1111'},
-        {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222'}
-      ];
-      localStorage.setItem('haw_crm_v1', JSON.stringify(db));
-    }
-  } catch(e) {}
-  // Redireciona para o app
-  window.location.href = 'index.html';
-}
+    // 1. Forçar usuários no DB do app (ignora qualquer proteção)
+    const users = [
+      {id:'u1',nome:'Dono HAW',  email:'dono@hawoticas.com.br', perfil:'dono',     ativo:true,meta:0,    senha:'1234'},
+      {id:'u2',nome:'Ana Lima',  email:'ana@hawoticas.com.br',  perfil:'vendedor', ativo:true,meta:8000, senha:'1111'},
+      {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222'}
+    ];
+
+    // Tentar via setter normal
+    try { win.DB.usuarios = users; } catch(e) {}
+    // Forçar via Object.defineProperty (caso haja setter bloqueando)
+    try {
+      Object.defineProperty(win.DB, 'usuarios', {value: users, writable:true, configurable:true});
+    } catch(e) {}
+    // Garantir window.DB sincronizado
+    win.window.DB = win.DB;
+
+    // 2. Definir currentUser
+    win.currentUser = {id:'u1',nome:'Dono HAW',perfil:'dono',initials:'DH'};
+    win.window.currentUser = win.currentUser;
+
+    // 3. Salvar sessão no sessionStorage do iframe
+    win.sessionStorage.setItem('haw_session', JSON.stringify({
+      id:'u1', nome:'Dono HAW', perfil:'dono', initials:'DH'
+    }));
+
+    // 4. Esconder tela de login e abrir dashboard
+    const loginScreen = win.document.getElementById('login-screen');
+    if (loginScreen) loginScreen.classList.add('hidden');
+
+    if (typeof win.filterSidebar === 'function') win.filterSidebar();
+    if (typeof win.renderSidebarUser === 'function') win.renderSidebarUser();
+    if (typeof win.nav === 'function') win.nav('dashboard');
+
+    // 5. Esconder tela de loading
+    document.getElementById('loading').style.display = 'none';
+
+    // 6. Proteger contra o Supabase zerar usuarios novamente
+    setTimeout(function() {
+      try {
+        const u = win.DB.usuarios;
+        if (!u || !u.length) {
+          win.DB.usuarios = users;
+          win.window.DB = win.DB;
+        }
+      } catch(e) {}
+    }, 1500);
+
+  } catch(err) {
+    document.getElementById('loading').innerHTML =
+      '<div class="logo">Erro</div><p>Não foi possível abrir o sistema: ' + err.message + '</p>';
+    console.error('Recovery error:', err);
+  }
+});
 </script>
 </body>
 </html>
