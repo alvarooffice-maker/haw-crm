@@ -1030,19 +1030,45 @@ const STATUS_BADGE = {
 
 // ── INIT ──
 // ── STORAGE ──
+const DEFAULT_USUARIOS=[
+  {id:'u1',nome:'Dono HAW',email:'dono@hawoticas.com.br',perfil:'dono',ativo:true,meta:0,senha:'1234'},
+  {id:'u2',nome:'Ana Lima',email:'ana@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:8000,senha:'1111'},
+  {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222'},
+];
+
 function save(){localStorage.setItem('haw_crm_v1',JSON.stringify(DB))}
-function loadFromStorage(){
-  const raw=localStorage.getItem('haw_crm_v1');
-  if(raw){try{const d=JSON.parse(raw);DB=Object.assign(DB,d)}catch(e){}}
-  if(!DB.usuarios.length){
-    DB.usuarios=[
-      {id:'u1',nome:'Dono HAW',email:'dono@hawoticas.com.br',perfil:'dono',ativo:true,meta:0,senha:'1234'},
-      {id:'u2',nome:'Ana Lima',email:'ana@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:8000,senha:'1111'},
-      {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222'},
-    ];
+
+function _garantirUsuarios(){
+  // Nunca deixar DB.usuarios ficar vazio — protege contra sobrescrita do Supabase
+  if(!DB.usuarios||!DB.usuarios.length){
+    DB.usuarios=DEFAULT_USUARIOS.map(u=>({...u}));
+    window.DB=DB;
     save();
   }
 }
+
+function loadFromStorage(){
+  const raw=localStorage.getItem('haw_crm_v1');
+  if(raw){try{const d=JSON.parse(raw);Object.assign(DB,d)}catch(e){}}
+  window.DB=DB; // garante sincronização com scripts externos
+  _garantirUsuarios();
+}
+
+// Proteção: intercepta qualquer tentativa de zerar DB.usuarios
+(function(){
+  let _usr=DB.usuarios;
+  Object.defineProperty(DB,'usuarios',{
+    get(){return _usr},
+    set(v){
+      if(Array.isArray(v)&&v.length===0&&_usr&&_usr.length>0){
+        console.warn('[HAW] Bloqueado: tentativa de zerar DB.usuarios ignorada');
+        return; // não permite sobrescrever com array vazio
+      }
+      _usr=v;
+    },
+    configurable:true
+  });
+})();
 
 // ── NAVIGATION ──
 const navConfig = {
