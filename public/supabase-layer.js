@@ -134,7 +134,18 @@
       if (clis.data)   window.DB.clientes  = clis.data.map(r => toCamel('clientes', r));
       if (recs.data)   window.DB.receitas  = recs.data.map(r => toCamel('receitas', r));
       if (prods.data)  window.DB.produtos  = prods.data.map(r => toCamel('produtos', r));
-      if (users.data)  window.DB.usuarios  = users.data.map(r => toCamel('usuarios', r));
+      if (users.data && users.data.length > 0) {
+        // Supabase tem usuários — usar eles
+        window.DB.usuarios = users.data.map(r => toCamel('usuarios', r));
+      } else if (users.data && users.data.length === 0 && window.DB.usuarios && window.DB.usuarios.length > 0) {
+        // Supabase vazio mas há usuários locais — sincronizar para o Supabase
+        const mapped = window.DB.usuarios.filter(u => !u.deleted).map(r => toSnake('usuarios', r));
+        if (mapped.length) {
+          sb.from('usuarios').upsert(mapped, { onConflict: 'id' })
+            .then(() => console.log('[HAW] Usuários locais sincronizados para Supabase'))
+            .catch(e => console.warn('[HAW] Falha ao sincronizar usuários:', e));
+        }
+      }
       if (peds.data) {
         window.DB.pedidos = peds.data.map(p => {
           const obj = toCamel('pedidos', p);
