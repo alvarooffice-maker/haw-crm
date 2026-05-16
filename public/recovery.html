@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>HAW Vision — Recuperação de Acesso</title>
+<style>
+  body{font-family:Arial,sans-serif;background:#13182C;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+  .box{background:#1e2640;border-radius:12px;padding:40px;text-align:center;max-width:400px;width:90%}
+  .logo{color:#F7CF13;font-size:28px;font-weight:800;margin-bottom:8px}
+  p{color:#aaa;font-size:14px;margin-bottom:24px}
+  .btn{background:#F7CF13;color:#13182C;border:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;width:100%}
+  .btn:hover{background:#e6be00}
+  .status{margin-top:16px;font-size:13px;color:#aaa}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">HAW Vision</div>
+  <p>Recuperação de acesso de emergência</p>
+  <button class="btn" onclick="entrar()">Entrar como Dono HAW</button>
+  <div class="status" id="status"></div>
+</div>
+<script>
+function entrar(){
+  document.getElementById('status').textContent = 'Redirecionando…';
+  // Salva sessão do Dono HAW
+  const session = {id:'u1',nome:'Dono HAW',perfil:'dono',initials:'DH'};
+  sessionStorage.setItem('haw_session', JSON.stringify(session));
+  // Também restaura os usuários no localStorage para o app principal
+  try {
+    const raw = localStorage.getItem('haw_crm_v1');
+    const db = raw ? JSON.parse(raw) : {};
+    if (!db.usuarios || !db.usuarios.length) {
+      db.usuarios = [
+        {id:'u1',nome:'Dono HAW',email:'dono@hawoticas.com.br',perfil:'dono',ativo:true,meta:0,senha:'1234'},
+        {id:'u2',nome:'Ana Lima',email:'ana@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:8000,senha:'1111'},
+        {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222'}
+      ];
+      localStorage.setItem('haw_crm_v1', JSON.stringify(db));
+    }
+  } catch(e) {}
+  // Redireciona para o app
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>
