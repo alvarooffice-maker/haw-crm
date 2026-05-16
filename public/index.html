@@ -958,10 +958,12 @@ function populateLoginUsers(){
 }
 
 function doLogin(){
-  const userId=document.getElementById('login-user').value;
   const pin=document.getElementById('login-pin').value;
   const errEl=document.getElementById('login-err');
-  _garantirUsuarios(); // garante defaults se Supabase tiver zerado
+  _garantirUsuarios(); // restaura usuários padrão se foram zerados
+  const sel=document.getElementById('login-user');
+  if(sel&&!sel.options.length)populateLoginUsers(); // reconstrói dropdown se vazio
+  const userId=sel?sel.value:'';
   const user=DB.usuarios.find(u=>u.id===userId&&u.ativo);
   if(!user||user.senha!==pin){
     errEl.textContent='PIN incorreto. Tente novamente.';
