@@ -119,14 +119,14 @@ async function salvarPin() {
 
   const u = selectedUser;
 
-  // 1. Atualiza localStorage
+  // 1. Atualiza localStorage — busca por ID ou por nome (IDs locais podem ser u1/u2 ou UUIDs)
   try {
     const raw = localStorage.getItem('haw_crm_v1');
     const db  = raw ? JSON.parse(raw) : {};
     if (!Array.isArray(db.usuarios) || !db.usuarios.length) {
       db.usuarios = Object.values(USERS).map(x => ({...x, senha: '1234'}));
     }
-    const idx = db.usuarios.findIndex(x => x.id === u.id);
+    const idx = db.usuarios.findIndex(x => x.id === u.id || x.nome === u.nome);
     if (idx >= 0) {
       db.usuarios[idx].senha = pin;
     } else {
@@ -135,14 +135,21 @@ async function salvarPin() {
     localStorage.setItem('haw_crm_v1', JSON.stringify(db));
   } catch(e) {}
 
-  // 2. Tenta atualizar no Supabase (se configurado)
+  // 2. Tenta atualizar no Supabase — tenta por ID e por nome
   const cfg = window.HAW_CONFIG || {};
   let sbOk = false;
   if (cfg.supabaseUrl && cfg.supabaseKey && !cfg.supabaseUrl.includes('SEU-PROJETO')) {
     try {
       const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
-      const { error } = await sb.from('usuarios').update({ senha: pin }).eq('id', u.id);
-      if (!error) sbOk = true;
+      // Tenta por ID exato primeiro
+      let { error } = await sb.from('usuarios').update({ senha: pin }).eq('id', u.id);
+      if (error || error === null) {
+        // Fallback: atualiza por nome (caso o ID no Supabase seja UUID diferente)
+        const r2 = await sb.from('usuarios').update({ senha: pin }).eq('nome', u.nome);
+        if (!r2.error) sbOk = true;
+      } else {
+        sbOk = true;
+      }
     } catch(e) {}
   }
 

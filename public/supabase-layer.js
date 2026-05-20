@@ -140,7 +140,9 @@
         const localUsers = window.DB.usuarios || [];
         window.DB.usuarios = users.data.map(r => {
           const camel = toCamel('usuarios', r);
-          const local = localUsers.find(u => u.id === camel.id);
+          // Tenta match por ID; se não achar, tenta por nome (IDs locais podem diferir do Supabase)
+          const local = localUsers.find(u => u.id === camel.id)
+                     || localUsers.find(u => u.nome === camel.nome);
           if (local && local.senha) camel.senha = local.senha;
           return camel;
         });
