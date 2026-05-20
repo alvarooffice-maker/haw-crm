@@ -80,6 +80,7 @@
         syncTabela('produtos'),
         syncTabela('pedidos'),
         syncPedidoItens(),
+        syncTabela('usuarios').catch(() => {}), // falha silenciosa se RLS bloquear
       ]);
       setSyncStatus('online');
       if (typeof toast === 'function') toast('✅ Dados sincronizados com Supabase!');
@@ -135,8 +136,14 @@
       if (recs.data)   window.DB.receitas  = recs.data.map(r => toCamel('receitas', r));
       if (prods.data)  window.DB.produtos  = prods.data.map(r => toCamel('produtos', r));
       if (users.data && users.data.length > 0) {
-        // Supabase tem usuários — usar eles
-        window.DB.usuarios = users.data.map(r => toCamel('usuarios', r));
+        // Supabase tem usuários — usar eles, mas preservar senha local (pode ter sido alterada via recovery)
+        const localUsers = window.DB.usuarios || [];
+        window.DB.usuarios = users.data.map(r => {
+          const camel = toCamel('usuarios', r);
+          const local = localUsers.find(u => u.id === camel.id);
+          if (local && local.senha) camel.senha = local.senha;
+          return camel;
+        });
       } else if (users.data && users.data.length === 0 && window.DB.usuarios && window.DB.usuarios.length > 0) {
         // Supabase vazio mas há usuários locais — sincronizar para o Supabase
         const mapped = window.DB.usuarios.filter(u => !u.deleted).map(r => toSnake('usuarios', r));
