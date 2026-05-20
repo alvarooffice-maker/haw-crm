@@ -163,8 +163,6 @@ async function salvarPin() {
   try {
     const p = JSON.parse(localStorage.getItem('haw_pins') || '{}');
     p[u.nome] = pin;
-    // também guarda pelo perfil como fallback extra
-    p['__' + u.perfil + '__'] = pin;
     localStorage.setItem('haw_pins', JSON.stringify(p));
   } catch(e) {}
 
