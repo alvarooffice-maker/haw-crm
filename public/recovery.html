@@ -119,6 +119,9 @@ async function salvarPin() {
 
   const u = selectedUser;
 
+  // 0. Grava PIN em haw_pins — chave independente que o Supabase nunca sobrescreve
+  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[u.nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
+
   // 1. Atualiza localStorage — busca por ID ou por nome (IDs locais podem ser u1/u2 ou UUIDs)
   try {
     const raw = localStorage.getItem('haw_crm_v1');

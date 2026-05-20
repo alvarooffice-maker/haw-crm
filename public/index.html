@@ -960,12 +960,16 @@ function populateLoginUsers(){
 function doLogin(){
   const pin=document.getElementById('login-pin').value;
   const errEl=document.getElementById('login-err');
-  _garantirUsuarios(); // restaura usuários padrão se foram zerados
+  _garantirUsuarios();
   const sel=document.getElementById('login-user');
-  if(sel&&!sel.options.length)populateLoginUsers(); // reconstrói dropdown se vazio
+  if(sel&&!sel.options.length)populateLoginUsers();
   const userId=sel?sel.value:'';
-  const user=DB.usuarios.find(u=>u.id===userId&&u.ativo);
-  if(!user||user.senha!==pin){
+  const user=DB.usuarios.find(u=>u.id===userId&&u.ativo)
+          ||DB.usuarios.find(u=>u.ativo&&sel&&sel.options[sel.selectedIndex]&&u.nome===sel.options[sel.selectedIndex].text.replace(/\s*\(.*\)\s*$/,'').trim());
+  // PIN independente do Supabase — lê haw_pins (chave que o Supabase nunca sobrescreve)
+  let senhaValida=user&&user.senha;
+  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');if(user&&p[user.nome])senhaValida=p[user.nome];}catch(e){}
+  if(!user||pin!==senhaValida){
     errEl.textContent='PIN incorreto. Tente novamente.';
     document.getElementById('login-pin').value='';
     return;
@@ -1653,7 +1657,7 @@ function salvarUsuario(){
       DB.usuarios[i].email=email;
       DB.usuarios[i].perfil=document.getElementById('usr-perfil').value;
       DB.usuarios[i].meta=parseFloat(document.getElementById('usr-meta').value)||0;
-      if(pin)DB.usuarios[i].senha=pin;
+      if(pin){DB.usuarios[i].senha=pin;try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}}
     }
     save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário atualizado! ✅');
   } else {
