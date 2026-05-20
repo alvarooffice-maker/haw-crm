@@ -1665,8 +1665,29 @@ function salvarUsuario(){
     // Novo
     if(!pin||pin.length<4){alert('PIN deve ter 4 dígitos');return;}
     if(pin!==pin2){alert('PINs não coincidem');return;}
-    DB.usuarios.push({id:uid(),nome,email,perfil:document.getElementById('usr-perfil').value,meta:parseFloat(document.getElementById('usr-meta').value)||0,ativo:true,senha:pin,createdAt:new Date().toISOString()});
-    save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário criado! ✅');
+    const novoId=uid();
+    const novoPerf=document.getElementById('usr-perfil').value;
+    const novoMeta=parseFloat(document.getElementById('usr-meta').value)||0;
+    DB.usuarios.push({id:novoId,nome,email,perfil:novoPerf,meta:novoMeta,ativo:true,senha:pin,createdAt:new Date().toISOString()});
+    // Grava PIN em haw_pins para que doLogin() funcione mesmo sem sync Supabase
+    try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
+    save();
+    // Tenta sync imediato para Supabase
+    (async()=>{
+      if(window.HAW_SB&&window.HAW_SB.isOnline()){
+        try{
+          const row={id:novoId,nome,email,perfil:novoPerf,meta_mensal:novoMeta,ativo:true,senha:pin,created_at:new Date().toISOString()};
+          const{error}=await window.HAW_SB.client.from('usuarios').upsert(row,{onConflict:'id'});
+          if(error)throw error;
+          toast('Usuário criado e sincronizado! ✅');
+        }catch(e){
+          toast('Usuário criado localmente. ⚠️ Não sincronizou com o banco — ele só aparece neste dispositivo.');
+        }
+      } else {
+        toast('Usuário criado! ✅');
+      }
+    })();
+    closeModal('modal-usuario');renderConfig();populateSelects();
   }
 }
 function salvarMetas(){
