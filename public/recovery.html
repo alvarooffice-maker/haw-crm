@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>HAW Vision — Acesso</title>
+<title>HAW Vision — Recuperação de Acesso</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <style>
@@ -10,7 +10,7 @@
   body{background:#13182C;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Arial,sans-serif;padding:20px}
   .card{background:#1e2640;border-radius:14px;padding:36px 32px;width:100%;max-width:380px;text-align:center}
   .logo{color:#F7CF13;font-size:28px;font-weight:800;margin-bottom:4px}
-  .sub{color:#aaa;font-size:12px;margin-bottom:28px}
+  .sub{color:#aaa;font-size:12px;margin-bottom:24px}
   .user-btn{width:100%;background:#13182C;border:1px solid #2e3a55;border-radius:10px;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .2s}
   .user-btn:hover{border-color:#F7CF13}
   .avatar{width:38px;height:38px;border-radius:50%;background:#F7CF13;color:#13182C;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -18,10 +18,8 @@
   .user-name{color:#fff;font-weight:600;font-size:14px}
   .user-role{color:#aaa;font-size:11px}
   .divider{border:none;border-top:1px solid #2e3a55;margin:20px 0}
-  .note{color:#666;font-size:11px;line-height:1.5}
-
-  /* PIN reset form */
-  #pin-section{display:none;margin-top:8px}
+  .note{color:#666;font-size:11px;line-height:1.6}
+  #pin-section{display:none;margin-top:4px}
   .section-title{color:#fff;font-size:14px;font-weight:700;text-align:left;margin-bottom:14px}
   .field-label{color:rgba(255,255,255,.55);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:block;text-align:left;margin-bottom:6px}
   .field-input{width:100%;padding:12px 14px;background:#13182C;border:1px solid #2e3a55;border-radius:8px;color:#fff;font-size:20px;letter-spacing:.4em;text-align:center;font-weight:700;margin-bottom:14px;outline:none;transition:border-color .2s}
@@ -29,10 +27,10 @@
   .btn-gold{width:100%;padding:13px;background:#F7CF13;color:#13182C;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px}
   .btn-ghost{width:100%;padding:11px;background:transparent;color:#aaa;border:1px solid #2e3a55;border-radius:8px;font-size:13px;cursor:pointer}
   .msg{font-size:12px;margin-top:10px;min-height:16px}
-  .msg.ok{color:#2ecc71}
-  .msg.err{color:#e74c3c}
-  .selected-user{background:#13182C;border:1px solid #F7CF13;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
-  .selected-user .user-name{color:#F7CF13}
+  .msg.ok{color:#2ecc71}.msg.err{color:#e74c3c}
+  .selected-box{background:#13182C;border:1px solid #F7CF13;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+  .selected-box .user-name{color:#F7CF13}
+  #loading{color:#aaa;font-size:13px;padding:12px 0}
 </style>
 </head>
 <body>
@@ -40,23 +38,11 @@
   <div class="logo">HAW Vision</div>
   <div class="sub" id="card-sub">Selecione o usuário para redefinir o PIN</div>
 
-  <div id="user-list">
-    <button class="user-btn" onclick="selecionarUsuario('u1','Dono HAW','dono','DH','#F7CF13','#13182C')">
-      <div class="avatar">DH</div>
-      <div class="user-info"><div class="user-name">Dono HAW</div><div class="user-role">Dono · Acesso total</div></div>
-    </button>
-    <button class="user-btn" onclick="selecionarUsuario('u2','Ana Lima','vendedor','AL','#4a90d9','#fff')">
-      <div class="avatar" style="background:#4a90d9;color:#fff">AL</div>
-      <div class="user-info"><div class="user-name">Ana Lima</div><div class="user-role">Vendedor · Vendas e clientes</div></div>
-    </button>
-    <button class="user-btn" onclick="selecionarUsuario('u3','Carlos Souza','vendedor','CS','#27ae60','#fff')">
-      <div class="avatar" style="background:#27ae60;color:#fff">CS</div>
-      <div class="user-info"><div class="user-name">Carlos Souza</div><div class="user-role">Vendedor · Vendas e clientes</div></div>
-    </button>
-  </div>
+  <div id="loading">⏳ Carregando usuários…</div>
+  <div id="user-list" style="display:none"></div>
 
   <div id="pin-section">
-    <div id="selected-display" class="selected-user"></div>
+    <div id="selected-display" class="selected-box"></div>
     <div class="section-title">Definir novo PIN</div>
     <label class="field-label">Novo PIN (4 dígitos)</label>
     <input class="field-input" id="new-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
@@ -68,27 +54,81 @@
   </div>
 
   <hr class="divider">
-  <div class="note">Use esta página para redefinir seu PIN de acesso.<br>As alterações são salvas localmente e no banco de dados.</div>
+  <div class="note">Redefina o PIN de qualquer usuário ativo.<br>A alteração é salva no banco de dados.</div>
 </div>
 
 <script>
-const USERS = {
-  u1:{id:'u1',nome:'Dono HAW',  email:'dono@hawoticas.com.br',  perfil:'dono',     ativo:true,meta:0},
-  u2:{id:'u2',nome:'Ana Lima',  email:'ana@hawoticas.com.br',   perfil:'vendedor', ativo:true,meta:8000},
-  u3:{id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000}
-};
-
 let selectedUser = null;
+let sbClient = null;
 
-function selecionarUsuario(id, nome, perfil, initials, bgColor, textColor) {
-  selectedUser = { id, nome, perfil, initials };
+function initials(nome) {
+  return (nome || '').split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase();
+}
 
+async function loadUsuarios() {
+  const cfg = window.HAW_CONFIG || {};
+  let users = [];
+
+  if (cfg.supabaseUrl && cfg.supabaseKey && !cfg.supabaseUrl.includes('SEU-PROJETO')) {
+    try {
+      sbClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
+      const { data, error } = await sbClient.from('usuarios').select('id,nome,perfil,ativo,email').eq('ativo', true);
+      if (!error && data && data.length > 0) {
+        users = data;
+      }
+    } catch(e) {}
+  }
+
+  // Fallback: lê do localStorage
+  if (!users.length) {
+    try {
+      const raw = localStorage.getItem('haw_crm_v1');
+      const db = raw ? JSON.parse(raw) : {};
+      if (Array.isArray(db.usuarios) && db.usuarios.length) {
+        users = db.usuarios.filter(u => u.ativo !== false);
+      }
+    } catch(e) {}
+  }
+
+  // Fallback final: defaults
+  if (!users.length) {
+    users = [
+      {id:'u1',nome:'Dono HAW',perfil:'dono',ativo:true},
+      {id:'u2',nome:'Ana Lima',perfil:'vendedor',ativo:true},
+      {id:'u3',nome:'Carlos Souza',perfil:'vendedor',ativo:true},
+    ];
+  }
+
+  renderUsuarios(users);
+}
+
+function renderUsuarios(users) {
+  document.getElementById('loading').style.display = 'none';
+  const list = document.getElementById('user-list');
+  const colors = ['#F7CF13','#4a90d9','#27ae60','#e67e22','#9b59b6'];
+  list.innerHTML = users.map((u, i) => {
+    const ini = initials(u.nome);
+    const bg = colors[i % colors.length];
+    const tc = i === 0 ? '#13182C' : '#fff';
+    return `<button class="user-btn" onclick='selecionarUsuario(${JSON.stringify(u)})'>
+      <div class="avatar" style="background:${bg};color:${tc}">${ini}</div>
+      <div class="user-info">
+        <div class="user-name">${u.nome}</div>
+        <div class="user-role">${u.perfil}</div>
+      </div>
+    </button>`;
+  }).join('');
+  list.style.display = 'block';
+}
+
+function selecionarUsuario(u) {
+  selectedUser = u;
+  const ini = initials(u.nome);
   document.getElementById('user-list').style.display = 'none';
   document.getElementById('card-sub').textContent = 'Redefina o PIN de acesso';
   document.getElementById('selected-display').innerHTML = `
-    <div style="width:38px;height:38px;border-radius:50%;background:${bgColor};color:${textColor};font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${initials}</div>
-    <div><div class="user-name">${nome}</div><div style="color:#aaa;font-size:11px">${perfil} · Acesso total</div></div>
-  `;
+    <div class="avatar">${ini}</div>
+    <div class="user-info"><div class="user-name">${u.nome}</div><div class="user-role">${u.perfil}</div></div>`;
   document.getElementById('pin-section').style.display = 'block';
   document.getElementById('new-pin').focus();
 }
@@ -108,7 +148,7 @@ async function salvarPin() {
   const pin2 = document.getElementById('new-pin2').value.trim();
   const msg  = document.getElementById('msg');
 
-  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+  if (!/^\d{4}$/.test(pin)) {
     msg.className = 'msg err'; msg.textContent = 'PIN deve ter exatamente 4 dígitos numéricos.'; return;
   }
   if (pin !== pin2) {
@@ -119,61 +159,51 @@ async function salvarPin() {
 
   const u = selectedUser;
 
-  // 0. Grava PIN em haw_pins — chave independente que o Supabase nunca sobrescreve
-  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[u.nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
+  // 1. Grava em haw_pins — chave usada pelo doLogin(), nunca tocada pelo Supabase
+  try {
+    const p = JSON.parse(localStorage.getItem('haw_pins') || '{}');
+    p[u.nome] = pin;
+    // também guarda pelo perfil como fallback extra
+    p['__' + u.perfil + '__'] = pin;
+    localStorage.setItem('haw_pins', JSON.stringify(p));
+  } catch(e) {}
 
-  // 1. Atualiza localStorage — busca por ID ou por nome (IDs locais podem ser u1/u2 ou UUIDs)
+  // 2. Atualiza localStorage haw_crm_v1
   try {
     const raw = localStorage.getItem('haw_crm_v1');
     const db  = raw ? JSON.parse(raw) : {};
-    if (!Array.isArray(db.usuarios) || !db.usuarios.length) {
-      db.usuarios = Object.values(USERS).map(x => ({...x, senha: '1234'}));
-    }
+    if (!Array.isArray(db.usuarios)) db.usuarios = [];
     const idx = db.usuarios.findIndex(x => x.id === u.id || x.nome === u.nome);
     if (idx >= 0) {
       db.usuarios[idx].senha = pin;
     } else {
-      db.usuarios.push({...USERS[u.id], senha: pin});
+      db.usuarios.push({...u, senha: pin, ativo: true});
     }
     localStorage.setItem('haw_crm_v1', JSON.stringify(db));
   } catch(e) {}
 
-  // 2. Tenta atualizar no Supabase — tenta por ID e por nome
-  const cfg = window.HAW_CONFIG || {};
+  // 3. Atualiza Supabase (por ID real)
   let sbOk = false;
-  if (cfg.supabaseUrl && cfg.supabaseKey && !cfg.supabaseUrl.includes('SEU-PROJETO')) {
+  if (sbClient) {
     try {
-      const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
-      // Tenta por ID exato primeiro
-      let { error } = await sb.from('usuarios').update({ senha: pin }).eq('id', u.id);
-      if (error || error === null) {
-        // Fallback: atualiza por nome (caso o ID no Supabase seja UUID diferente)
-        const r2 = await sb.from('usuarios').update({ senha: pin }).eq('nome', u.nome);
-        if (!r2.error) sbOk = true;
-      } else {
-        sbOk = true;
-      }
+      const { error } = await sbClient.from('usuarios').update({ senha: pin }).eq('id', u.id);
+      if (!error) sbOk = true;
     } catch(e) {}
   }
 
-  // 3. Grava sessão usando o ID real do localStorage (pode ser UUID, não apenas 'u1')
-  let actualId = u.id;
-  try {
-    const lsRaw = localStorage.getItem('haw_crm_v1');
-    const lsDb  = lsRaw ? JSON.parse(lsRaw) : {};
-    const found = (lsDb.usuarios || []).find(x => x.nome === u.nome || x.id === u.id);
-    if (found) actualId = found.id;
-  } catch(e) {}
-  const session = { id: actualId, nome: u.nome, perfil: u.perfil, initials: u.initials };
+  // 4. Grava sessão com ID real e redireciona
+  const ini = initials(u.nome);
+  const session = { id: u.id, nome: u.nome, perfil: u.perfil, initials: ini };
   sessionStorage.setItem('haw_session', JSON.stringify(session));
 
   msg.className = 'msg ok';
-  msg.textContent = sbOk
-    ? '✅ PIN salvo localmente e no banco de dados! Abrindo sistema…'
-    : '✅ PIN salvo localmente! Abrindo sistema…';
+  msg.textContent = sbOk ? '✅ PIN salvo no banco e localmente! Abrindo…' : '✅ PIN salvo localmente! Abrindo…';
 
   setTimeout(() => { window.location.href = 'index.html'; }, 1200);
 }
+
+// Inicia
+loadUsuarios();
 </script>
 </body>
 </html>

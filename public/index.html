@@ -968,7 +968,7 @@ function doLogin(){
           ||DB.usuarios.find(u=>u.ativo&&sel&&sel.options[sel.selectedIndex]&&u.nome===sel.options[sel.selectedIndex].text.replace(/\s*\(.*\)\s*$/,'').trim());
   // PIN independente do Supabase — lê haw_pins (chave que o Supabase nunca sobrescreve)
   let senhaValida=user&&user.senha;
-  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');if(user&&p[user.nome])senhaValida=p[user.nome];}catch(e){}
+  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');if(user&&(p[user.nome]||p['__'+user.perfil+'__']))senhaValida=p[user.nome]||p['__'+user.perfil+'__'];}catch(e){}
   if(!user||pin!==senhaValida){
     errEl.textContent='PIN incorreto. Tente novamente.';
     document.getElementById('login-pin').value='';
