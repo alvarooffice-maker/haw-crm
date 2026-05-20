@@ -136,16 +136,19 @@
       if (recs.data)   window.DB.receitas  = recs.data.map(r => toCamel('receitas', r));
       if (prods.data)  window.DB.produtos  = prods.data.map(r => toCamel('produtos', r));
       if (users.data && users.data.length > 0) {
-        // Supabase tem usuários — usar eles, mas preservar senha local (pode ter sido alterada via recovery)
         const localUsers = window.DB.usuarios || [];
-        window.DB.usuarios = users.data.map(r => {
+        const sbIds = new Set(users.data.map(r => r.id));
+        // Mescla usuários do Supabase preservando senha local
+        const sbMerged = users.data.map(r => {
           const camel = toCamel('usuarios', r);
-          // Tenta match por ID; se não achar, tenta por nome (IDs locais podem diferir do Supabase)
           const local = localUsers.find(u => u.id === camel.id)
                      || localUsers.find(u => u.nome === camel.nome);
           if (local && local.senha) camel.senha = local.senha;
           return camel;
         });
+        // Mantém usuários criados localmente que ainda não chegaram ao Supabase
+        const localOnly = localUsers.filter(u => !sbIds.has(u.id) && u.ativo !== false);
+        window.DB.usuarios = [...sbMerged, ...localOnly];
       } else if (users.data && users.data.length === 0 && window.DB.usuarios && window.DB.usuarios.length > 0) {
         // Supabase vazio mas há usuários locais — sincronizar para o Supabase
         const mapped = window.DB.usuarios.filter(u => !u.deleted).map(r => toSnake('usuarios', r));
