@@ -153,8 +153,15 @@ async function salvarPin() {
     } catch(e) {}
   }
 
-  // 3. Grava sessão e abre o sistema
-  const session = { id: u.id, nome: u.nome, perfil: u.perfil, initials: u.initials };
+  // 3. Grava sessão usando o ID real do localStorage (pode ser UUID, não apenas 'u1')
+  let actualId = u.id;
+  try {
+    const lsRaw = localStorage.getItem('haw_crm_v1');
+    const lsDb  = lsRaw ? JSON.parse(lsRaw) : {};
+    const found = (lsDb.usuarios || []).find(x => x.nome === u.nome || x.id === u.id);
+    if (found) actualId = found.id;
+  } catch(e) {}
+  const session = { id: actualId, nome: u.nome, perfil: u.perfil, initials: u.initials };
   sessionStorage.setItem('haw_session', JSON.stringify(session));
 
   msg.className = 'msg ok';

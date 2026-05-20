@@ -303,6 +303,11 @@
           if (typeof renderConfig     === 'function') renderConfig();
           if (typeof updateNavCounts  === 'function') updateNavCounts();
           if (typeof populateSelects  === 'function') populateSelects();
+          // Atualiza dropdown de login com IDs reais do Supabase
+          const loginEl = document.getElementById('login-screen');
+          if (loginEl && !loginEl.classList.contains('hidden')) {
+            if (typeof populateLoginUsers === 'function') populateLoginUsers();
+          }
         }, 200);
       }
     } else {
