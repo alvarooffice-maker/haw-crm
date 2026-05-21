@@ -606,6 +606,8 @@ tr:hover td{background:#FAFAF5}
             <tbody id="cfg-users-tbody"></tbody>
           </table>
         </div>
+        <!-- DEBUG TEMPORÁRIO — remover depois -->
+        <div id="debug-usuarios" style="margin-top:8px;padding:10px 14px;background:#0a0f1e;border:1px solid #F7CF13;border-radius:8px;font-size:11px;font-family:monospace;color:#aaa;display:none"></div>
       </div>
 
       <!-- ── METAS ── -->
@@ -1598,16 +1600,10 @@ function abrirNovoUsuario(){
   openModal('modal-usuario');
 }
 
-function editarUsuario(id){
-  // Busca por ID exato; se não achar, tenta pelo nome exibido na linha (fallback para ID obsoleto)
+function editarUsuario(id,nomeParam){
   let u=DB.usuarios.find(x=>x.id===id);
-  if(!u){
-    // Fallback: busca pelo data-nome guardado na célula de ações
-    const acoesTd=document.getElementById('acoes-'+id);
-    const nomeFallback=acoesTd?.dataset?.nome;
-    if(nomeFallback) u=DB.usuarios.find(x=>x.nome===nomeFallback);
-    if(!u){toast('⚠️ Usuário não encontrado. Recarregue a página (Ctrl+Shift+R).');return;}
-  }
+  if(!u&&nomeParam) u=DB.usuarios.find(x=>x.nome===nomeParam);
+  if(!u){toast('⚠️ Usuário não encontrado (id='+id+'). Recarregue: Ctrl+Shift+R');return;}
   // Abrir o modal PRIMEIRO (ele reseta os inputs visiveis internamente)
   openModal('modal-usuario');
   // Preencher os campos DEPOIS do reset do openModal
@@ -1623,8 +1619,10 @@ function editarUsuario(id){
   document.getElementById('usr-pin2').value='';
 }
 
-function toggleUsuario(id){
-  const i=DB.usuarios.findIndex(u=>u.id===id);if(i<0)return;
+function toggleUsuario(id,nomeParam){
+  let i=DB.usuarios.findIndex(u=>u.id===id);
+  if(i<0&&nomeParam) i=DB.usuarios.findIndex(u=>u.nome===nomeParam);
+  if(i<0)return;
   const usr=DB.usuarios[i];
   if(usr.perfil==='dono'&&usr.ativo!==false){
     const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
@@ -1634,15 +1632,11 @@ function toggleUsuario(id){
   save();renderConfig();toast('Usuário '+(DB.usuarios[i].ativo?'ativado ✅':'desativado 🔴')+'!');
 }
 
-function deletarUsuario(id){
+function deletarUsuario(id,nomeParam){
   let usr=DB.usuarios.find(u=>u.id===id);
-  if(!usr){
-    const acoesTd=document.getElementById('acoes-'+id);
-    const nomeFallback=acoesTd?.dataset?.nome;
-    if(nomeFallback) usr=DB.usuarios.find(u=>u.nome===nomeFallback);
-    if(!usr){toast('❌ Usuário não encontrado');return;}
-    id=usr.id; // atualiza o id para o correto
-  }
+  if(!usr&&nomeParam) usr=DB.usuarios.find(u=>u.nome===nomeParam);
+  if(!usr){toast('❌ Usuário não encontrado (id='+id+')');return;}
+  id=usr.id;
   // Protege o único dono ativo
   if(usr.perfil==='dono'&&usr.ativo!==false){
     const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
@@ -2332,23 +2326,39 @@ function renderConfig(){
         <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
         <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
         <td style="text-align:center;white-space:nowrap" id="acoes-${u.id}" data-uid="${u.id}" data-nome="${u.nome}"></td>`;
-      // Botões com addEventListener direto — sem depender de onclick inline nem de event delegation
+      // Botões com addEventListener direto — lê uid e nome do dataset no momento do clique
       const tdAcoes=tr.querySelector(`#acoes-${u.id}`);
-      const mkBtn=(emoji,title,color,fn)=>{
-        const b=document.createElement('button');
-        b.className='btn btn-ghost btn-sm';
-        b.style.cssText='padding:4px 8px;margin-left:2px';
-        if(color)b.style.color=color;
-        b.title=title;
-        b.textContent=emoji;
-        b.addEventListener('click',fn);
-        return b;
-      };
-      tdAcoes.appendChild(mkBtn('✏️','Editar usuário',null,()=>editarUsuario(u.id)));
-      tdAcoes.appendChild(mkBtn(ativo?'🔴':'🟢',ativo?'Desativar':'Ativar',null,()=>toggleUsuario(u.id)));
-      tdAcoes.appendChild(mkBtn('🗑️','Excluir usuário','#e74c3c',()=>deletarUsuario(u.id)));
+      if(tdAcoes){
+        const mkBtn=(emoji,title,color,acao)=>{
+          const b=document.createElement('button');
+          b.className='btn btn-ghost btn-sm';
+          b.style.cssText='padding:4px 8px;margin-left:2px';
+          if(color)b.style.color=color;
+          b.title=title;
+          b.textContent=emoji;
+          b.addEventListener('click',function(){
+            const td=this.closest('td[data-uid]')||this.closest('td[data-nome]');
+            const uid=td?.dataset?.uid;
+            const nome=td?.dataset?.nome;
+            if(acao==='edit')   editarUsuario(uid,nome);
+            if(acao==='toggle') toggleUsuario(uid,nome);
+            if(acao==='delete') deletarUsuario(uid,nome);
+          });
+          return b;
+        };
+        tdAcoes.appendChild(mkBtn('✏️','Editar usuário',null,'edit'));
+        tdAcoes.appendChild(mkBtn(ativo?'🔴':'🟢',ativo?'Desativar':'Ativar',null,'toggle'));
+        tdAcoes.appendChild(mkBtn('🗑️','Excluir usuário','#e74c3c','delete'));
+      }
       tbody.appendChild(tr);
     });
+    // Debug panel — mostra estado atual do DB.usuarios
+    const dbg=document.getElementById('debug-usuarios');
+    if(dbg){
+      dbg.style.display='block';
+      dbg.innerHTML='<strong style="color:#F7CF13">🔍 DEBUG DB.usuarios:</strong><br>'+
+        DB.usuarios.map(u=>`• <span style="color:#fff">${u.nome}</span> id=<span style="color:#F7CF13">${u.id}</span> ativo=${u.ativo}`).join('<br>');
+    }
   }
 
   // ── Metas
