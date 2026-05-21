@@ -1624,6 +1624,32 @@ function toggleUsuario(id){
   save();renderConfig();toast('Usuário '+(DB.usuarios[i].ativo?'ativado ✅':'desativado 🔴')+'!');
 }
 
+async function deletarUsuario(id){
+  const usr=DB.usuarios.find(u=>u.id===id);
+  if(!usr)return;
+  // Protege o único dono ativo
+  if(usr.perfil==='dono'&&usr.ativo!==false){
+    const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
+    if(donosAtivos.length<=1){toast('❌ Não é possível excluir o único Dono ativo');return;}
+  }
+  // Protege o próprio usuário logado
+  if(usr.id===currentUser.id){toast('❌ Você não pode excluir o próprio usuário');return;}
+  if(!confirm(`Excluir permanentemente o usuário "${usr.nome}"?\n\nEsta ação não pode ser desfeita.`))return;
+  // Remove do DB local
+  DB.usuarios=DB.usuarios.filter(u=>u.id!==id);
+  // Remove do haw_pins
+  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');delete p[usr.nome];localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
+  save();
+  // Tenta remover do Supabase
+  if(window.HAW_SB&&window.HAW_SB.isOnline()&&window.HAW_SB.client){
+    try{
+      await window.HAW_SB.client.from('usuarios').delete().eq('id',id);
+    }catch(e){console.warn('[HAW] Falha ao remover usuário do Supabase:',e);}
+  }
+  renderConfig();populateSelects();
+  toast(`Usuário "${usr.nome}" excluído! ✅`);
+}
+
 async function testarConexao(){
   const liveEl=document.getElementById('sb-live-status');
   if(liveEl){liveEl.textContent='🔄 Testando conexão…';liveEl.style.color='var(--gold-deep)';}
@@ -2270,6 +2296,7 @@ function renderConfig(){
       <td style="text-align:center;white-space:nowrap">
         <button class="btn btn-ghost btn-sm" onclick="editarUsuario('${u.id}')" title="Editar usuário" style="padding:4px 8px">✏️</button>
         <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}')" title="${ativo?'Desativar':'Ativar'}" style="padding:4px 8px;margin-left:2px">${ativo?'🔴':'🟢'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="deletarUsuario('${u.id}')" title="Excluir usuário" style="padding:4px 8px;margin-left:2px;color:#e74c3c">🗑️</button>
       </td>
     </tr>`;
   }).join('');
@@ -2324,6 +2351,7 @@ window.salvarSupabase=salvarSupabase;
 window.abrirNovoUsuario=abrirNovoUsuario;
 window.editarUsuario=editarUsuario;
 window.toggleUsuario=toggleUsuario;
+window.deletarUsuario=deletarUsuario;
 window.testarConexao=testarConexao;
 window.editarCliente=editarCliente;
 window.editarPedido=editarPedido;
