@@ -606,8 +606,6 @@ tr:hover td{background:#FAFAF5}
             <tbody id="cfg-users-tbody"></tbody>
           </table>
         </div>
-        <!-- DEBUG TEMPORÁRIO — remover depois -->
-        <div id="debug-usuarios" style="margin-top:8px;padding:10px 14px;background:#0a0f1e;border:1px solid #F7CF13;border-radius:8px;font-size:11px;font-family:monospace;color:#aaa;display:none"></div>
       </div>
 
       <!-- ── METAS ── -->
@@ -2352,13 +2350,6 @@ function renderConfig(){
       }
       tbody.appendChild(tr);
     });
-    // Debug panel — mostra estado atual do DB.usuarios
-    const dbg=document.getElementById('debug-usuarios');
-    if(dbg){
-      dbg.style.display='block';
-      dbg.innerHTML='<strong style="color:#F7CF13">🔍 DEBUG DB.usuarios:</strong><br>'+
-        DB.usuarios.map(u=>`• <span style="color:#fff">${u.nome}</span> id=<span style="color:#F7CF13">${u.id}</span> ativo=${u.ativo}`).join('<br>');
-    }
   }
 
   // ── Metas
