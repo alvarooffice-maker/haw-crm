@@ -1600,6 +1600,9 @@ function abrirNovoUsuario(){
 
 function editarUsuario(id){
   const u=DB.usuarios.find(x=>x.id===id);if(!u)return;
+  // Abrir o modal PRIMEIRO (ele reseta os inputs visiveis internamente)
+  openModal('modal-usuario');
+  // Preencher os campos DEPOIS do reset do openModal
   document.getElementById('usr-id').value=u.id;
   document.getElementById('usr-modal-title').textContent='Editar Usuário — '+u.nome;
   document.getElementById('usr-pin-label').textContent='Novo PIN (4 dígitos)';
@@ -1610,7 +1613,6 @@ function editarUsuario(id){
   document.getElementById('usr-meta').value=u.meta||'';
   document.getElementById('usr-pin').value='';
   document.getElementById('usr-pin2').value='';
-  openModal('modal-usuario');
 }
 
 function toggleUsuario(id){
@@ -1624,9 +1626,9 @@ function toggleUsuario(id){
   save();renderConfig();toast('Usuário '+(DB.usuarios[i].ativo?'ativado ✅':'desativado 🔴')+'!');
 }
 
-async function deletarUsuario(id){
+function deletarUsuario(id){
   const usr=DB.usuarios.find(u=>u.id===id);
-  if(!usr)return;
+  if(!usr){toast('❌ Usuário não encontrado');return;}
   // Protege o único dono ativo
   if(usr.perfil==='dono'&&usr.ativo!==false){
     const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
@@ -1634,17 +1636,39 @@ async function deletarUsuario(id){
   }
   // Protege o próprio usuário logado
   if(usr.id===currentUser.id){toast('❌ Você não pode excluir o próprio usuário');return;}
-  if(!confirm(`Excluir permanentemente o usuário "${usr.nome}"?\n\nEsta ação não pode ser desfeita.`))return;
-  // Remove do DB local
+  // Mostrar confirmação inline na tela (evita problemas com confirm() em alguns navegadores)
+  const el=document.getElementById('cfg-users-tbody');
+  const existingConfirm=document.getElementById('confirm-del-'+id);
+  if(existingConfirm){existingConfirm.remove();return;}
+  const row=el.querySelector(`button[onclick*="${id}"]`)?.closest('tr');
+  if(row){
+    const div=document.createElement('tr');
+    div.id='confirm-del-'+id;
+    div.style.cssText='background:#2d1b1b';
+    div.innerHTML=`<td colspan="7" style="padding:10px 16px;text-align:center">
+      <span style="color:#e74c3c;font-size:13px;font-weight:600">⚠️ Excluir "${usr.nome}" permanentemente?</span>
+      &nbsp;&nbsp;
+      <button onclick="confirmarDelUsuario('${id}')" class="btn btn-sm" style="background:#e74c3c;color:#fff;border:none;padding:5px 14px;border-radius:6px;cursor:pointer;font-weight:600">Sim, excluir</button>
+      &nbsp;
+      <button onclick="document.getElementById('confirm-del-${id}').remove()" class="btn btn-ghost btn-sm">Cancelar</button>
+    </td>`;
+    row.after(div);
+  } else {
+    // fallback sem row
+    if(window.confirm(`Excluir "${usr.nome}"?`))confirmarDelUsuario(id);
+  }
+}
+
+async function confirmarDelUsuario(id){
+  const usr=DB.usuarios.find(u=>u.id===id);
+  const confirmRow=document.getElementById('confirm-del-'+id);
+  if(confirmRow)confirmRow.remove();
+  if(!usr)return;
   DB.usuarios=DB.usuarios.filter(u=>u.id!==id);
-  // Remove do haw_pins
   try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');delete p[usr.nome];localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
   save();
-  // Tenta remover do Supabase
   if(window.HAW_SB&&window.HAW_SB.isOnline()&&window.HAW_SB.client){
-    try{
-      await window.HAW_SB.client.from('usuarios').delete().eq('id',id);
-    }catch(e){console.warn('[HAW] Falha ao remover usuário do Supabase:',e);}
+    try{await window.HAW_SB.client.from('usuarios').delete().eq('id',id);}catch(e){}
   }
   renderConfig();populateSelects();
   toast(`Usuário "${usr.nome}" excluído! ✅`);
@@ -2352,6 +2376,7 @@ window.abrirNovoUsuario=abrirNovoUsuario;
 window.editarUsuario=editarUsuario;
 window.toggleUsuario=toggleUsuario;
 window.deletarUsuario=deletarUsuario;
+window.confirmarDelUsuario=confirmarDelUsuario;
 window.testarConexao=testarConexao;
 window.editarCliente=editarCliente;
 window.editarPedido=editarPedido;
