@@ -1665,18 +1665,19 @@ function salvarUsuario(){
     // Novo
     if(!pin||pin.length<4){alert('PIN deve ter 4 dígitos');return;}
     if(pin!==pin2){alert('PINs não coincidem');return;}
-    const novoId=uid();
+    const novoId=(typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():uid();
     const novoPerf=document.getElementById('usr-perfil').value;
     const novoMeta=parseFloat(document.getElementById('usr-meta').value)||0;
-    DB.usuarios.push({id:novoId,nome,email,perfil:novoPerf,meta:novoMeta,ativo:true,senha:pin,createdAt:new Date().toISOString()});
+    const novoTs=new Date().toISOString();
+    DB.usuarios.push({id:novoId,nome,email,perfil:novoPerf,meta:novoMeta,ativo:true,senha:pin,createdAt:novoTs});
     // Grava PIN em haw_pins para que doLogin() funcione mesmo sem sync Supabase
     try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
     save();
-    // Tenta sync imediato para Supabase
+    // Tenta sync imediato para Supabase com UUID válido
     (async()=>{
       if(window.HAW_SB&&window.HAW_SB.isOnline()){
         try{
-          const row={id:novoId,nome,email,perfil:novoPerf,meta_mensal:novoMeta,ativo:true,senha:pin,created_at:new Date().toISOString()};
+          const row={id:novoId,nome,email,perfil:novoPerf,meta_mensal:novoMeta,ativo:true,senha:pin,created_at:novoTs};
           const{error}=await window.HAW_SB.client.from('usuarios').upsert(row,{onConflict:'id'});
           if(error)throw error;
           toast('Usuário criado e sincronizado! ✅');
