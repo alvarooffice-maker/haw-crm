@@ -1599,7 +1599,15 @@ function abrirNovoUsuario(){
 }
 
 function editarUsuario(id){
-  const u=DB.usuarios.find(x=>x.id===id);if(!u)return;
+  // Busca por ID exato; se não achar, tenta pelo nome exibido na linha (fallback para ID obsoleto)
+  let u=DB.usuarios.find(x=>x.id===id);
+  if(!u){
+    // Fallback: busca pelo data-nome guardado na célula de ações
+    const acoesTd=document.getElementById('acoes-'+id);
+    const nomeFallback=acoesTd?.dataset?.nome;
+    if(nomeFallback) u=DB.usuarios.find(x=>x.nome===nomeFallback);
+    if(!u){toast('⚠️ Usuário não encontrado. Recarregue a página (Ctrl+Shift+R).');return;}
+  }
   // Abrir o modal PRIMEIRO (ele reseta os inputs visiveis internamente)
   openModal('modal-usuario');
   // Preencher os campos DEPOIS do reset do openModal
@@ -1627,8 +1635,14 @@ function toggleUsuario(id){
 }
 
 function deletarUsuario(id){
-  const usr=DB.usuarios.find(u=>u.id===id);
-  if(!usr){toast('❌ Usuário não encontrado');return;}
+  let usr=DB.usuarios.find(u=>u.id===id);
+  if(!usr){
+    const acoesTd=document.getElementById('acoes-'+id);
+    const nomeFallback=acoesTd?.dataset?.nome;
+    if(nomeFallback) usr=DB.usuarios.find(u=>u.nome===nomeFallback);
+    if(!usr){toast('❌ Usuário não encontrado');return;}
+    id=usr.id; // atualiza o id para o correto
+  }
   // Protege o único dono ativo
   if(usr.perfil==='dono'&&usr.ativo!==false){
     const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
@@ -2317,7 +2331,7 @@ function renderConfig(){
         <td style="text-align:center;font-size:16px" title="${u.senha?'PIN configurado':'Sem PIN definido'}">${u.senha?'🔐':'⚠️'}</td>
         <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
         <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
-        <td style="text-align:center;white-space:nowrap" id="acoes-${u.id}"></td>`;
+        <td style="text-align:center;white-space:nowrap" id="acoes-${u.id}" data-uid="${u.id}" data-nome="${u.nome}"></td>`;
       // Botões com addEventListener direto — sem depender de onclick inline nem de event delegation
       const tdAcoes=tr.querySelector(`#acoes-${u.id}`);
       const mkBtn=(emoji,title,color,fn)=>{
