@@ -1640,7 +1640,7 @@ function deletarUsuario(id){
   const el=document.getElementById('cfg-users-tbody');
   const existingConfirm=document.getElementById('confirm-del-'+id);
   if(existingConfirm){existingConfirm.remove();return;}
-  const row=el.querySelector(`button[onclick*="${id}"]`)?.closest('tr');
+  const row=el.querySelector(`button[data-id="${id}"]`)?.closest('tr');
   if(row){
     const div=document.createElement('tr');
     div.id='confirm-del-'+id;
@@ -1648,9 +1648,9 @@ function deletarUsuario(id){
     div.innerHTML=`<td colspan="7" style="padding:10px 16px;text-align:center">
       <span style="color:#e74c3c;font-size:13px;font-weight:600">⚠️ Excluir "${usr.nome}" permanentemente?</span>
       &nbsp;&nbsp;
-      <button onclick="confirmarDelUsuario('${id}')" class="btn btn-sm" style="background:#e74c3c;color:#fff;border:none;padding:5px 14px;border-radius:6px;cursor:pointer;font-weight:600">Sim, excluir</button>
+      <button class="btn btn-sm usr-confirm-del-btn" data-id="${id}" style="background:#e74c3c;color:#fff;border:none;padding:5px 14px;border-radius:6px;cursor:pointer;font-weight:600">Sim, excluir</button>
       &nbsp;
-      <button onclick="document.getElementById('confirm-del-${id}').remove()" class="btn btn-ghost btn-sm">Cancelar</button>
+      <button class="btn btn-ghost btn-sm usr-cancel-del-btn" data-id="${id}">Cancelar</button>
     </td>`;
     row.after(div);
   } else {
@@ -2318,9 +2318,9 @@ function renderConfig(){
       <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
       <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
       <td style="text-align:center;white-space:nowrap">
-        <button class="btn btn-ghost btn-sm" onclick="editarUsuario('${u.id}')" title="Editar usuário" style="padding:4px 8px">✏️</button>
-        <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}')" title="${ativo?'Desativar':'Ativar'}" style="padding:4px 8px;margin-left:2px">${ativo?'🔴':'🟢'}</button>
-        <button class="btn btn-ghost btn-sm" onclick="deletarUsuario('${u.id}')" title="Excluir usuário" style="padding:4px 8px;margin-left:2px;color:#e74c3c">🗑️</button>
+        <button class="btn btn-ghost btn-sm usr-action-btn" data-action="edit"   data-id="${u.id}" title="Editar usuário"  style="padding:4px 8px">✏️</button>
+        <button class="btn btn-ghost btn-sm usr-action-btn" data-action="toggle" data-id="${u.id}" title="${ativo?'Desativar':'Ativar'}" style="padding:4px 8px;margin-left:2px">${ativo?'🔴':'🟢'}</button>
+        <button class="btn btn-ghost btn-sm usr-action-btn" data-action="delete" data-id="${u.id}" title="Excluir usuário" style="padding:4px 8px;margin-left:2px;color:#e74c3c">🗑️</button>
       </td>
     </tr>`;
   }).join('');
@@ -2405,6 +2405,33 @@ window.toggleProduto=toggleProduto;
 window.maskCPF=maskCPF;
 window.maskTel=maskTel;
 window.salvarMetas=salvarMetas;
+
+// ── DELEGATED CLICK LISTENER para botões de usuário (event delegation) ──
+// Registrado em document — funciona mesmo quando tbody.innerHTML é recriado
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.usr-action-btn');
+  if(!btn) return;
+  const id     = btn.dataset.id;
+  const action = btn.dataset.action;
+  if(!id || !action) return;
+  e.stopPropagation();
+  if(action==='edit')   editarUsuario(id);
+  if(action==='toggle') toggleUsuario(id);
+  if(action==='delete') deletarUsuario(id);
+});
+
+// Delegado para "confirmar exclusão" inline
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.usr-confirm-del-btn');
+  if(!btn) return;
+  confirmarDelUsuario(btn.dataset.id);
+});
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.usr-cancel-del-btn');
+  if(!btn) return;
+  const row = document.getElementById('confirm-del-'+btn.dataset.id);
+  if(row) row.remove();
+});
 
 // ── INIT (after all functions defined) ──
 document.addEventListener('DOMContentLoaded',()=>{
