@@ -1640,7 +1640,8 @@ function deletarUsuario(id){
   const el=document.getElementById('cfg-users-tbody');
   const existingConfirm=document.getElementById('confirm-del-'+id);
   if(existingConfirm){existingConfirm.remove();return;}
-  const row=el.querySelector(`button[data-id="${id}"]`)?.closest('tr');
+  const acoesTd=document.getElementById('acoes-'+id);
+  const row=acoesTd?acoesTd.closest('tr'):null;
   if(row){
     const div=document.createElement('tr');
     div.id='confirm-del-'+id;
@@ -1653,9 +1654,6 @@ function deletarUsuario(id){
       <button class="btn btn-ghost btn-sm usr-cancel-del-btn" data-id="${id}">Cancelar</button>
     </td>`;
     row.after(div);
-  } else {
-    // fallback sem row
-    if(window.confirm(`Excluir "${usr.nome}"?`))confirmarDelUsuario(id);
   }
 }
 
@@ -2302,28 +2300,42 @@ function renderConfig(){
   // ── Usuários
   const tbody=document.getElementById('cfg-users-tbody');
   const perfBadge={vendedor:'badge-navy',gestor:'badge-blue',financeiro:'badge-green',dono:'badge-gold'};
-  if(tbody)tbody.innerHTML=DB.usuarios.map(u=>{
-    const ini=u.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
-    const ativo=u.ativo!==false;
-    return `<tr style="${ativo?'':'opacity:.55'}">
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
+  if(tbody){
+    tbody.innerHTML='';
+    DB.usuarios.forEach(u=>{
+      const ini=u.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+      const ativo=u.ativo!==false;
+      const tr=document.createElement('tr');
+      if(!ativo)tr.style.opacity='.55';
+      tr.innerHTML=`
+        <td><div style="display:flex;align-items:center;gap:10px">
           <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${ini}</div>
           <span style="font-weight:500">${u.nome}</span>
-        </div>
-      </td>
-      <td style="color:var(--muted);font-size:12px">${u.email||'—'}</td>
-      <td><span class="badge ${perfBadge[u.perfil]||'badge-gold'}">${u.perfil}</span></td>
-      <td style="text-align:center;font-size:16px" title="${u.senha?'PIN configurado':'Sem PIN definido'}">${u.senha?'🔐':'⚠️'}</td>
-      <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
-      <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
-      <td style="text-align:center;white-space:nowrap">
-        <button class="btn btn-ghost btn-sm usr-action-btn" data-action="edit"   data-id="${u.id}" title="Editar usuário"  style="padding:4px 8px">✏️</button>
-        <button class="btn btn-ghost btn-sm usr-action-btn" data-action="toggle" data-id="${u.id}" title="${ativo?'Desativar':'Ativar'}" style="padding:4px 8px;margin-left:2px">${ativo?'🔴':'🟢'}</button>
-        <button class="btn btn-ghost btn-sm usr-action-btn" data-action="delete" data-id="${u.id}" title="Excluir usuário" style="padding:4px 8px;margin-left:2px;color:#e74c3c">🗑️</button>
-      </td>
-    </tr>`;
-  }).join('');
+        </div></td>
+        <td style="color:var(--muted);font-size:12px">${u.email||'—'}</td>
+        <td><span class="badge ${perfBadge[u.perfil]||'badge-gold'}">${u.perfil}</span></td>
+        <td style="text-align:center;font-size:16px" title="${u.senha?'PIN configurado':'Sem PIN definido'}">${u.senha?'🔐':'⚠️'}</td>
+        <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
+        <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
+        <td style="text-align:center;white-space:nowrap" id="acoes-${u.id}"></td>`;
+      // Botões com addEventListener direto — sem depender de onclick inline nem de event delegation
+      const tdAcoes=tr.querySelector(`#acoes-${u.id}`);
+      const mkBtn=(emoji,title,color,fn)=>{
+        const b=document.createElement('button');
+        b.className='btn btn-ghost btn-sm';
+        b.style.cssText='padding:4px 8px;margin-left:2px';
+        if(color)b.style.color=color;
+        b.title=title;
+        b.textContent=emoji;
+        b.addEventListener('click',fn);
+        return b;
+      };
+      tdAcoes.appendChild(mkBtn('✏️','Editar usuário',null,()=>editarUsuario(u.id)));
+      tdAcoes.appendChild(mkBtn(ativo?'🔴':'🟢',ativo?'Desativar':'Ativar',null,()=>toggleUsuario(u.id)));
+      tdAcoes.appendChild(mkBtn('🗑️','Excluir usuário','#e74c3c',()=>deletarUsuario(u.id)));
+      tbody.appendChild(tr);
+    });
+  }
 
   // ── Metas
   const mf=document.getElementById('metas-form');
