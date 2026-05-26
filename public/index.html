@@ -2324,8 +2324,8 @@ function renderConfig(){
         <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
         <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
         <td style="text-align:center;white-space:nowrap" id="acoes-${u.id}" data-uid="${u.id}" data-nome="${u.nome}"></td>`;
-      // Botões com addEventListener direto — lê uid e nome do dataset no momento do clique
-      const tdAcoes=tr.querySelector(`#acoes-${u.id}`);
+      // Botões com closure direta no usuário — sem dependência de closest() ou dataset
+      const tdAcoes=tr.querySelector('td[data-uid]');
       if(tdAcoes){
         const mkBtn=(emoji,title,color,acao)=>{
           const b=document.createElement('button');
@@ -2334,13 +2334,10 @@ function renderConfig(){
           if(color)b.style.color=color;
           b.title=title;
           b.textContent=emoji;
-          b.addEventListener('click',function(){
-            const td=this.closest('td[data-uid]')||this.closest('td[data-nome]');
-            const uid=td?.dataset?.uid;
-            const nome=td?.dataset?.nome;
-            if(acao==='edit')   editarUsuario(uid,nome);
-            if(acao==='toggle') toggleUsuario(uid,nome);
-            if(acao==='delete') deletarUsuario(uid,nome);
+          b.addEventListener('click',()=>{
+            if(acao==='edit')   editarUsuario(u.id,u.nome);
+            if(acao==='toggle') toggleUsuario(u.id,u.nome);
+            if(acao==='delete') deletarUsuario(u.id,u.nome);
           });
           return b;
         };
