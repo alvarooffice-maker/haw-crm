@@ -963,7 +963,8 @@ function filterSidebar(){
 function populateLoginUsers(){
   const sel=document.getElementById('login-user');
   if(!sel)return;
-  sel.innerHTML=DB.usuarios.filter(u=>u.ativo).map(u=>`<option value="${u.id}">${u.nome} (${u.perfil})</option>`).join('');
+  // ativo !== false: trata null/undefined como ativo (evita excluir usuários sem campo ativo definido)
+  sel.innerHTML=DB.usuarios.filter(u=>u.ativo!==false).map(u=>`<option value="${u.id}">${u.nome} (${u.perfil})</option>`).join('');
 }
 
 function doLogin(){
@@ -1625,7 +1626,6 @@ function abrirNovoUsuario(){
 }
 
 function editarUsuario(id){
-  console.log('[HAW] editarUsuario chamado, id=', id, '| DB.usuarios=', DB.usuarios.map(u=>u.id));
   const u=DB.usuarios.find(x=>x.id===id);
   if(!u){alert('Usuário "'+id+'" não encontrado.\nRecarregue a página com Ctrl+Shift+R e tente novamente.');return;}
   document.getElementById('usr-id').value=u.id;
@@ -1746,7 +1746,7 @@ function salvarUsuario(){
         toast('Usuário criado! ✅');
       }
     })();
-    closeModal('modal-usuario');renderConfig();populateSelects();
+    closeModal('modal-usuario');renderConfig();populateSelects();populateLoginUsers();
   }
 }
 function salvarMetas(){

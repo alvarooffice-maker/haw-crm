@@ -129,7 +129,9 @@
         sb.from('produtos').select('*').is('deleted_at', null).order('nome'),
         sb.from('pedidos').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
         sb.from('pedido_itens').select('*').order('created_at'),
-        sb.from('usuarios').select('*').eq('ativo', true),
+        // Busca TODOS os usuários não-deletados (sem filtrar ativo aqui)
+        // O filtro de ativo é feito em JS para evitar que ativo=null exclua o usuário
+        sb.from('usuarios').select('*').is('deleted_at', null),
       ]);
 
       if (clis.data)   window.DB.clientes  = clis.data.map(r => toCamel('clientes', r));
@@ -141,16 +143,22 @@
 
       if (users.data && users.data.length > 0) {
         const localUsers = window.DB.usuarios || [];
-        const sbIds = new Set(users.data.map(r => r.id));
+        // Filtra fora os demos do Supabase antes de processar
+        const validSbUsers = users.data.filter(r =>
+          !DEMO_IDS.has(r.id) && !DEMO_NAMES.has(r.nome)
+        );
+        const sbIds = new Set(validSbUsers.map(r => r.id));
         // Mescla usuários do Supabase preservando senha local
-        const sbMerged = users.data.map(r => {
+        const sbMerged = validSbUsers.map(r => {
           const camel = toCamel('usuarios', r);
+          // ativo=null no Supabase tratado como true (campo pode não ter DEFAULT)
+          if (camel.ativo === null || camel.ativo === undefined) camel.ativo = true;
           const local = localUsers.find(u => u.id === camel.id)
                      || localUsers.find(u => u.nome === camel.nome);
           if (local && local.senha) camel.senha = local.senha;
           return camel;
         });
-        // Mantém apenas usuários locais reais (não-demo) que ainda não estão no Supabase
+        // Mantém usuários locais reais que ainda não estão no Supabase
         const localOnly = localUsers.filter(u =>
           !sbIds.has(u.id) &&
           u.ativo !== false &&
@@ -158,6 +166,13 @@
           !DEMO_NAMES.has(u.nome)
         );
         window.DB.usuarios = [...sbMerged, ...localOnly];
+        // Sincronizar usuários local-only para o Supabase
+        if (localOnly.length) {
+          const mapped = localOnly.map(r => toSnake('usuarios', r));
+          sb.from('usuarios').upsert(mapped, { onConflict: 'id' })
+            .then(() => console.log('[HAW] Usuários locais sincronizados para Supabase:', localOnly.map(u => u.nome)))
+            .catch(e => console.warn('[HAW] Falha ao sincronizar usuários locais:', e));
+        }
         // Deletar usuários demo do Supabase se existirem lá
         users.data
           .filter(r => DEMO_IDS.has(r.id) || DEMO_NAMES.has(r.nome))
