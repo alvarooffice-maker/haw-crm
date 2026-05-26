@@ -2311,6 +2311,7 @@ function renderConfig(){
     DB.usuarios.forEach(u=>{
       const ini=u.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
       const ativo=u.ativo!==false;
+      const sid=u.id.replace(/'/g,"\\'");
       const tr=document.createElement('tr');
       if(!ativo)tr.style.opacity='.55';
       tr.innerHTML=`
@@ -2323,28 +2324,11 @@ function renderConfig(){
         <td style="text-align:center;font-size:16px" title="${u.senha?'PIN configurado':'Sem PIN definido'}">${u.senha?'🔐':'⚠️'}</td>
         <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
         <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
-        <td style="text-align:center;white-space:nowrap" id="acoes-${u.id}" data-uid="${u.id}" data-nome="${u.nome}"></td>`;
-      // Botões com closure direta no usuário — sem dependência de closest() ou dataset
-      const tdAcoes=tr.querySelector('td[data-uid]');
-      if(tdAcoes){
-        const mkBtn=(emoji,title,color,acao)=>{
-          const b=document.createElement('button');
-          b.className='btn btn-ghost btn-sm';
-          b.style.cssText='padding:4px 8px;margin-left:2px';
-          if(color)b.style.color=color;
-          b.title=title;
-          b.textContent=emoji;
-          b.addEventListener('click',()=>{
-            if(acao==='edit')   editarUsuario(u.id,u.nome);
-            if(acao==='toggle') toggleUsuario(u.id,u.nome);
-            if(acao==='delete') deletarUsuario(u.id,u.nome);
-          });
-          return b;
-        };
-        tdAcoes.appendChild(mkBtn('✏️','Editar usuário',null,'edit'));
-        tdAcoes.appendChild(mkBtn(ativo?'🔴':'🟢',ativo?'Desativar':'Ativar',null,'toggle'));
-        tdAcoes.appendChild(mkBtn('🗑️','Excluir usuário','#e74c3c','delete'));
-      }
+        <td style="text-align:center;white-space:nowrap">
+          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;margin-left:2px" title="Editar usuário" onclick="editarUsuario('${sid}')">✏️</button>
+          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;margin-left:2px" title="${ativo?'Desativar':'Ativar'}" onclick="toggleUsuario('${sid}')">${ativo?'🔴':'🟢'}</button>
+          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;margin-left:2px;color:#e74c3c" title="Excluir usuário" onclick="deletarUsuario('${sid}')">🗑️</button>
+        </td>`;
       tbody.appendChild(tr);
     });
   }
