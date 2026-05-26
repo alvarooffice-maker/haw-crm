@@ -1599,6 +1599,7 @@ function abrirNovoUsuario(){
 }
 
 function editarUsuario(id,nomeParam){
+  toast('🔍 editarUsuario chamado: '+id); // DEBUG
   let u=DB.usuarios.find(x=>x.id===id);
   if(!u&&nomeParam) u=DB.usuarios.find(x=>x.nome===nomeParam);
   if(!u){toast('⚠️ Usuário não encontrado (id='+id+'). Recarregue: Ctrl+Shift+R');return;}
@@ -1646,8 +1647,7 @@ function deletarUsuario(id,nomeParam){
   const el=document.getElementById('cfg-users-tbody');
   const existingConfirm=document.getElementById('confirm-del-'+id);
   if(existingConfirm){existingConfirm.remove();return;}
-  const acoesTd=document.getElementById('acoes-'+id);
-  const row=acoesTd?acoesTd.closest('tr'):null;
+  const row=document.querySelector('#cfg-users-tbody tr[data-uid="'+id+'"]');
   if(row){
     const div=document.createElement('tr');
     div.id='confirm-del-'+id;
@@ -2313,6 +2313,7 @@ function renderConfig(){
       const ativo=u.ativo!==false;
       const sid=u.id.replace(/'/g,"\\'");
       const tr=document.createElement('tr');
+      tr.dataset.uid=u.id;
       if(!ativo)tr.style.opacity='.55';
       tr.innerHTML=`
         <td><div style="display:flex;align-items:center;gap:10px">

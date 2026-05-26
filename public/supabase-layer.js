@@ -250,6 +250,7 @@
     const out = {};
     for (const [k, v] of Object.entries(row)) {
       if (k === 'itens' || k === 'deleted') continue; // skip virtual fields
+      if (tabela === 'usuarios' && k === 'senha') continue; // senha fica só no local
       const snake = reversed[k] || k;
       out[snake] = v;
     }
