@@ -1039,15 +1039,25 @@ const STATUS_BADGE = {
 // ── INIT ──
 // ── STORAGE ──
 const DEFAULT_USUARIOS=[
-  {id:'u1',nome:'Dono HAW',email:'dono@hawoticas.com.br',perfil:'dono',ativo:true,meta:0,senha:'1234'},
-  {id:'u2',nome:'Ana Lima',email:'ana@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:8000,senha:'1111'},
-  {id:'u3',nome:'Carlos Souza',email:'carlos@hawoticas.com.br',perfil:'vendedor',ativo:true,meta:7000,senha:'2222'},
+  {id:'u1',nome:'Admin HAW',email:'admin@hawoticas.com.br',perfil:'dono',ativo:true,meta:0,senha:'0000'},
+];
+// IDs e nomes de usuários de demonstração que devem ser removidos automaticamente
+const DEMO_USER_PURGE=[
+  {id:'u2',nome:'Ana Lima'},{id:'u3',nome:'Carlos Souza'},{id:'u1',nome:'Dono HAW'},
 ];
 
 function save(){localStorage.setItem('haw_crm_v1',JSON.stringify(DB))}
 
 function _garantirUsuarios(){
-  // Nunca deixar DB.usuarios ficar vazio — protege contra sobrescrita do Supabase
+  // Remover usuários de demonstração que nunca foram excluídos manualmente
+  if(DB.usuarios&&DB.usuarios.length){
+    const before=DB.usuarios.length;
+    DB.usuarios=DB.usuarios.filter(u=>{
+      return !DEMO_USER_PURGE.some(d=>d.id===u.id&&d.nome===u.nome);
+    });
+    if(DB.usuarios.length!==before) save();
+  }
+  // Nunca deixar DB.usuarios ficar vazio
   if(!DB.usuarios||!DB.usuarios.length){
     DB.usuarios=DEFAULT_USUARIOS.map(u=>({...u}));
     window.DB=DB;
@@ -1583,7 +1593,15 @@ function toggleProduto(id){
   save();renderCatalogo();toast('Produto atualizado!');
 }
 
-// ── USUÁRIO ──
+// ── USUÁRIO — funções de modal ──
+function _abrirModalUsuario(){
+  const m=document.getElementById('modal-usuario');
+  if(!m)return false;
+  if(m.parentElement!==document.body)document.body.appendChild(m);
+  m.classList.add('open');
+  return true;
+}
+
 function abrirNovoUsuario(){
   document.getElementById('usr-id').value='';
   document.getElementById('usr-modal-title').textContent='Novo Usuário';
@@ -1595,17 +1613,12 @@ function abrirNovoUsuario(){
   document.getElementById('usr-meta').value='';
   document.getElementById('usr-pin').value='';
   document.getElementById('usr-pin2').value='';
-  openModal('modal-usuario');
+  _abrirModalUsuario();
 }
 
-function editarUsuario(id,nomeParam){
-  toast('🔍 editarUsuario chamado: '+id); // DEBUG
-  let u=DB.usuarios.find(x=>x.id===id);
-  if(!u&&nomeParam) u=DB.usuarios.find(x=>x.nome===nomeParam);
-  if(!u){toast('⚠️ Usuário não encontrado (id='+id+'). Recarregue: Ctrl+Shift+R');return;}
-  // Abrir o modal PRIMEIRO (ele reseta os inputs visiveis internamente)
-  openModal('modal-usuario');
-  // Preencher os campos DEPOIS do reset do openModal
+function editarUsuario(id){
+  const u=DB.usuarios.find(x=>x.id===id);
+  if(!u){alert('Usuário "'+id+'" não encontrado.\nRecarregue a página com Ctrl+Shift+R e tente novamente.');return;}
   document.getElementById('usr-id').value=u.id;
   document.getElementById('usr-modal-title').textContent='Editar Usuário — '+u.nome;
   document.getElementById('usr-pin-label').textContent='Novo PIN (4 dígitos)';
@@ -1616,51 +1629,33 @@ function editarUsuario(id,nomeParam){
   document.getElementById('usr-meta').value=u.meta||'';
   document.getElementById('usr-pin').value='';
   document.getElementById('usr-pin2').value='';
+  _abrirModalUsuario();
 }
 
-function toggleUsuario(id,nomeParam){
-  let i=DB.usuarios.findIndex(u=>u.id===id);
-  if(i<0&&nomeParam) i=DB.usuarios.findIndex(u=>u.nome===nomeParam);
-  if(i<0)return;
+function toggleUsuario(id){
+  const i=DB.usuarios.findIndex(u=>u.id===id);
+  if(i<0){toast('❌ Usuário não encontrado');return;}
   const usr=DB.usuarios[i];
   if(usr.perfil==='dono'&&usr.ativo!==false){
-    const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
-    if(donosAtivos.length<=1){toast('❌ Não é possível desativar o único Dono ativo');return;}
+    if(DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false).length<=1){
+      toast('❌ Não é possível desativar o único Dono ativo');return;
+    }
   }
-  DB.usuarios[i].ativo=!(DB.usuarios[i].ativo!==false);
+  DB.usuarios[i].ativo=!(usr.ativo!==false);
   save();renderConfig();toast('Usuário '+(DB.usuarios[i].ativo?'ativado ✅':'desativado 🔴')+'!');
 }
 
-function deletarUsuario(id,nomeParam){
-  let usr=DB.usuarios.find(u=>u.id===id);
-  if(!usr&&nomeParam) usr=DB.usuarios.find(u=>u.nome===nomeParam);
-  if(!usr){toast('❌ Usuário não encontrado (id='+id+')');return;}
-  id=usr.id;
-  // Protege o único dono ativo
+function deletarUsuario(id){
+  const usr=DB.usuarios.find(u=>u.id===id);
+  if(!usr){toast('❌ Usuário não encontrado');return;}
   if(usr.perfil==='dono'&&usr.ativo!==false){
-    const donosAtivos=DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false);
-    if(donosAtivos.length<=1){toast('❌ Não é possível excluir o único Dono ativo');return;}
+    if(DB.usuarios.filter(u=>u.perfil==='dono'&&u.ativo!==false).length<=1){
+      toast('❌ Não é possível excluir o único Dono ativo');return;
+    }
   }
-  // Protege o próprio usuário logado
   if(usr.id===currentUser.id){toast('❌ Você não pode excluir o próprio usuário');return;}
-  // Mostrar confirmação inline na tela (evita problemas com confirm() em alguns navegadores)
-  const el=document.getElementById('cfg-users-tbody');
-  const existingConfirm=document.getElementById('confirm-del-'+id);
-  if(existingConfirm){existingConfirm.remove();return;}
-  const row=document.querySelector('#cfg-users-tbody tr[data-uid="'+id+'"]');
-  if(row){
-    const div=document.createElement('tr');
-    div.id='confirm-del-'+id;
-    div.style.cssText='background:#2d1b1b';
-    div.innerHTML=`<td colspan="7" style="padding:10px 16px;text-align:center">
-      <span style="color:#e74c3c;font-size:13px;font-weight:600">⚠️ Excluir "${usr.nome}" permanentemente?</span>
-      &nbsp;&nbsp;
-      <button class="btn btn-sm usr-confirm-del-btn" data-id="${id}" style="background:#e74c3c;color:#fff;border:none;padding:5px 14px;border-radius:6px;cursor:pointer;font-weight:600">Sim, excluir</button>
-      &nbsp;
-      <button class="btn btn-ghost btn-sm usr-cancel-del-btn" data-id="${id}">Cancelar</button>
-    </td>`;
-    row.after(div);
-  }
+  if(!confirm('Excluir "'+usr.nome+'" permanentemente?\n\nEsta ação não pode ser desfeita.'))return;
+  confirmarDelUsuario(id);
 }
 
 async function confirmarDelUsuario(id){
@@ -2312,6 +2307,7 @@ function renderConfig(){
       const ini=u.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
       const ativo=u.ativo!==false;
       const sid=u.id.replace(/'/g,"\\'");
+      const esc=u.id.replace(/"/g,'&quot;');
       const tr=document.createElement('tr');
       tr.dataset.uid=u.id;
       if(!ativo)tr.style.opacity='.55';
@@ -2326,9 +2322,9 @@ function renderConfig(){
         <td style="font-size:12px">${u.meta?fmtMoney(u.meta)+'/mês':'—'}</td>
         <td style="text-align:center"><span class="badge ${ativo?'badge-green':'badge-gray'}">${ativo?'Ativo':'Inativo'}</span></td>
         <td style="text-align:center;white-space:nowrap">
-          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;margin-left:2px" title="Editar usuário" onclick="editarUsuario('${sid}')">✏️</button>
-          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;margin-left:2px" title="${ativo?'Desativar':'Ativar'}" onclick="toggleUsuario('${sid}')">${ativo?'🔴':'🟢'}</button>
-          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;margin-left:2px;color:#e74c3c" title="Excluir usuário" onclick="deletarUsuario('${sid}')">🗑️</button>
+          <button class="btn btn-ghost btn-sm usr-btn" data-uid="${esc}" data-action="edit" style="padding:4px 8px;margin-left:2px" title="Editar usuário">✏️</button>
+          <button class="btn btn-ghost btn-sm usr-btn" data-uid="${esc}" data-action="toggle" style="padding:4px 8px;margin-left:2px" title="${ativo?'Desativar':'Ativar'}">${ativo?'🔴':'🟢'}</button>
+          <button class="btn btn-ghost btn-sm usr-btn" data-uid="${esc}" data-action="delete" style="padding:4px 8px;margin-left:2px;color:#e74c3c" title="Excluir usuário">🗑️</button>
         </td>`;
       tbody.appendChild(tr);
     });
@@ -2415,31 +2411,16 @@ window.maskCPF=maskCPF;
 window.maskTel=maskTel;
 window.salvarMetas=salvarMetas;
 
-// ── DELEGATED CLICK LISTENER para botões de usuário (event delegation) ──
-// Registrado em document — funciona mesmo quando tbody.innerHTML é recriado
+// ── DELEGATED CLICK — botões de ação de usuário (.usr-btn) ──
 document.addEventListener('click', function(e){
-  const btn = e.target.closest('.usr-action-btn');
+  const btn = e.target.closest('.usr-btn');
   if(!btn) return;
-  const id     = btn.dataset.id;
+  const id     = btn.dataset.uid;
   const action = btn.dataset.action;
   if(!id || !action) return;
-  e.stopPropagation();
   if(action==='edit')   editarUsuario(id);
   if(action==='toggle') toggleUsuario(id);
   if(action==='delete') deletarUsuario(id);
-});
-
-// Delegado para "confirmar exclusão" inline
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('.usr-confirm-del-btn');
-  if(!btn) return;
-  confirmarDelUsuario(btn.dataset.id);
-});
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('.usr-cancel-del-btn');
-  if(!btn) return;
-  const row = document.getElementById('confirm-del-'+btn.dataset.id);
-  if(row) row.remove();
 });
 
 // ── INIT (after all functions defined) ──

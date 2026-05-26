@@ -135,6 +135,10 @@
       if (clis.data)   window.DB.clientes  = clis.data.map(r => toCamel('clientes', r));
       if (recs.data)   window.DB.receitas  = recs.data.map(r => toCamel('receitas', r));
       if (prods.data)  window.DB.produtos  = prods.data.map(r => toCamel('produtos', r));
+      // IDs de usuários demo que devem ser ignorados/deletados
+      const DEMO_IDS = new Set(['u1', 'u2', 'u3']);
+      const DEMO_NAMES = new Set(['Dono HAW', 'Ana Lima', 'Carlos Souza', 'Admin HAW']);
+
       if (users.data && users.data.length > 0) {
         const localUsers = window.DB.usuarios || [];
         const sbIds = new Set(users.data.map(r => r.id));
@@ -146,12 +150,27 @@
           if (local && local.senha) camel.senha = local.senha;
           return camel;
         });
-        // Mantém usuários criados localmente que ainda não chegaram ao Supabase
-        const localOnly = localUsers.filter(u => !sbIds.has(u.id) && u.ativo !== false);
+        // Mantém apenas usuários locais reais (não-demo) que ainda não estão no Supabase
+        const localOnly = localUsers.filter(u =>
+          !sbIds.has(u.id) &&
+          u.ativo !== false &&
+          !DEMO_IDS.has(u.id) &&
+          !DEMO_NAMES.has(u.nome)
+        );
         window.DB.usuarios = [...sbMerged, ...localOnly];
+        // Deletar usuários demo do Supabase se existirem lá
+        users.data
+          .filter(r => DEMO_IDS.has(r.id) || DEMO_NAMES.has(r.nome))
+          .forEach(r => {
+            sb.from('usuarios').delete().eq('id', r.id)
+              .then(() => console.log('[HAW] Demo user removido do Supabase:', r.nome))
+              .catch(() => {});
+          });
       } else if (users.data && users.data.length === 0 && window.DB.usuarios && window.DB.usuarios.length > 0) {
-        // Supabase vazio mas há usuários locais — sincronizar para o Supabase
-        const mapped = window.DB.usuarios.filter(u => !u.deleted).map(r => toSnake('usuarios', r));
+        // Supabase vazio mas há usuários locais reais — sincronizar
+        const mapped = window.DB.usuarios
+          .filter(u => !u.deleted && !DEMO_IDS.has(u.id) && !DEMO_NAMES.has(u.nome))
+          .map(r => toSnake('usuarios', r));
         if (mapped.length) {
           sb.from('usuarios').upsert(mapped, { onConflict: 'id' })
             .then(() => console.log('[HAW] Usuários locais sincronizados para Supabase'))
@@ -306,12 +325,9 @@
           if (typeof renderRelatorios === 'function') renderRelatorios();
           if (typeof renderConfig     === 'function') renderConfig();
           if (typeof updateNavCounts  === 'function') updateNavCounts();
-          if (typeof populateSelects  === 'function') populateSelects();
-          // Atualiza dropdown de login com IDs reais do Supabase
-          const loginEl = document.getElementById('login-screen');
-          if (loginEl && !loginEl.classList.contains('hidden')) {
-            if (typeof populateLoginUsers === 'function') populateLoginUsers();
-          }
+          if (typeof populateSelects    === 'function') populateSelects();
+          // Atualiza dropdown de login SEMPRE após dados do Supabase chegarem
+          if (typeof populateLoginUsers === 'function') populateLoginUsers();
         }, 200);
       }
     } else {
