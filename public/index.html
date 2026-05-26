@@ -1735,7 +1735,7 @@ function salvarUsuario(){
     (async()=>{
       if(window.HAW_SB&&window.HAW_SB.isOnline()){
         try{
-          const row={id:novoId,nome,email,perfil:novoPerf,meta_mensal:novoMeta,ativo:true,senha:pin,created_at:novoTs};
+          const row={id:novoId,nome,email,perfil:novoPerf,meta_mensal:novoMeta,ativo:true,created_at:novoTs};
           const{error}=await window.HAW_SB.client.from('usuarios').upsert(row,{onConflict:'id'});
           if(error)throw error;
           toast('Usuário criado e sincronizado! ✅');
