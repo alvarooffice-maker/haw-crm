@@ -601,8 +601,16 @@ tr:hover td{background:#FAFAF5}
         </div>
         <div class="card">
           <div class="ch"><span class="ct">Usuários do sistema</span><button class="btn btn-gold btn-sm" onclick="abrirNovoUsuario()">+ Novo usuário</button></div>
-          <table>
-            <thead><tr><th>Usuário</th><th>Email</th><th>Perfil</th><th style="text-align:center">PIN</th><th>Meta/mês</th><th style="text-align:center">Status</th><th style="text-align:center">Ações</th></tr></thead>
+          <table id="tbl-usuarios" style="table-layout:auto">
+            <thead><tr>
+              <th>Usuário</th>
+              <th>Email</th>
+              <th style="width:90px">Perfil</th>
+              <th style="width:50px;text-align:center">PIN</th>
+              <th style="width:100px">Meta/mês</th>
+              <th style="width:80px;text-align:center">Status</th>
+              <th style="width:120px;text-align:center">Ações</th>
+            </tr></thead>
             <tbody id="cfg-users-tbody"></tbody>
           </table>
         </div>
@@ -1617,6 +1625,7 @@ function abrirNovoUsuario(){
 }
 
 function editarUsuario(id){
+  console.log('[HAW] editarUsuario chamado, id=', id, '| DB.usuarios=', DB.usuarios.map(u=>u.id));
   const u=DB.usuarios.find(x=>x.id===id);
   if(!u){alert('Usuário "'+id+'" não encontrado.\nRecarregue a página com Ctrl+Shift+R e tente novamente.');return;}
   document.getElementById('usr-id').value=u.id;
@@ -2324,7 +2333,7 @@ function renderConfig(){
 
       // ── célula de ações — botões criados por DOM API com handlers diretos
       const tdAcoes=document.createElement('td');
-      tdAcoes.style.cssText='text-align:center;white-space:nowrap';
+      tdAcoes.style.cssText='text-align:center;white-space:nowrap;overflow:visible';
 
       const btnEdit=document.createElement('button');
       btnEdit.className='btn btn-ghost btn-sm';
