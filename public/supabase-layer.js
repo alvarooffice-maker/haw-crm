@@ -129,9 +129,8 @@
         sb.from('produtos').select('*').is('deleted_at', null).order('nome'),
         sb.from('pedidos').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
         sb.from('pedido_itens').select('*').order('created_at'),
-        // Busca TODOS os usuários não-deletados (sem filtrar ativo aqui)
-        // O filtro de ativo é feito em JS para evitar que ativo=null exclua o usuário
-        sb.from('usuarios').select('*').is('deleted_at', null),
+        // Busca TODOS os usuários — filtro de ativo e demo é feito em JS
+        sb.from('usuarios').select('*'),
       ]);
 
       if (clis.data)   window.DB.clientes  = clis.data.map(r => toCamel('clientes', r));
