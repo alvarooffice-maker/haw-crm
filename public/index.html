@@ -273,9 +273,10 @@ tr:hover td{background:#FAFAF5}
     <div class="login-title">HAW Vision CRM</div>
     <div class="login-sub">Faça login para continuar</div>
     <label class="login-label">Usuário</label>
-    <select class="login-select" id="login-user"></select>
+    <select class="login-select" id="login-user" onchange="_loginHint()"></select>
     <label class="login-label">PIN (4 dígitos)</label>
-    <input class="login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <input class="login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')doLogin()" oninput="_loginHint()">
+    <div id="login-hint" style="font-size:11px;color:#F7CF13;margin:-12px 0 10px;min-height:16px"></div>
     <button class="login-btn" onclick="doLogin()">Entrar</button>
     <div class="login-err" id="login-err"></div>
   </div>
@@ -967,25 +968,80 @@ function populateLoginUsers(){
   sel.innerHTML=DB.usuarios.filter(u=>u.ativo!==false).map(u=>`<option value="${u.id}">${u.nome} (${u.perfil})</option>`).join('');
 }
 
+// Retorna o PIN armazenado para um usuário (ou null se não tiver)
+function _getPinUsuario(user){
+  if(!user) return null;
+  try{
+    const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');
+    // Busca por ID primeiro (mais confiável), depois por nome
+    if(p[user.id])  return p[user.id];
+    if(p[user.nome])return p[user.nome];
+  }catch(e){}
+  // Fallback: senha guardada no objeto local (registro offline)
+  return user.senha||null;
+}
+
+// Grava o PIN de um usuário em ambas as chaves (id e nome)
+function _setPinUsuario(user, pin){
+  try{
+    const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');
+    p[user.id]=pin;
+    p[user.nome]=pin;
+    localStorage.setItem('haw_pins',JSON.stringify(p));
+  }catch(e){}
+  // Também grava no objeto local para funcionar offline
+  const i=DB.usuarios.findIndex(u=>u.id===user.id);
+  if(i>=0){DB.usuarios[i].senha=pin; save();}
+}
+
+// Atualiza o hint abaixo do campo PIN conforme o usuário selecionado
+function _loginHint(){
+  const el=document.getElementById('login-hint');
+  if(!el)return;
+  const sel=document.getElementById('login-user');
+  const userId=sel?sel.value:'';
+  const user=DB.usuarios.find(u=>u.id===userId);
+  if(user&&!_getPinUsuario(user)){
+    el.textContent='Primeiro acesso — este PIN será o seu PIN definitivo';
+  } else {
+    el.textContent='';
+  }
+}
+
 function doLogin(){
-  const pin=document.getElementById('login-pin').value;
+  const pin=document.getElementById('login-pin').value.trim();
   const errEl=document.getElementById('login-err');
+  errEl.textContent='';
   _garantirUsuarios();
   const sel=document.getElementById('login-user');
   if(sel&&!sel.options.length)populateLoginUsers();
   const userId=sel?sel.value:'';
-  const user=DB.usuarios.find(u=>u.id===userId&&u.ativo)
-          ||DB.usuarios.find(u=>u.ativo&&sel&&sel.options[sel.selectedIndex]&&u.nome===sel.options[sel.selectedIndex].text.replace(/\s*\(.*\)\s*$/,'').trim());
-  // PIN independente do Supabase — lê haw_pins (chave que o Supabase nunca sobrescreve)
-  let senhaValida=user&&user.senha;
-  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');if(user&&p[user.nome])senhaValida=p[user.nome];}catch(e){}
-  if(!user||pin!==senhaValida){
+  // Aceita ativo=null/undefined como ativo (campo pode estar sem DEFAULT no Supabase)
+  const user=DB.usuarios.find(u=>u.id===userId&&u.ativo!==false)
+          ||DB.usuarios.find(u=>u.ativo!==false&&sel&&sel.options[sel.selectedIndex]&&
+             u.nome===sel.options[sel.selectedIndex].text.replace(/\s*\(.*\)\s*$/,'').trim());
+  if(!user){
+    errEl.textContent='Usuário não encontrado. Recarregue a página.';
+    return;
+  }
+  if(pin.length<4){
+    errEl.textContent='Digite 4 dígitos.';
+    return;
+  }
+  const senhaValida=_getPinUsuario(user);
+  if(!senhaValida){
+    // ── Primeiro acesso: define o PIN agora ──
+    _setPinUsuario(user, pin);
+    // continua para fazer login normalmente
+  } else if(pin!==senhaValida){
     errEl.textContent='PIN incorreto. Tente novamente.';
     document.getElementById('login-pin').value='';
     return;
   }
-  errEl.textContent='';
-  currentUser={id:user.id,nome:user.nome,perfil:user.perfil,initials:user.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()};
+  // ── Login bem-sucedido ──
+  document.getElementById('login-hint').textContent='';
+  currentUser={id:user.id,nome:user.nome,perfil:user.perfil,
+    initials:user.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()};
   sessionStorage.setItem('haw_session',JSON.stringify(currentUser));
   document.getElementById('login-screen').classList.add('hidden');
   filterSidebar();
