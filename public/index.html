@@ -2640,6 +2640,7 @@ function parsearLinhasLab(linhas) {
     const col1 = col[1] || col[2] || '';
     const col2 = col[2] || col[3] || '';
     const col3 = col[3] || col[4] || '';
+    const col4 = col[4] || '';
 
     // Cabeçalho de seção: linha cujo segundo campo é "PREÇO" (texto, não valor)
     if ((col1 === 'PREÇO' || col2 === 'PREÇO') && !rePreco.test(col0)) {
