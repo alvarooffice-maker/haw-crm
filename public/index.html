@@ -1628,7 +1628,7 @@ function addItemPedido(item={}){
 // ── Seletor de produto com busca ────────────────────────────
 function _prodListaFiltrada(termo){
   const t=(termo||'').toLowerCase().trim();
-  const todos=DB.produtos.filter(p=>p.ativo&&!p.deleted);
+  const todos=DB.produtos.filter(p=>p.ativo!==false&&!p.deleted);
   if(!t) return todos;
   return todos.filter(p=>
     p.nome.toLowerCase().includes(t)||
