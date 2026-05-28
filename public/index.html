@@ -265,6 +265,16 @@ tr:hover td{background:#FAFAF5}
 .login-btn{width:100%;padding:13px;background:#F7CF13;color:#13182C;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
 .login-btn:hover{opacity:.88}
 .login-err{color:#ff6b6b;font-size:12px;text-align:center;margin-top:12px;min-height:18px}
+/* ── Seletor de produto com busca ── */
+.prod-dropdown{display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:9000;
+  background:#1a2240;border:1px solid #2A3560;border-radius:8px;max-height:280px;
+  overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.55)}
+.prod-option{padding:8px 12px;cursor:pointer;border-bottom:1px solid #1e2a46;transition:background .12s}
+.prod-option:hover,.prod-option.active{background:#2a3a6a}
+.prod-cat-header{padding:5px 10px;background:#0d1426;font-size:10px;font-weight:700;
+  color:var(--gold);text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;z-index:1}
+.prod-avulso{padding:8px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-style:italic}
+.prod-avulso:hover{background:#2a3a6a;color:#fff}
 </style>
 
 <!-- ══ LOGIN SCREEN ══ -->
@@ -1582,41 +1592,163 @@ function salvarReceita(){
 function addItemPedido(item={}){
   pedidoItensCount++;
   const idx=pedidoItensCount;
-  const produtos=DB.produtos.filter(p=>p.ativo&&!p.deleted);
   const div=document.createElement('div');
   div.id=`item-${idx}`;
-  div.style.cssText='display:grid;grid-template-columns:2fr 80px 80px 28px;gap:8px;align-items:end;margin-bottom:8px';
+  div.style.cssText='display:grid;grid-template-columns:2fr 72px 90px 28px;gap:8px;align-items:start;margin-bottom:8px;position:relative';
   div.innerHTML=`
-    <div><select class="form-input form-select" id="item-prod-${idx}" onchange="onItemProdChange(${idx})">
-      <option value="">— selecionar produto —</option>
-      ${produtos.map(p=>`<option value="${p.id}" data-preco="${p.preco}">${p.nome}${p.codigo?' ('+p.codigo+')':''}</option>`).join('')}
-      <option value="__avulso__">+ Item avulso</option>
-    </select></div>
-    <div><input class="form-input" id="item-qtd-${idx}" type="number" min="1" value="1" oninput="calcTotal()"></div>
-    <div><input class="form-input" id="item-preco-${idx}" type="number" step="0.01" min="0" placeholder="0,00" value="${item.preco||''}" oninput="calcTotal()"></div>
+    <div style="position:relative">
+      <input class="form-input item-prod-search" id="item-search-${idx}" autocomplete="off"
+        placeholder="🔍 Buscar lente ou produto…"
+        oninput="filtrarProdutos(${idx})"
+        onfocus="mostrarDropdownProd(${idx})"
+        onkeydown="navDropdown(event,${idx})">
+      <input type="hidden" id="item-prod-${idx}" value="">
+      <div class="prod-dropdown" id="item-drop-${idx}"></div>
+    </div>
+    <div><input class="form-input" id="item-qtd-${idx}" type="number" min="1" value="1" placeholder="Qtd" oninput="calcTotal()"></div>
+    <div><input class="form-input" id="item-preco-${idx}" type="number" step="0.01" min="0" placeholder="R$ 0,00" oninput="calcTotal()"></div>
     <div><button class="btn btn-danger btn-sm" onclick="document.getElementById('item-${idx}').remove();calcTotal()" style="padding:7px 9px">×</button></div>`;
   document.getElementById('ped-itens-list').appendChild(div);
-  if(item.prodId){setTimeout(()=>{document.getElementById(`item-prod-${idx}`).value=item.prodId;document.getElementById(`item-preco-${idx}`).value=item.preco;document.getElementById(`item-qtd-${idx}`).value=item.qtd||1;},10);}
-  calcTotal();
-}
-function onItemProdChange(idx){
-  const sel=document.getElementById(`item-prod-${idx}`);
-  const opt=sel.options[sel.selectedIndex];
-  if(sel.value&&sel.value!=='__avulso__'){
-    const preco=opt.dataset.preco;
-    document.getElementById(`item-preco-${idx}`).value=preco;
+  // Pré-preencher ao editar pedido existente
+  if(item.prodId||item.desc){
+    const prod=DB.produtos.find(p=>p.id===item.prodId);
+    const nome=prod?prod.nome:(item.desc||'');
+    const el=document.getElementById(`item-search-${idx}`);
+    const hid=document.getElementById(`item-prod-${idx}`);
+    const precoEl=document.getElementById(`item-preco-${idx}`);
+    const qtdEl=document.getElementById(`item-qtd-${idx}`);
+    if(el) el.value=nome;
+    if(hid) hid.value=item.prodId||'';
+    if(precoEl) precoEl.value=item.preco||'';
+    if(qtdEl) qtdEl.value=item.qtd||1;
   }
   calcTotal();
 }
+
+// ── Seletor de produto com busca ────────────────────────────
+function _prodListaFiltrada(termo){
+  const t=(termo||'').toLowerCase().trim();
+  const todos=DB.produtos.filter(p=>p.ativo&&!p.deleted);
+  if(!t) return todos;
+  return todos.filter(p=>
+    p.nome.toLowerCase().includes(t)||
+    (p.categoria||'').toLowerCase().includes(t)||
+    (p.descricao||'').toLowerCase().includes(t)
+  );
+}
+
+function _buildDropdownHTML(idx, lista){
+  if(!lista.length) return '<div style="padding:12px;color:var(--muted);font-size:12px;text-align:center">Nenhum produto encontrado</div>';
+  // Agrupar por categoria
+  const grupos={};
+  lista.forEach(p=>{
+    const cat=p.categoria||'Outros';
+    if(!grupos[cat]) grupos[cat]=[];
+    grupos[cat].push(p);
+  });
+  let html='';
+  Object.entries(grupos).forEach(([cat,prods])=>{
+    html+=`<div class="prod-cat-header">${cat}</div>`;
+    prods.forEach(p=>{
+      const preco=p.preco?`<span style="font-size:11px;font-weight:600;color:var(--gold)">R$ ${fmtNum(p.preco)}</span>`:'';
+      const espec=p.descricao?`<div style="font-size:10px;color:var(--muted);margin-top:1px">${p.descricao}</div>`:'';
+      html+=`<div class="prod-option" data-idx="${idx}" data-id="${p.id}" data-nome="${p.nome.replace(/"/g,'&quot;')}" data-preco="${p.preco||0}"
+        onmousedown="selecionarProd(${idx},'${p.id}',\`${p.nome.replace(/`/g,"'")}\`,${p.preco||0})">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <span style="font-size:12px;font-weight:500;color:#fff">${p.nome}</span>${preco}
+        </div>${espec}
+      </div>`;
+    });
+  });
+  html+=`<div class="prod-avulso" onmousedown="selecionarAvulso(${idx})">✏️ Digitar item manualmente (avulso)</div>`;
+  return html;
+}
+
+function mostrarDropdownProd(idx){
+  const termo=document.getElementById(`item-search-${idx}`).value;
+  const lista=_prodListaFiltrada(termo);
+  const drop=document.getElementById(`item-drop-${idx}`);
+  if(!drop) return;
+  drop.innerHTML=_buildDropdownHTML(idx,lista);
+  drop.style.display='block';
+}
+
+function ocultarDropdownProd(idx){
+  const drop=document.getElementById(`item-drop-${idx}`);
+  if(drop) drop.style.display='none';
+}
+
+function filtrarProdutos(idx){
+  const termo=document.getElementById(`item-search-${idx}`).value;
+  const lista=_prodListaFiltrada(termo);
+  const drop=document.getElementById(`item-drop-${idx}`);
+  if(!drop) return;
+  drop.innerHTML=_buildDropdownHTML(idx,lista);
+  drop.style.display='block';
+  // Limpa seleção anterior quando usuário edita o campo
+  document.getElementById(`item-prod-${idx}`).value='';
+  calcTotal();
+}
+
+function selecionarProd(idx,prodId,nome,preco){
+  document.getElementById(`item-search-${idx}`).value=nome;
+  document.getElementById(`item-prod-${idx}`).value=prodId;
+  document.getElementById(`item-preco-${idx}`).value=preco||'';
+  ocultarDropdownProd(idx);
+  calcTotal();
+}
+
+function selecionarAvulso(idx){
+  document.getElementById(`item-prod-${idx}`).value='';
+  document.getElementById(`item-preco-${idx}`).value='';
+  document.getElementById(`item-search-${idx}`).value='';
+  document.getElementById(`item-search-${idx}`).placeholder='Descrição do item…';
+  ocultarDropdownProd(idx);
+  document.getElementById(`item-search-${idx}`).focus();
+}
+
+// Navegação por teclado no dropdown (↑↓ Enter Esc)
+function navDropdown(e,idx){
+  const drop=document.getElementById(`item-drop-${idx}`);
+  if(!drop||drop.style.display==='none'){
+    if(e.key==='ArrowDown'||e.key==='Enter') mostrarDropdownProd(idx);
+    return;
+  }
+  const opts=drop.querySelectorAll('.prod-option');
+  const cur=drop.querySelector('.prod-option.active');
+  if(e.key==='Escape'){ ocultarDropdownProd(idx); return; }
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    const next=cur?cur.nextElementSibling:opts[0];
+    if(cur) cur.classList.remove('active');
+    if(next&&next.classList.contains('prod-option')){next.classList.add('active');next.scrollIntoView({block:'nearest'});}
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    const prev=cur?cur.previousElementSibling:opts[opts.length-1];
+    if(cur) cur.classList.remove('active');
+    if(prev&&prev.classList.contains('prod-option')){prev.classList.add('active');prev.scrollIntoView({block:'nearest'});}
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    if(cur) cur.dispatchEvent(new MouseEvent('mousedown'));
+  }
+}
+
+// Fechar todos os dropdowns ao clicar fora
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.prod-dropdown')&&!e.target.classList.contains('item-prod-search')){
+    document.querySelectorAll('.prod-dropdown').forEach(d=>d.style.display='none');
+  }
+});
+
 function getItens(){
   const items=[];
-  document.querySelectorAll('[id^="item-prod-"]').forEach(sel=>{
-    const idx=sel.id.replace('item-prod-','');
-    const prodId=sel.value;
-    const qtd=parseFloat(document.getElementById(`item-qtd-${idx}`).value)||1;
-    const preco=parseFloat(document.getElementById(`item-preco-${idx}`).value)||0;
-    const desc=prodId==='__avulso__'?'Item avulso':(sel.options[sel.selectedIndex]?.text||'');
-    if(preco>0||prodId)items.push({prodId:prodId==='__avulso__'?null:prodId,desc,qtd,preco,sub:qtd*preco});
+  document.querySelectorAll('[id^="item-search-"]').forEach(inp=>{
+    const idx=inp.id.replace('item-search-','');
+    const prodId=document.getElementById(`item-prod-${idx}`)?.value||'';
+    const desc=inp.value.trim()||'Item avulso';
+    const qtd=parseFloat(document.getElementById(`item-qtd-${idx}`)?.value)||1;
+    const preco=parseFloat(document.getElementById(`item-preco-${idx}`)?.value)||0;
+    if(preco>0||desc.length>1) items.push({prodId:prodId||null,desc,qtd,preco,sub:qtd*preco});
   });
   return items;
 }
@@ -2916,7 +3048,11 @@ window.gerarPDF=gerarPDF;
 window.gerarPDFPedido=gerarPDFPedido;
 window.calcTotal=calcTotal;
 window.addItemPedido=addItemPedido;
-window.onItemProdChange=onItemProdChange;
+window.selecionarProd=selecionarProd;
+window.selecionarAvulso=selecionarAvulso;
+window.filtrarProdutos=filtrarProdutos;
+window.mostrarDropdownProd=mostrarDropdownProd;
+window.navDropdown=navDropdown;
 window.onPedClienteChange=onPedClienteChange;
 window.filterClientes=filterClientes;
 window.filterPedidos=filterPedidos;
