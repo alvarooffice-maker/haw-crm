@@ -1597,12 +1597,19 @@ function addItemPedido(item={}){
   div.style.cssText='display:grid;grid-template-columns:2fr 72px 90px 28px;gap:8px;align-items:start;margin-bottom:8px;position:relative';
   div.innerHTML=`
     <div style="position:relative">
+      <div style="display:flex;gap:4px;margin-bottom:4px">
+        <button type="button" class="item-tipo-btn active" data-idx="${idx}" data-tipo="" onclick="setTipoItem(${idx},'',this)" style="flex:1;padding:4px 2px;font-size:10px;border-radius:5px;border:1px solid #2A3560;background:#1a2240;color:var(--muted);cursor:pointer;transition:.15s">Todos</button>
+        <button type="button" class="item-tipo-btn" data-idx="${idx}" data-tipo="lente" onclick="setTipoItem(${idx},'lente',this)" style="flex:1;padding:4px 2px;font-size:10px;border-radius:5px;border:1px solid #2A3560;background:#1a2240;color:var(--muted);cursor:pointer;transition:.15s">🔬 Lentes</button>
+        <button type="button" class="item-tipo-btn" data-idx="${idx}" data-tipo="armacao" onclick="setTipoItem(${idx},'armacao',this)" style="flex:1;padding:4px 2px;font-size:10px;border-radius:5px;border:1px solid #2A3560;background:#1a2240;color:var(--muted);cursor:pointer;transition:.15s">👓 Armações</button>
+        <button type="button" class="item-tipo-btn" data-idx="${idx}" data-tipo="acessorio" onclick="setTipoItem(${idx},'acessorio',this)" style="flex:1;padding:4px 2px;font-size:10px;border-radius:5px;border:1px solid #2A3560;background:#1a2240;color:var(--muted);cursor:pointer;transition:.15s">✨ Acessórios</button>
+      </div>
       <input class="form-input item-prod-search" id="item-search-${idx}" autocomplete="off"
-        placeholder="🔍 Buscar lente ou produto…"
+        placeholder="🔍 Buscar…"
         oninput="filtrarProdutos(${idx})"
         onfocus="mostrarDropdownProd(${idx})"
         onkeydown="navDropdown(event,${idx})">
       <input type="hidden" id="item-prod-${idx}" value="">
+      <input type="hidden" id="item-tipo-${idx}" value="">
       <div class="prod-dropdown" id="item-drop-${idx}"></div>
     </div>
     <div><input class="form-input" id="item-qtd-${idx}" type="number" min="1" value="1" placeholder="Qtd" oninput="calcTotal()"></div>
@@ -1626,13 +1633,35 @@ function addItemPedido(item={}){
 }
 
 // ── Seletor de produto com busca ────────────────────────────
-function _prodListaFiltrada(termo){
+function setTipoItem(idx, tipo, btn){
+  // Atualiza botão ativo
+  document.querySelectorAll(`.item-tipo-btn[data-idx="${idx}"]`).forEach(b=>{
+    const active = b===btn;
+    b.classList.toggle('active', active);
+    b.style.background = active ? 'var(--gold)' : '#1a2240';
+    b.style.color = active ? '#000' : 'var(--muted)';
+    b.style.borderColor = active ? 'var(--gold)' : '#2A3560';
+    b.style.fontWeight = active ? '700' : '400';
+  });
+  document.getElementById(`item-tipo-${idx}`).value = tipo;
+  // Limpa busca e mostra dropdown filtrado
+  document.getElementById(`item-search-${idx}`).value = '';
+  document.getElementById(`item-prod-${idx}`).value = '';
+  filtrarProdutos(idx);
+  document.getElementById(`item-search-${idx}`).focus();
+}
+
+function _prodListaFiltrada(termo, idx){
   const t=(termo||'').toLowerCase().trim();
-  const todos=DB.produtos.filter(p=>p.ativo!==false&&!p.deleted);
+  const tipo = document.getElementById(`item-tipo-${idx}`)?.value || '';
+  const todos=DB.produtos.filter(p=>
+    p.ativo!==false && !p.deleted &&
+    (!tipo || p.categoria===tipo)
+  );
   if(!t) return todos;
   return todos.filter(p=>
     p.nome.toLowerCase().includes(t)||
-    (p.categoria||'').toLowerCase().includes(t)||
+    (p.subcategoria||'').toLowerCase().includes(t)||
     (p.descricao||'').toLowerCase().includes(t)
   );
 }
@@ -1648,10 +1677,10 @@ function _buildDropdownHTML(idx, lista){
          </div>`
       : '<div style="padding:12px;color:var(--muted);font-size:12px;text-align:center">Nenhum produto encontrado para essa busca</div>';
   }
-  // Agrupar por categoria
+  // Agrupar por subcategoria (lentes do lab) ou categoria
   const grupos={};
   lista.forEach(p=>{
-    const cat=p.categoria||'Outros';
+    const cat=p.subcategoria||p.categoria||'Outros';
     if(!grupos[cat]) grupos[cat]=[];
     grupos[cat].push(p);
   });
@@ -1676,7 +1705,7 @@ function _buildDropdownHTML(idx, lista){
 
 function mostrarDropdownProd(idx){
   const termo=document.getElementById(`item-search-${idx}`).value;
-  const lista=_prodListaFiltrada(termo);
+  const lista=_prodListaFiltrada(termo,idx);
   const drop=document.getElementById(`item-drop-${idx}`);
   if(!drop) return;
   drop.innerHTML=_buildDropdownHTML(idx,lista);
@@ -1690,7 +1719,7 @@ function ocultarDropdownProd(idx){
 
 function filtrarProdutos(idx){
   const termo=document.getElementById(`item-search-${idx}`).value;
-  const lista=_prodListaFiltrada(termo);
+  const lista=_prodListaFiltrada(termo,idx);
   const drop=document.getElementById(`item-drop-${idx}`);
   if(!drop) return;
   drop.innerHTML=_buildDropdownHTML(idx,lista);
@@ -2503,12 +2532,12 @@ function renderCatalogo(){
   });
   const lentes=DB.produtos.filter(p=>!p.deleted&&p.categoria==='lente');
   document.getElementById('cat-lentes-tbody').innerHTML=lentes.length?lentes.map(p=>`<tr>
-    <td style="font-weight:500">${p.nome}</td>
-    <td>${p.subcategoria||'—'}</td>
-    <td>${p.material||'—'}</td>
-    <td>${p.tratamento||'Sem trat.'}</td>
+    <td style="font-weight:500">${p.nome}${p.descricao?`<div style="font-size:10px;color:var(--muted)">${p.descricao}</div>`:''}</td>
+    <td style="font-size:11px">${p.subcategoria||'—'}</td>
+    <td>${p.custo?fmtMoney(p.custo):'—'}</td>
     <td style="font-weight:700;color:var(--gold-deep)">${fmtMoney(p.preco)}</td>
-    <td><button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="toggleProduto('${p.id}')">${p.ativo?'❌':'✅'}</button></td>
+    <td><span class="badge ${p.ativo!==false?'badge-green':'badge-gray'}">${p.ativo!==false?'Ativo':'Inativo'}</span></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="toggleProduto('${p.id}')">${p.ativo!==false?'❌':'✅'}</button></td>
   </tr>`).join(''):`<tr><td colspan="6"><div class="empty" style="padding:20px"><div class="empty-text">Nenhuma lente cadastrada</div></div></td></tr>`;
 }
 
@@ -2951,16 +2980,22 @@ function confirmarImportacaoLab() {
   selecionados.forEach(p => {
     const precoVenda = parseFloat((p.precoLab * markup).toFixed(2));
     const existing = DB.produtos.find(x => x.nome.toLowerCase() === p.nome.toLowerCase());
+    // Categoria do lab (ex: "VISÃO SIMPLES - ACABADA") vai para subcategoria
+    // categoria fica 'lente' para aparecer no Catálogo e no filtro do pedido
+    const isServico = (p.categoria||'').toUpperCase().includes('SERVI');
+    const catSistema = isServico ? 'acessorio' : 'lente';
     if(existing) {
       existing.preco = precoVenda;
       existing.custo = p.precoLab;
-      existing.categoria = existing.categoria || p.categoria;
+      existing.categoria = catSistema;
+      existing.subcategoria = existing.subcategoria || p.categoria;
       atualizados++;
     } else {
       DB.produtos.push({
         id: uid(),
         nome: p.nome,
-        categoria: p.categoria,
+        categoria: catSistema,
+        subcategoria: p.categoria,        // ex: "VISÃO SIMPLES - ACABADA"
         descricao: p.especificacao || '',
         preco: precoVenda,
         custo: p.precoLab,
@@ -3063,6 +3098,7 @@ window.selecionarAvulso=selecionarAvulso;
 window.filtrarProdutos=filtrarProdutos;
 window.mostrarDropdownProd=mostrarDropdownProd;
 window.navDropdown=navDropdown;
+window.setTipoItem=setTipoItem;
 window.onPedClienteChange=onPedClienteChange;
 window.filterClientes=filterClientes;
 window.filterPedidos=filterPedidos;
