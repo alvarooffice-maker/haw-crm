@@ -1179,7 +1179,7 @@ function checkSession(){
   if(raw){
     try{
       const s=JSON.parse(raw);
-      const u=DB.usuarios.find(x=>x.id===s.id&&x.ativo);
+      const u=DB.usuarios.find(x=>x.id===s.id&&x.ativo!==false);
       if(u){
         currentUser={id:u.id,nome:u.nome,perfil:u.perfil,initials:u.nome.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()};
         document.getElementById('login-screen').classList.add('hidden');
@@ -1356,7 +1356,7 @@ function updateNavCounts(){
 
 // ── SELECTS ──
 function populateSelects(){
-  const users=DB.usuarios.filter(u=>u.ativo);
+  const users=DB.usuarios.filter(u=>u.ativo!==false);
   const vendedores=users.filter(u=>['vendedor','gestor','dono'].includes(u.perfil));
   ['cli-vendedor','ped-vendedor'].forEach(id=>{
     const el=document.getElementById(id);
@@ -1581,7 +1581,7 @@ function verPerfil(id){
 function perfilTab(tabId,btn){
   const base=tabId.replace(/^(pedidos|receitas)-/,'');
   ['pedidos','receitas'].forEach(t=>{
-    const el=document.getElementById(`perfil-tab-${t}-${base.split('-').pop()}`);
+    const el=document.getElementById(`perfil-tab-${t}-${base}`);
     if(el)el.style.display='none';
   });
   const el=document.getElementById(`perfil-tab-${tabId}`);
@@ -1795,14 +1795,20 @@ function navDropdown(e,idx){
   if(e.key==='Escape'){ ocultarDropdownProd(idx); return; }
   if(e.key==='ArrowDown'){
     e.preventDefault();
-    const next=cur?cur.nextElementSibling:opts[0];
     if(cur) cur.classList.remove('active');
-    if(next&&next.classList.contains('prod-option')){next.classList.add('active');next.scrollIntoView({block:'nearest'});}
+    // Avança até o próximo .prod-option, pulando headers
+    let next=cur?cur.nextElementSibling:opts[0];
+    while(next&&!next.classList.contains('prod-option')) next=next.nextElementSibling;
+    if(!next) next=opts[0]; // wrap around
+    if(next){next.classList.add('active');next.scrollIntoView({block:'nearest'});}
   } else if(e.key==='ArrowUp'){
     e.preventDefault();
-    const prev=cur?cur.previousElementSibling:opts[opts.length-1];
     if(cur) cur.classList.remove('active');
-    if(prev&&prev.classList.contains('prod-option')){prev.classList.add('active');prev.scrollIntoView({block:'nearest'});}
+    // Recua até o .prod-option anterior, pulando headers
+    let prev=cur?cur.previousElementSibling:opts[opts.length-1];
+    while(prev&&!prev.classList.contains('prod-option')) prev=prev.previousElementSibling;
+    if(!prev) prev=opts[opts.length-1]; // wrap around
+    if(prev){prev.classList.add('active');prev.scrollIntoView({block:'nearest'});}
   } else if(e.key==='Enter'){
     e.preventDefault();
     if(cur) cur.dispatchEvent(new MouseEvent('mousedown'));
@@ -1840,7 +1846,7 @@ function calcTotal(){
 // ── PEDIDO RECEITA SELECT ──
 function onPedClienteChange(){
   const cliId=document.getElementById('ped-cliente').value;
-  const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===cliId).sort((a,b)=>b.dataReceita.localeCompare(a.dataReceita));
+  const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===cliId).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
   const sel=document.getElementById('ped-receita');
   sel.innerHTML='<option value="">— sem receita vinculada —</option>'+recs.map(r=>`<option value="${r.id}" ${r.isAtual?'selected':''}>Receita de ${fmtDate(r.dataReceita)}${r.medico?' — '+r.medico:''}</option>`).join('');
 }
@@ -1892,7 +1898,7 @@ function editarPedido(id){
     document.getElementById('ped-vendedor').value=p.vendedorId||'';
     onPedClienteChange();
     setTimeout(()=>{document.getElementById('ped-receita').value=p.receitaId||'';},50);
-    (p.itens||[]).forEach(i=>addItemPedido({prodId:i.prodId,preco:i.preco,qtd:i.qtd}));
+    (p.itens||[]).forEach(i=>addItemPedido({prodId:i.prodId,desc:i.desc||i.descricao||'',preco:i.preco,qtd:i.qtd}));
     calcTotal();
   },50);
 }
@@ -2034,7 +2040,7 @@ async function confirmarDelUsuario(id){
   if(confirmRow)confirmRow.remove();
   if(!usr)return;
   DB.usuarios=DB.usuarios.filter(u=>u.id!==id);
-  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');delete p[usr.nome];localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
+  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');delete p[usr.nome];delete p[usr.id];localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
   save();
   if(window.HAW_SB&&window.HAW_SB.isOnline()&&window.HAW_SB.client){
     try{await window.HAW_SB.client.from('usuarios').delete().eq('id',id);}catch(e){}
@@ -2077,7 +2083,7 @@ function salvarUsuario(){
       DB.usuarios[i].email=email;
       DB.usuarios[i].perfil=document.getElementById('usr-perfil').value;
       DB.usuarios[i].meta=parseFloat(document.getElementById('usr-meta').value)||0;
-      if(pin){DB.usuarios[i].senha=pin;try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}}
+      if(pin){DB.usuarios[i].senha=pin;try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[existId]=pin;p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}}
     }
     save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário atualizado! ✅');
   } else {
@@ -2274,7 +2280,7 @@ function gerarPDF(){
   const existPed=existId?DB.pedidos.find(p=>p.id===existId):null;
   const pedFake={
     itens, desconto:descPct, total,
-    pagamento:document.getElementById('ped-pagamento')?.value||'',
+    pagamento:document.getElementById('ped-pgto')?.value||'',
     prevLab:document.getElementById('ped-prev-lab')?.value||'',
     obs:document.getElementById('ped-obs')?.value||'',
     id:existId,
@@ -2931,12 +2937,17 @@ async function processarPDFLab(file) {
     }
 
     // Detectar nome do lab pelo nome do arquivo
-    const labNomeAuto = file.name.replace(/\.pdf$/i,'').replace(/tabela[_ ]?/i,'').trim();
+    const labNomeAuto = file.name.replace(/\.pdf$/i,'').replace(/tabela[_\s]?/i,'').trim() || 'Laboratório';
     const labInp = document.getElementById('lab-nome');
     if(labInp && !labInp.value) labInp.value = labNomeAuto;
+    const labFinal = (labInp?.value||'').trim() || labNomeAuto;
+    if(!labFinal){
+      if(st){ st.textContent='❌ Informe o nome do laboratório antes de importar.'; st.style.color='var(--red)'; }
+      return;
+    }
 
     const markup = parseFloat(document.getElementById('lab-markup').value) || 2.5;
-    _labDados = { lab: labInp.value || labNomeAuto, markup, produtos };
+    _labDados = { lab: labFinal, markup, produtos };
 
     if(st) { st.textContent = `✅ ${produtos.length} produtos encontrados — revise abaixo`; st.style.color = 'var(--green)'; }
 
@@ -3243,8 +3254,8 @@ function salvarMeuPin(){
   const conf=document.getElementById('mpin-conf').value.trim();
   if(!/^\d{4}$/.test(pin)){alert('PIN deve ter exatamente 4 dígitos numéricos.');return;}
   if(pin!==conf){alert('Os PINs não coincidem.');return;}
-  // Grava em haw_pins pelo nome do usuário atual
-  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[currentUser.nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
+  // Grava em haw_pins pelo id e nome (igual a _setPinUsuario)
+  try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[currentUser.id]=pin;p[currentUser.nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
   // Atualiza também DB.usuarios e localStorage principal
   const i=DB.usuarios.findIndex(u=>u.id===currentUser.id);
   if(i>=0){DB.usuarios[i].senha=pin;save();}

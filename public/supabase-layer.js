@@ -103,8 +103,12 @@
     const pedidos = (window.DB.pedidos || []).filter(p => !p.deleted);
     for (const p of pedidos) {
       if (!p.itens?.length) continue;
-      // Apagar itens antigos e reinserir
-      await sb.from('pedido_itens').delete().eq('pedido_id', p.id);
+      // Apagar itens antigos — verificar erro antes de reinserir
+      const { error: delErr } = await sb.from('pedido_itens').delete().eq('pedido_id', p.id);
+      if (delErr) {
+        console.warn('[HAW] Falha ao remover itens do pedido', p.id, delErr.message);
+        continue; // não insere se delete falhou (evita duplicatas)
+      }
       const itens = p.itens.map(it => ({
         pedido_id: p.id,
         produto_id: it.prodId || null,
@@ -113,7 +117,8 @@
         preco_unitario: it.preco || 0,
         subtotal: (it.qtd || 1) * (it.preco || 0),
       }));
-      await sb.from('pedido_itens').insert(itens);
+      const { error: insErr } = await sb.from('pedido_itens').insert(itens);
+      if (insErr) console.warn('[HAW] Falha ao inserir itens do pedido', p.id, insErr.message);
     }
   }
 
