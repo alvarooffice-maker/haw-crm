@@ -13,6 +13,7 @@ window.HAW_CONFIG = {supabaseUrl:"",supabaseKey:"",appVersion:"1.0.0",appName:"H
 <script src="config.js" onerror="console.warn('[HAW] config.js ausente — modo offline')"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -573,6 +574,7 @@ tr:hover td{background:#FAFAF5}
         <button class="inner-tab" onclick="setCfgTab('metas',this)">🎯 Metas</button>
         <button class="inner-tab" onclick="setCfgTab('empresa',this)">🏢 Empresa</button>
         <button class="inner-tab" onclick="setCfgTab('supabase',this)">☁️ Sincronização</button>
+        <button class="inner-tab" onclick="setCfgTab('tabelas',this)">🔬 Tabelas Lab</button>
       </div>
 
       <!-- ── USUÁRIOS ── -->
@@ -656,6 +658,22 @@ tr:hover td{background:#FAFAF5}
         </div>
       </div>
 
+      <!-- ── TABELAS LAB ── -->
+      <div id="cfg-tabelas" style="display:none">
+        <div class="card" style="margin-bottom:12px">
+          <div class="ch">
+            <span class="ct">Tabelas de Preços dos Laboratórios</span>
+            <button class="btn btn-gold btn-sm" onclick="abrirImportarLab()">+ Importar PDF</button>
+          </div>
+          <div style="padding:16px 20px">
+            <div style="background:#f0f7ff;border:1px solid #cde;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2c5f8a;line-height:1.5">
+              📋 Importe a tabela de preços do laboratório (PDF). O sistema lê os produtos, aplica sua margem e gera os preços de venda automaticamente. Os itens podem ser adicionados ao catálogo com um clique.
+            </div>
+            <div id="lab-tabelas-lista"><div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Nenhuma tabela importada ainda.</div></div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── SINCRONIZAÇÃO / SUPABASE ── -->
       <div id="cfg-supabase" style="display:none">
         <div class="card" style="margin-bottom:12px">
@@ -691,6 +709,85 @@ tr:hover td{background:#FAFAF5}
 </div><!-- /shell -->
 
 <!-- ══════════════════ MODAIS ══════════════════ -->
+
+<!-- MODAL IMPORTAR TABELA LAB -->
+<div class="modal-overlay" id="modal-import-lab">
+  <div class="modal" style="max-width:860px;width:96vw">
+    <div class="modal-header">
+      <span class="modal-title" id="import-lab-title">📋 Importar Tabela de Laboratório</span>
+      <button class="modal-close" onclick="closeModal('modal-import-lab')">×</button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+
+      <!-- Passo 1: upload -->
+      <div id="import-lab-step1">
+        <div class="form-row c2" style="margin-bottom:16px">
+          <div class="form-group">
+            <label class="form-label">Nome do laboratório</label>
+            <input class="form-input" id="lab-nome" placeholder="Ex: Orfeu, Indo, Zeiss…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Markup (multiplicador)</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input class="form-input" id="lab-markup" type="number" min="1" max="10" step="0.1" value="2.5" style="width:90px" oninput="atualizarPreviewMarkup()">
+              <span id="lab-markup-desc" style="font-size:12px;color:var(--muted)">= 150% de margem</span>
+            </div>
+          </div>
+        </div>
+        <div id="lab-drop-zone" style="border:2px dashed #2A3560;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:border-color .2s;background:#0d1426"
+             onclick="document.getElementById('lab-pdf-input').click()"
+             ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+             ondragleave="this.style.borderColor='#2A3560'"
+             ondrop="event.preventDefault();this.style.borderColor='#2A3560';processarPDFLab(event.dataTransfer.files[0])">
+          <div style="font-size:40px;margin-bottom:10px">📄</div>
+          <div style="font-weight:600;color:#fff;margin-bottom:6px">Clique ou arraste o PDF aqui</div>
+          <div style="font-size:12px;color:var(--muted)">Tabela de preços do laboratório em PDF com texto selecionável</div>
+          <input type="file" id="lab-pdf-input" accept=".pdf" style="display:none" onchange="processarPDFLab(this.files[0])">
+        </div>
+        <div id="lab-parse-status" style="margin-top:12px;font-size:13px;text-align:center;min-height:20px"></div>
+      </div>
+
+      <!-- Passo 2: preview tabela -->
+      <div id="import-lab-step2" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div>
+            <span id="lab-preview-info" style="font-weight:600;font-size:14px"></span>
+            <span style="font-size:12px;color:var(--muted);margin-left:10px" id="lab-preview-count"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;color:var(--muted)">Markup:</label>
+            <input class="form-input" id="lab-markup2" type="number" min="1" max="10" step="0.1" value="2.5" style="width:80px;padding:6px 8px" oninput="reRenderPreviewLab()">
+            <span id="lab-markup2-desc" style="font-size:12px;color:var(--muted)"></span>
+          </div>
+        </div>
+        <div style="max-height:380px;overflow-y:auto;border:1px solid #2A3560;border-radius:8px">
+          <table style="table-layout:auto;width:100%">
+            <thead style="position:sticky;top:0;z-index:2">
+              <tr>
+                <th style="width:36px;text-align:center"><input type="checkbox" id="lab-sel-all" onchange="labToggleAll(this.checked)" title="Selecionar todos"></th>
+                <th>Produto</th>
+                <th style="width:130px">Categoria</th>
+                <th style="width:85px;text-align:right">Custo Lab</th>
+                <th style="width:85px;text-align:right">Montado</th>
+                <th style="width:95px;text-align:right;color:var(--gold)">Venda</th>
+              </tr>
+            </thead>
+            <tbody id="lab-preview-tbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+          💡 "Custo Lab" = preço do laboratório. "Venda" = Custo Lab × Markup. Desmarque itens que não quer importar.
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-import-lab')">Cancelar</button>
+      <button class="btn btn-ghost btn-sm" id="btn-lab-voltar" style="display:none" onclick="labVoltarStep1()">← Voltar</button>
+      <button class="btn btn-gold" id="btn-lab-importar" style="display:none" onclick="confirmarImportacaoLab()">✅ Importar para Catálogo</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL CLIENTE -->
 <div class="modal-overlay" id="modal-cliente">
@@ -927,7 +1024,7 @@ tr:hover td{background:#FAFAF5}
 
 // ── STATE ──
 let DB = {
-  clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],
+  clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],tabelas_lab:[],
   settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7),
     empresa:{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15}}
 };
@@ -2439,6 +2536,9 @@ function renderConfig(){
   const empCid=document.getElementById('emp-cidade');if(empCid)empCid.value=emp.cidade||'Belém';
   const empEst=document.getElementById('emp-estado');if(empEst)empEst.value=emp.estado||'PA';
 
+  // ── Tabelas Lab
+  renderTabelasLab();
+
   // ── Supabase
   if(DB.settings.supabaseUrl){const el=document.getElementById('cfg-sb-url');if(el)el.value=DB.settings.supabaseUrl;}
   if(DB.settings.supabaseKey){const el=document.getElementById('cfg-sb-key');if(el)el.value=DB.settings.supabaseKey;}
@@ -2450,6 +2550,332 @@ function renderConfig(){
       :'🔴 <strong>Offline</strong> — os dados estão sendo salvos apenas localmente neste computador';
     liveEl.style.color=online?'var(--green)':'var(--red)';
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// IMPORTADOR DE TABELA DE LABORATÓRIO
+// ══════════════════════════════════════════════════════════════
+
+// ── Dados do parse em progresso ──
+let _labDados = null; // { lab, markup, produtos[] }
+
+function abrirImportarLab() {
+  _labDados = null;
+  // reset step1
+  const s1 = document.getElementById('import-lab-step1');
+  const s2 = document.getElementById('import-lab-step2');
+  if(s1) s1.style.display = '';
+  if(s2) s2.style.display = 'none';
+  const btnI = document.getElementById('btn-lab-importar');
+  const btnV = document.getElementById('btn-lab-voltar');
+  if(btnI) btnI.style.display = 'none';
+  if(btnV) btnV.style.display = 'none';
+  const st = document.getElementById('lab-parse-status');
+  if(st) st.textContent = '';
+  const inp = document.getElementById('lab-pdf-input');
+  if(inp) inp.value = '';
+  openModal('modal-import-lab');
+}
+
+function labVoltarStep1() {
+  document.getElementById('import-lab-step1').style.display = '';
+  document.getElementById('import-lab-step2').style.display = 'none';
+  document.getElementById('btn-lab-importar').style.display = 'none';
+  document.getElementById('btn-lab-voltar').style.display = 'none';
+}
+
+function atualizarPreviewMarkup() {
+  const v = parseFloat(document.getElementById('lab-markup').value) || 2.5;
+  const pct = Math.round((v - 1) * 100);
+  const desc = document.getElementById('lab-markup-desc');
+  if(desc) desc.textContent = '= ' + pct + '% de margem';
+}
+
+// ── Extrai texto do PDF usando PDF.js ──
+async function extrairTextoPDF(file) {
+  if(typeof pdfjsLib === 'undefined') {
+    throw new Error('PDF.js não carregou. Verifique sua conexão com a internet.');
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const allRows = [];
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+
+    // Agrupar itens de texto pela posição Y (mesma linha)
+    const byY = {};
+    for (const item of content.items) {
+      if (!item.str.trim()) continue;
+      const y = Math.round(item.transform[5]);
+      if (!byY[y]) byY[y] = [];
+      byY[y].push({ x: item.transform[4], text: item.str.trim() });
+    }
+
+    // Ordenar de cima para baixo (Y decrescente), esquerda para direita (X crescente)
+    const ys = Object.keys(byY).map(Number).sort((a, b) => b - a);
+    for (const y of ys) {
+      const sorted = byY[y].sort((a, b) => a.x - b.x);
+      allRows.push(sorted.map(i => i.text));
+    }
+  }
+  return allRows;
+}
+
+// ── Parser do formato Orfeu/laboratório ──
+function parsearLinhasLab(linhas) {
+  const produtos = [];
+  let categoriaAtual = 'Geral';
+  const rePreco = /R\$\s*[\d.,]+/;
+
+  for (let i = 0; i < linhas.length; i++) {
+    const col = linhas[i];
+    // Juntar textos da mesma linha (PDF.js pode separar)
+    const juntas = col.join(' ');
+    const col0 = col[0] || '';
+    const col1 = col[1] || col[2] || '';
+    const col2 = col[2] || col[3] || '';
+    const col3 = col[3] || col[4] || '';
+
+    // Cabeçalho de seção: linha cujo segundo campo é "PREÇO" (texto, não valor)
+    if ((col1 === 'PREÇO' || col2 === 'PREÇO') && !rePreco.test(col0)) {
+      categoriaAtual = col0.replace(/^\s*[-–]\s*/, '').trim();
+      continue;
+    }
+
+    // Detecta produto: começa com "- " e tem preço em R$
+    if ((col0.startsWith('-') || col0.startsWith('–')) && rePreco.test(col1 || col2)) {
+      const nome = col0.replace(/^[-–]\s*/, '').trim();
+
+      // Linha seguinte pode ser especificação (ESF/CIL/ADD ou BASES)
+      const proxLinha = (linhas[i + 1] || []).join(' ').trim();
+      const eEspec = proxLinha.startsWith('(') || proxLinha.toUpperCase().startsWith('BASES');
+      const especificacao = eEspec ? proxLinha : '';
+      if (eEspec) i++; // consumir linha de especificação
+
+      const precoLab  = _parsePreco(col1) || _parsePreco(col2);
+      const precoSurf = _parsePreco(col2) || _parsePreco(col3);
+      const precoMont = _parsePreco(col3) || _parsePreco(col4);
+
+      // Tenta detectar quais colunas são PREÇO / SURFAÇADO / MONTADO
+      // Convenção: se há 3 preços = bruto, surfaçado, montado; se 2 = bruto, montado
+      const precos = [col1, col2, col3, col[4]].map(_parsePreco).filter(v => v !== null);
+
+      produtos.push({
+        id: uid(),
+        nome,
+        categoria: categoriaAtual,
+        especificacao,
+        precoLab:  precos[0] || 0,
+        precoSurf: precos.length >= 3 ? precos[1] : null,
+        precoMont: precos.length >= 3 ? precos[2] : (precos[1] || null),
+        ativo: true,
+      });
+    }
+  }
+  return produtos;
+}
+
+function _parsePreco(str) {
+  if (!str || !String(str).includes('R$')) return null;
+  const n = parseFloat(String(str).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.').trim());
+  return isNaN(n) ? null : n;
+}
+
+// ── Processar arquivo PDF selecionado ──
+async function processarPDFLab(file) {
+  if (!file || file.type !== 'application/pdf') {
+    toast('❌ Selecione um arquivo PDF válido');
+    return;
+  }
+  const st = document.getElementById('lab-parse-status');
+  if(st) { st.textContent = '⏳ Lendo PDF…'; st.style.color = 'var(--gold)'; }
+
+  try {
+    const linhas = await extrairTextoPDF(file);
+    const produtos = parsearLinhasLab(linhas);
+
+    if (!produtos.length) {
+      if(st) { st.textContent = '❌ Nenhum produto encontrado. O PDF tem texto selecionável?'; st.style.color = 'var(--red)'; }
+      return;
+    }
+
+    // Detectar nome do lab pelo nome do arquivo
+    const labNomeAuto = file.name.replace(/\.pdf$/i,'').replace(/tabela[_ ]?/i,'').trim();
+    const labInp = document.getElementById('lab-nome');
+    if(labInp && !labInp.value) labInp.value = labNomeAuto;
+
+    const markup = parseFloat(document.getElementById('lab-markup').value) || 2.5;
+    _labDados = { lab: labInp.value || labNomeAuto, markup, produtos };
+
+    if(st) { st.textContent = `✅ ${produtos.length} produtos encontrados — revise abaixo`; st.style.color = 'var(--green)'; }
+
+    // Transição para step 2
+    setTimeout(() => {
+      document.getElementById('import-lab-step1').style.display = 'none';
+      document.getElementById('import-lab-step2').style.display = '';
+      document.getElementById('btn-lab-importar').style.display = '';
+      document.getElementById('btn-lab-voltar').style.display = '';
+      renderPreviewLab(produtos, markup);
+    }, 600);
+
+  } catch(e) {
+    console.error('[HAW] Erro ao ler PDF:', e);
+    if(st) { st.textContent = '❌ Erro ao ler PDF: ' + e.message; st.style.color = 'var(--red)'; }
+  }
+}
+
+// ── Renderizar tabela de preview ──
+function renderPreviewLab(produtos, markup) {
+  const info = document.getElementById('lab-preview-info');
+  const cnt  = document.getElementById('lab-preview-count');
+  const inp2 = document.getElementById('lab-markup2');
+  const d2   = document.getElementById('lab-markup2-desc');
+  if(info) info.textContent = _labDados.lab || 'Tabela';
+  if(cnt)  cnt.textContent  = produtos.length + ' produtos';
+  if(inp2) inp2.value = markup;
+  if(d2)   d2.textContent = '= ' + Math.round((markup-1)*100) + '% de margem';
+
+  const tbody = document.getElementById('lab-preview-tbody');
+  if(!tbody) return;
+
+  // Agrupar por categoria para exibir separadores
+  let catAtual = '';
+  tbody.innerHTML = '';
+
+  produtos.forEach((p, idx) => {
+    if(p.categoria !== catAtual) {
+      catAtual = p.categoria;
+      const trCat = document.createElement('tr');
+      trCat.innerHTML = `<td colspan="6" style="background:#1a2240;color:var(--gold);font-size:11px;font-weight:700;padding:6px 12px;text-transform:uppercase;letter-spacing:.5px">${catAtual}</td>`;
+      tbody.appendChild(trCat);
+    }
+    const venda = (p.precoLab * markup).toFixed(2).replace('.',',');
+    const custo = p.precoLab ? 'R$ ' + p.precoLab.toFixed(2).replace('.',',') : '—';
+    const mont  = p.precoMont ? 'R$ ' + p.precoMont.toFixed(2).replace('.',',') : '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:center"><input type="checkbox" class="lab-sel" data-idx="${idx}" checked></td>
+      <td>
+        <div style="font-size:12px;font-weight:500">${p.nome}</div>
+        ${p.especificacao ? `<div style="font-size:10px;color:var(--muted)">${p.especificacao}</div>` : ''}
+      </td>
+      <td style="font-size:11px;color:var(--muted)">${p.categoria}</td>
+      <td style="text-align:right;font-size:12px">${custo}</td>
+      <td style="text-align:right;font-size:12px;color:var(--muted)">${mont}</td>
+      <td style="text-align:right;font-size:13px;font-weight:600;color:var(--gold)">R$ ${venda}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function reRenderPreviewLab() {
+  if(!_labDados) return;
+  const markup = parseFloat(document.getElementById('lab-markup2').value) || 2.5;
+  _labDados.markup = markup;
+  const d2 = document.getElementById('lab-markup2-desc');
+  if(d2) d2.textContent = '= ' + Math.round((markup-1)*100) + '% de margem';
+  renderPreviewLab(_labDados.produtos, markup);
+}
+
+function labToggleAll(checked) {
+  document.querySelectorAll('.lab-sel').forEach(cb => cb.checked = checked);
+}
+
+// ── Importar selecionados para o catálogo ──
+function confirmarImportacaoLab() {
+  if(!_labDados) return;
+  const markup = parseFloat(document.getElementById('lab-markup2').value) || _labDados.markup || 2.5;
+
+  // Coletar índices selecionados
+  const selecionados = [];
+  document.querySelectorAll('.lab-sel:checked').forEach(cb => {
+    const idx = parseInt(cb.dataset.idx);
+    if(!isNaN(idx)) selecionados.push(_labDados.produtos[idx]);
+  });
+
+  if(!selecionados.length) { toast('Selecione ao menos um produto'); return; }
+
+  // Importar para DB.produtos
+  let novos = 0, atualizados = 0;
+  selecionados.forEach(p => {
+    const precoVenda = parseFloat((p.precoLab * markup).toFixed(2));
+    const existing = DB.produtos.find(x => x.nome.toLowerCase() === p.nome.toLowerCase());
+    if(existing) {
+      existing.preco = precoVenda;
+      existing.custo = p.precoLab;
+      existing.categoria = existing.categoria || p.categoria;
+      atualizados++;
+    } else {
+      DB.produtos.push({
+        id: uid(),
+        nome: p.nome,
+        categoria: p.categoria,
+        descricao: p.especificacao || '',
+        preco: precoVenda,
+        custo: p.precoLab,
+        ativo: true,
+      });
+      novos++;
+    }
+  });
+
+  // Salvar referência da tabela importada
+  if(!DB.tabelas_lab) DB.tabelas_lab = [];
+  const existeIdx = DB.tabelas_lab.findIndex(t => t.lab === _labDados.lab);
+  const tabelaReg = {
+    id: existeIdx >= 0 ? DB.tabelas_lab[existeIdx].id : uid(),
+    lab: _labDados.lab,
+    markup,
+    importadoEm: new Date().toISOString(),
+    totalProdutos: selecionados.length,
+  };
+  if(existeIdx >= 0) DB.tabelas_lab[existeIdx] = tabelaReg;
+  else DB.tabelas_lab.push(tabelaReg);
+
+  save();
+  closeModal('modal-import-lab');
+  renderConfig();
+  renderCatalogo();
+  populateSelects();
+  toast(`✅ ${novos} novos produtos + ${atualizados} atualizados no catálogo!`);
+}
+
+// ── Renderizar lista de tabelas já importadas ──
+function renderTabelasLab() {
+  const el = document.getElementById('lab-tabelas-lista');
+  if(!el) return;
+  const lista = DB.tabelas_lab || [];
+  if(!lista.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Nenhuma tabela importada ainda.</div>';
+    return;
+  }
+  el.innerHTML = lista.map(t => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1e2a46;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-weight:600;font-size:13px">${t.lab}</div>
+        <div style="font-size:11px;color:var(--muted)">
+          ${t.totalProdutos} produtos · Markup ${t.markup}x (${Math.round((t.markup-1)*100)}%) ·
+          Importado em ${new Date(t.importadoEm).toLocaleDateString('pt-BR')}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="abrirImportarLab()" title="Atualizar tabela">🔄 Atualizar</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="excluirTabelaLab('${t.id}')" title="Remover">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function excluirTabelaLab(id) {
+  if(!confirm('Remover este registro de tabela importada?\n\n(Os produtos no catálogo NÃO serão excluídos.)')) return;
+  DB.tabelas_lab = (DB.tabelas_lab || []).filter(t => t.id !== id);
+  save();
+  renderTabelasLab();
+  toast('Registro removido.');
 }
 
 // ── GLOBAL EXPORTS (garante acesso de onclick no HTML) ──
@@ -2500,6 +2926,14 @@ window.toggleProduto=toggleProduto;
 window.maskCPF=maskCPF;
 window.maskTel=maskTel;
 window.salvarMetas=salvarMetas;
+window.abrirImportarLab=abrirImportarLab;
+window.processarPDFLab=processarPDFLab;
+window.confirmarImportacaoLab=confirmarImportacaoLab;
+window.excluirTabelaLab=excluirTabelaLab;
+window.reRenderPreviewLab=reRenderPreviewLab;
+window.labToggleAll=labToggleAll;
+window.labVoltarStep1=labVoltarStep1;
+window.atualizarPreviewMarkup=atualizarPreviewMarkup;
 
 // (delegação de usuários removida — botões usam .onclick direto em renderConfig)
 
