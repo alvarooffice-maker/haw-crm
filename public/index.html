@@ -530,8 +530,16 @@ tr:hover td{background:#FAFAF5}
       </div>
       <div id="cat-panel-lentes" style="display:none">
         <div class="card">
-          <div class="ch"><span class="ct">Lentes</span><button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'lente'})">+ Adicionar</button></div>
-          <table><thead><tr><th>Descrição</th><th>Subcategoria</th><th>Material</th><th>Tratamento</th><th>Preço</th><th>Ações</th></tr></thead>
+          <div class="ch" style="flex-wrap:wrap;gap:8px">
+            <span class="ct">Lentes</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <select class="form-input form-select" id="cat-lentes-lab-filter" onchange="renderCatalogo()" style="width:auto;padding:5px 10px;font-size:12px">
+                <option value="">Todos os laboratórios</option>
+              </select>
+              <button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'lente'})">+ Adicionar</button>
+            </div>
+          </div>
+          <table><thead><tr><th>Descrição</th><th>Subcategoria</th><th>Laboratório</th><th>Custo Lab</th><th>Venda</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody id="cat-lentes-tbody"></tbody>
         </div>
       </div>
@@ -1242,7 +1250,7 @@ function loadFromStorage(){
   if(raw){try{const d=JSON.parse(raw);Object.assign(DB,d)}catch(e){}}
   window.DB=DB; // garante sincronização com scripts externos
   _garantirUsuarios();
-  // ── Migração: normaliza categorias de produtos importados de labs
+  // ── Migração 1: normaliza categorias de produtos importados de labs
   // Produtos antigos têm categoria = string do lab (ex: "VISÃO SIMPLES - ACABADA")
   // em vez de 'lente' | 'armacao' | 'acessorio'. Corrige isso automaticamente.
   const CATS_VALIDAS = new Set(['lente','armacao','acessorio']);
@@ -1251,12 +1259,24 @@ function loadFromStorage(){
     if(!p.deleted && !CATS_VALIDAS.has(p.categoria)){
       const catOrig = p.categoria || '';
       const isServico = catOrig.toUpperCase().includes('SERVI');
-      p.subcategoria = p.subcategoria || catOrig;  // preserva subcategoria se já existir
+      p.subcategoria = p.subcategoria || catOrig;
       p.categoria    = isServico ? 'acessorio' : 'lente';
       migrou = true;
     }
   });
-  if(migrou){ save(); console.log('[HAW] Migração de categorias de produtos concluída.'); }
+  // ── Migração 2: atribui campo `lab` a produtos sem lab quando há exatamente 1 lab importado
+  // (seguro: se houver 2+ labs, não sabemos a origem, então não atribuímos)
+  const tabsLab = DB.tabelas_lab || [];
+  if(tabsLab.length === 1){
+    const labNome = tabsLab[0].lab;
+    (DB.produtos||[]).forEach(p=>{
+      if(!p.deleted && !p.lab && p.custo && CATS_VALIDAS.has(p.categoria)){
+        p.lab = labNome;
+        migrou = true;
+      }
+    });
+  }
+  if(migrou){ save(); console.log('[HAW] Migração de produtos concluída.'); }
 }
 
 // Proteção: intercepta qualquer tentativa de zerar DB.usuarios
@@ -1692,12 +1712,14 @@ function _buildDropdownHTML(idx, lista){
          </div>`
       : '<div style="padding:12px;color:var(--muted);font-size:12px;text-align:center">Nenhum produto encontrado para essa busca</div>';
   }
-  // Agrupar por subcategoria (lentes do lab) ou categoria
+  // Agrupar por lab → subcategoria (ou apenas categoria para produtos manuais)
   const grupos={};
   lista.forEach(p=>{
-    const cat=p.subcategoria||p.categoria||'Outros';
-    if(!grupos[cat]) grupos[cat]=[];
-    grupos[cat].push(p);
+    const lab  = p.lab  ? p.lab.toUpperCase() : '';
+    const sub  = p.subcategoria || p.categoria || 'Outros';
+    const key  = lab ? `${lab} — ${sub}` : sub;
+    if(!grupos[key]) grupos[key]=[];
+    grupos[key].push(p);
   });
   let html='';
   Object.entries(grupos).forEach(([cat,prods])=>{
@@ -2545,15 +2567,25 @@ function renderCatalogo(){
       <td><button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="toggleProduto('${p.id}')">${p.ativo?'❌':'✅'}</button></td>
     </tr>`).join(''):`<tr><td colspan="4"><div class="empty" style="padding:20px"><div class="empty-text">Nenhum cadastrado</div></div></td></tr>`;
   });
-  const lentes=DB.produtos.filter(p=>!p.deleted&&p.categoria==='lente');
+  // Popula filtro de laboratório
+  const labFiltroEl = document.getElementById('cat-lentes-lab-filter');
+  const labsDisp = [...new Set((DB.produtos||[]).filter(p=>!p.deleted&&p.categoria==='lente'&&p.lab).map(p=>p.lab))].sort();
+  if(labFiltroEl){
+    const labSel = labFiltroEl.value;
+    labFiltroEl.innerHTML = '<option value="">Todos os laboratórios</option>' +
+      labsDisp.map(l=>`<option value="${l}"${l===labSel?' selected':''}>${l}</option>`).join('');
+  }
+  const labFiltro = labFiltroEl?.value || '';
+  const lentes=DB.produtos.filter(p=>!p.deleted&&p.categoria==='lente'&&(!labFiltro||p.lab===labFiltro));
   document.getElementById('cat-lentes-tbody').innerHTML=lentes.length?lentes.map(p=>`<tr>
     <td style="font-weight:500">${p.nome}${p.descricao?`<div style="font-size:10px;color:var(--muted)">${p.descricao}</div>`:''}</td>
     <td style="font-size:11px">${p.subcategoria||'—'}</td>
+    <td style="font-size:11px;color:var(--gold)">${p.lab||'—'}</td>
     <td>${p.custo?fmtMoney(p.custo):'—'}</td>
     <td style="font-weight:700;color:var(--gold-deep)">${fmtMoney(p.preco)}</td>
     <td><span class="badge ${p.ativo!==false?'badge-green':'badge-gray'}">${p.ativo!==false?'Ativo':'Inativo'}</span></td>
     <td><button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="toggleProduto('${p.id}')">${p.ativo!==false?'❌':'✅'}</button></td>
-  </tr>`).join(''):`<tr><td colspan="6"><div class="empty" style="padding:20px"><div class="empty-text">Nenhuma lente cadastrada</div></div></td></tr>`;
+  </tr>`).join(''):`<tr><td colspan="7"><div class="empty" style="padding:20px"><div class="empty-text">Nenhuma lente cadastrada</div></div></td></tr>`;
 }
 
 // ── RELATÓRIOS ──
@@ -2745,7 +2777,7 @@ function renderConfig(){
 // ── Dados do parse em progresso ──
 let _labDados = null; // { lab, markup, produtos[] }
 
-function abrirImportarLab() {
+function abrirImportarLab(labPreFill) {
   _labDados = null;
   // reset step1
   const s1 = document.getElementById('import-lab-step1');
@@ -2760,6 +2792,10 @@ function abrirImportarLab() {
   if(st) st.textContent = '';
   const inp = document.getElementById('lab-pdf-input');
   if(inp) inp.value = '';
+  // Pré-preenche nome do lab se veio do botão "Atualizar"
+  const labInp = document.getElementById('lab-nome');
+  if(labInp && labPreFill) labInp.value = labPreFill;
+  else if(labInp) labInp.value = '';
   openModal('modal-import-lab');
 }
 
@@ -2991,10 +3027,16 @@ function confirmarImportacaoLab() {
   if(!selecionados.length) { toast('Selecione ao menos um produto'); return; }
 
   // Importar para DB.produtos
+  const labAtual = _labDados.lab;
   let novos = 0, atualizados = 0;
   selecionados.forEach(p => {
     const precoVenda = parseFloat((p.precoLab * markup).toFixed(2));
-    const existing = DB.produtos.find(x => x.nome.toLowerCase() === p.nome.toLowerCase());
+    // Deduplica por nome + laboratório (produtos do mesmo lab são atualizados,
+    // produtos de labs diferentes com o mesmo nome ficam separados)
+    const existing = DB.produtos.find(x =>
+      x.nome.toLowerCase() === p.nome.toLowerCase() &&
+      (x.lab === labAtual || (!x.lab && !labAtual))
+    );
     // Categoria do lab (ex: "VISÃO SIMPLES - ACABADA") vai para subcategoria
     // categoria fica 'lente' para aparecer no Catálogo e no filtro do pedido
     const isServico = (p.categoria||'').toUpperCase().includes('SERVI');
@@ -3004,13 +3046,15 @@ function confirmarImportacaoLab() {
       existing.custo = p.precoLab;
       existing.categoria = catSistema;
       existing.subcategoria = existing.subcategoria || p.categoria;
+      existing.lab = labAtual;
       atualizados++;
     } else {
       DB.produtos.push({
         id: uid(),
+        lab: labAtual,                     // laboratório de origem
         nome: p.nome,
         categoria: catSistema,
-        subcategoria: p.categoria,        // ex: "VISÃO SIMPLES - ACABADA"
+        subcategoria: p.categoria,         // ex: "VISÃO SIMPLES - ACABADA"
         descricao: p.especificacao || '',
         preco: precoVenda,
         custo: p.precoLab,
@@ -3050,28 +3094,39 @@ function renderTabelasLab() {
     el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Nenhuma tabela importada ainda.</div>';
     return;
   }
-  el.innerHTML = lista.map(t => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1e2a46;flex-wrap:wrap;gap:8px">
+  el.innerHTML = lista.map(t => {
+    const qtdNocat = (DB.produtos||[]).filter(p=>p.lab===t.lab&&!p.deleted).length;
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #1e2a46;flex-wrap:wrap;gap:8px">
       <div>
-        <div style="font-weight:600;font-size:13px">${t.lab}</div>
-        <div style="font-size:11px;color:var(--muted)">
-          ${t.totalProdutos} produtos · Markup ${t.markup}x (${Math.round((t.markup-1)*100)}%) ·
-          Importado em ${new Date(t.importadoEm).toLocaleDateString('pt-BR')}
+        <div style="font-weight:600;font-size:14px">${t.lab}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">
+          <span style="color:var(--gold)">${qtdNocat} produtos no catálogo</span> ·
+          Markup ${t.markup}x (${Math.round((t.markup-1)*100)}%) ·
+          Última importação: ${new Date(t.importadoEm).toLocaleDateString('pt-BR')}
         </div>
       </div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="abrirImportarLab()" title="Atualizar tabela">🔄 Atualizar</button>
+        <button class="btn btn-ghost btn-sm" onclick="abrirImportarLab('${t.lab}')" title="Atualizar tabela">🔄 Atualizar</button>
         <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="excluirTabelaLab('${t.id}')" title="Remover">🗑️</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function excluirTabelaLab(id) {
-  if(!confirm('Remover este registro de tabela importada?\n\n(Os produtos no catálogo NÃO serão excluídos.)')) return;
-  DB.tabelas_lab = (DB.tabelas_lab || []).filter(t => t.id !== id);
+  const t = (DB.tabelas_lab||[]).find(x => x.id === id);
+  if(!t) return;
+  if(!confirm(`Remover a tabela "${t.lab}"?\n\n(Os produtos no catálogo NÃO serão excluídos agora — você poderá fazer isso no próximo passo.)`)) return;
+  DB.tabelas_lab = (DB.tabelas_lab||[]).filter(x => x.id !== id);
+  const qtdProds = (DB.produtos||[]).filter(p => p.lab === t.lab && !p.deleted).length;
+  if(qtdProds > 0 && confirm(`Remover também os ${qtdProds} produtos de "${t.lab}" do catálogo?\n\nSe eles já estão em pedidos, o histórico não é afetado.`)) {
+    DB.produtos = (DB.produtos||[]).filter(p => p.lab !== t.lab);
+    renderCatalogo();
+  }
   save();
   renderTabelasLab();
-  toast('Registro removido.');
+  toast('Tabela removida.');
 }
 
 // ── GLOBAL EXPORTS (garante acesso de onclick no HTML) ──
