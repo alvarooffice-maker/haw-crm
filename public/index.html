@@ -1384,7 +1384,7 @@ function setCatTab(tab,btn){
   btn.classList.add('active');
 }
 function setCfgTab(tab,btn){
-  ['usuarios','metas','empresa','supabase'].forEach(t=>{
+  ['usuarios','metas','empresa','supabase','tabelas'].forEach(t=>{
     document.getElementById(`cfg-${t}`).style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('.inner-tab').forEach(b=>b.classList.remove('active'));
