@@ -1242,6 +1242,21 @@ function loadFromStorage(){
   if(raw){try{const d=JSON.parse(raw);Object.assign(DB,d)}catch(e){}}
   window.DB=DB; // garante sincronização com scripts externos
   _garantirUsuarios();
+  // ── Migração: normaliza categorias de produtos importados de labs
+  // Produtos antigos têm categoria = string do lab (ex: "VISÃO SIMPLES - ACABADA")
+  // em vez de 'lente' | 'armacao' | 'acessorio'. Corrige isso automaticamente.
+  const CATS_VALIDAS = new Set(['lente','armacao','acessorio']);
+  let migrou = false;
+  (DB.produtos||[]).forEach(p=>{
+    if(!p.deleted && !CATS_VALIDAS.has(p.categoria)){
+      const catOrig = p.categoria || '';
+      const isServico = catOrig.toUpperCase().includes('SERVI');
+      p.subcategoria = p.subcategoria || catOrig;  // preserva subcategoria se já existir
+      p.categoria    = isServico ? 'acessorio' : 'lente';
+      migrou = true;
+    }
+  });
+  if(migrou){ save(); console.log('[HAW] Migração de categorias de produtos concluída.'); }
 }
 
 // Proteção: intercepta qualquer tentativa de zerar DB.usuarios
