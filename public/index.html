@@ -1638,7 +1638,16 @@ function _prodListaFiltrada(termo){
 }
 
 function _buildDropdownHTML(idx, lista){
-  if(!lista.length) return '<div style="padding:12px;color:var(--muted);font-size:12px;text-align:center">Nenhum produto encontrado</div>';
+  if(!lista.length){
+    const vazio=DB.produtos.filter(p=>p.ativo!==false&&!p.deleted).length===0;
+    return vazio
+      ? `<div style="padding:14px 12px;text-align:center">
+           <div style="color:#fff;font-size:12px;margin-bottom:8px">📋 Catálogo vazio</div>
+           <div style="color:var(--muted);font-size:11px;margin-bottom:10px">Importe a tabela do laboratório para liberar as lentes aqui</div>
+           <button class="btn btn-gold btn-sm" onmousedown="closeModal('modal-pedido');nav('config');setCfgTab('tabelas',document.querySelector('[onclick*=tabelas]'))" style="font-size:11px">Ir para Tabelas Lab →</button>
+         </div>`
+      : '<div style="padding:12px;color:var(--muted);font-size:12px;text-align:center">Nenhum produto encontrado para essa busca</div>';
+  }
   // Agrupar por categoria
   const grupos={};
   lista.forEach(p=>{
@@ -1650,7 +1659,8 @@ function _buildDropdownHTML(idx, lista){
   Object.entries(grupos).forEach(([cat,prods])=>{
     html+=`<div class="prod-cat-header">${cat}</div>`;
     prods.forEach(p=>{
-      const preco=p.preco?`<span style="font-size:11px;font-weight:600;color:var(--gold)">R$ ${fmtNum(p.preco)}</span>`:'';
+      const precoFmt=p.preco?Number(p.preco).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+      const preco=precoFmt?`<span style="font-size:11px;font-weight:600;color:var(--gold)">R$ ${precoFmt}</span>`:'';
       const espec=p.descricao?`<div style="font-size:10px;color:var(--muted);margin-top:1px">${p.descricao}</div>`:'';
       html+=`<div class="prod-option" data-idx="${idx}" data-id="${p.id}" data-nome="${p.nome.replace(/"/g,'&quot;')}" data-preco="${p.preco||0}"
         onmousedown="selecionarProd(${idx},'${p.id}',\`${p.nome.replace(/`/g,"'")}\`,${p.preco||0})">

@@ -135,7 +135,18 @@
 
       if (clis.data)   window.DB.clientes  = clis.data.map(r => toCamel('clientes', r));
       if (recs.data)   window.DB.receitas  = recs.data.map(r => toCamel('receitas', r));
-      if (prods.data)  window.DB.produtos  = prods.data.map(r => toCamel('produtos', r));
+      // Merge produtos: preserva itens locais (ex: importados da tabela lab) que não estão no Supabase
+      if (prods.data) {
+        const sbProdIds = new Set(prods.data.map(r => r.id));
+        const sbProds   = prods.data.map(r => toCamel('produtos', r));
+        const localOnly = (window.DB.produtos || []).filter(p => !sbProdIds.has(p.id) && !p.deleted);
+        window.DB.produtos = [...sbProds, ...localOnly];
+        // Sincronizar produtos locais para o Supabase
+        if (localOnly.length) {
+          sb.from('produtos').upsert(localOnly.map(r => toSnake('produtos', r)), { onConflict: 'id' })
+            .catch(e => console.warn('[HAW] Falha ao sincronizar produtos locais:', e));
+        }
+      }
       // IDs de usuários demo que devem ser ignorados/deletados
       const DEMO_IDS = new Set(['u1', 'u2', 'u3']);
       const DEMO_NAMES = new Set(['Dono HAW', 'Ana Lima', 'Carlos Souza', 'Admin HAW']);
