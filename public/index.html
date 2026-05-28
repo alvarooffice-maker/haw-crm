@@ -13,7 +13,7 @@ window.HAW_CONFIG = {supabaseUrl:"",supabaseKey:"",appVersion:"1.0.0",appName:"H
 <script src="config.js" onerror="console.warn('[HAW] config.js ausente — modo offline')"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -2594,10 +2594,13 @@ function atualizarPreviewMarkup() {
 // ── Extrai texto do PDF usando PDF.js ──
 async function extrairTextoPDF(file) {
   if(typeof pdfjsLib === 'undefined') {
-    throw new Error('PDF.js não carregou. Verifique sua conexão com a internet.');
+    throw new Error('PDF.js não carregou. Aguarde a página terminar de carregar e tente novamente.');
   }
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  // Worker do mesmo CDN (legacy build inclui worker embutido como fallback)
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js';
+  } catch(e) { /* ignora se já estiver definido */ }
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -2689,10 +2692,10 @@ function _parsePreco(str) {
 
 // ── Processar arquivo PDF selecionado ──
 async function processarPDFLab(file) {
-  if (!file || file.type !== 'application/pdf') {
-    toast('❌ Selecione um arquivo PDF válido');
-    return;
-  }
+  if (!file) { toast('❌ Nenhum arquivo selecionado'); return; }
+  // Aceita pdf mesmo que o MIME venha como octet-stream (ex: download via WhatsApp)
+  const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  if (!isPDF) { toast('❌ Selecione um arquivo PDF (.pdf)'); return; }
   const st = document.getElementById('lab-parse-status');
   if(st) { st.textContent = '⏳ Lendo PDF…'; st.style.color = 'var(--gold)'; }
 
