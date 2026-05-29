@@ -593,6 +593,7 @@ tr:hover td{background:#FAFAF5}
         <button class="inner-tab" onclick="setCfgTab('empresa',this)">🏢 Empresa</button>
         <button class="inner-tab" onclick="setCfgTab('supabase',this)">☁️ Sincronização</button>
         <button class="inner-tab" onclick="setCfgTab('tabelas',this)">🔬 Tabelas Lab</button>
+        <button class="inner-tab" id="cfg-tab-backups" onclick="setCfgTab('backups',this)">💾 Backups</button>
       </div>
 
       <!-- ── USUÁRIOS ── -->
@@ -720,8 +721,53 @@ tr:hover td{background:#FAFAF5}
           </div>
         </div>
       </div>
-    </div>
 
+      <!-- ── BACKUPS ── -->
+      <div id="cfg-backups" style="display:none">
+        <div class="card" style="margin-bottom:12px">
+          <div class="ch">
+            <span class="ct">Backups do Sistema</span>
+            <button class="btn btn-gold btn-sm" id="btn-backup-manual" onclick="fazerBackupManual()">💾 Fazer Backup Agora</button>
+          </div>
+          <div style="padding:12px 20px 16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+              <div style="background:#0d1426;border:1px solid #1e2a46;border-radius:8px;padding:12px 16px">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">🤖 Backup automático</div>
+                <div style="font-size:13px;font-weight:600" id="backup-auto-status">—</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">Diário entre 01h–04h (enquanto o sistema estiver aberto)</div>
+              </div>
+              <div style="background:#0d1426;border:1px solid #1e2a46;border-radius:8px;padding:12px 16px">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">🖐 Último backup manual</div>
+                <div style="font-size:13px;font-weight:600" id="backup-manual-status">—</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">Somente o admin pode criar manualmente</div>
+              </div>
+            </div>
+            <div id="backup-lista">
+              <div style="color:var(--muted);text-align:center;padding:20px">Carregando backups…</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct" style="font-size:13px">📋 Configuração Supabase — criar tabela de backups (primeira vez)</span></div>
+          <div style="padding:16px 20px">
+            <div style="background:#fffbea;border:1px solid #f7cf1366;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#7a6000;line-height:1.5">
+              ☁️ Execute o SQL abaixo <strong>uma única vez</strong> no <strong>Supabase → SQL Editor</strong>. Sem isso os backups ficam apenas no navegador local (limitado).
+            </div>
+            <pre id="backup-sql" style="background:#0a0f1f;border:1px solid #2A3560;border-radius:8px;padding:14px;font-size:11px;color:#a8c8ff;overflow-x:auto;line-height:1.7;margin:0;white-space:pre">CREATE TABLE IF NOT EXISTS backups (
+  id           TEXT PRIMARY KEY,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  tipo         TEXT NOT NULL DEFAULT 'manual',
+  usuario_nome TEXT,
+  versao       INT DEFAULT 1,
+  dados        JSONB NOT NULL
+);
+ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="navigator.clipboard.writeText(document.getElementById('backup-sql').textContent).then(()=>toast('SQL copiado! ✅'))">📋 Copiar SQL</button>
+          </div>
+        </div>
+      </div><!-- /cfg-backups -->
+
+    </div>
   </div><!-- /content -->
 </main>
 </div><!-- /shell -->
@@ -1429,11 +1475,13 @@ function setCatTab(tab,btn){
   btn.classList.add('active');
 }
 function setCfgTab(tab,btn){
-  ['usuarios','metas','empresa','supabase','tabelas'].forEach(t=>{
-    document.getElementById(`cfg-${t}`).style.display=t===tab?'block':'none';
+  ['usuarios','metas','empresa','supabase','tabelas','backups'].forEach(t=>{
+    const el=document.getElementById(`cfg-${t}`);
+    if(el) el.style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('.inner-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  if(tab==='backups') renderBackups();
 }
 function setPipelineVendedor(v,btn){
   document.querySelectorAll('#pipeline-filters .fb').forEach(b=>b.classList.remove('active'));
@@ -3140,6 +3188,233 @@ function excluirTabelaLab(id) {
   toast('Tabela removida.');
 }
 
+// ══════════════════════════════════════════════
+// ── SISTEMA DE BACKUP ──
+// ══════════════════════════════════════════════
+const _BACKUP_LS_KEY       = 'haw_backups';
+const _BACKUP_LAST_AUTO_KEY= 'haw_last_autobackup';
+const _BACKUP_MAX_LOCAL    = 10;
+
+function _criarSnapshotDados(){
+  return JSON.parse(JSON.stringify({
+    clientes:    DB.clientes    || [],
+    pedidos:     DB.pedidos     || [],
+    receitas:    DB.receitas    || [],
+    produtos:    DB.produtos    || [],
+    usuarios:    DB.usuarios    || [],
+    tabelas_lab: DB.tabelas_lab || [],
+    alertas:     DB.alertas     || [],
+    settings:    DB.settings    || {},
+  }));
+}
+
+async function criarBackup(tipo, usuarioNome){
+  const bk = {
+    id: uid(),
+    criadoEm: new Date().toISOString(),
+    tipo: tipo || 'manual',
+    usuarioNome: usuarioNome || currentUser?.nome || 'Sistema',
+    versao: 1,
+    dados: _criarSnapshotDados(),
+  };
+
+  // Salvar no Supabase (primário)
+  if(window.HAW_SB?.isOnline?.() && window.HAW_SB.client){
+    try{
+      await window.HAW_SB.client.from('backups').insert({
+        id: bk.id, created_at: bk.criadoEm, tipo: bk.tipo,
+        usuario_nome: bk.usuarioNome, versao: bk.versao, dados: bk.dados,
+      });
+    }catch(e){ console.warn('[HAW Backup] Falha Supabase:', e?.message); }
+  }
+
+  // Salvar no localStorage (fallback — mantém manuais + últimos 5 autos)
+  try{
+    const lista = JSON.parse(localStorage.getItem(_BACKUP_LS_KEY)||'[]');
+    lista.unshift(bk);
+    const manuais = lista.filter(b=>b.tipo==='manual');
+    const autos   = lista.filter(b=>b.tipo!=='manual').slice(0,5);
+    const final   = [...manuais,...autos].sort((a,b)=>b.criadoEm.localeCompare(a.criadoEm)).slice(0,_BACKUP_MAX_LOCAL);
+    localStorage.setItem(_BACKUP_LS_KEY, JSON.stringify(final));
+  }catch(e){ console.warn('[HAW Backup] Falha localStorage:', e?.message); }
+
+  return bk;
+}
+
+async function listarBackups(){
+  // Tenta Supabase (metadados — sem `dados` para economizar banda)
+  if(window.HAW_SB?.isOnline?.() && window.HAW_SB.client){
+    try{
+      const {data,error} = await window.HAW_SB.client
+        .from('backups')
+        .select('id,created_at,tipo,usuario_nome,versao')
+        .order('created_at',{ascending:false}).limit(30);
+      if(!error && data) return data.map(r=>({
+        id:r.id, criadoEm:r.created_at, tipo:r.tipo,
+        usuarioNome:r.usuario_nome, versao:r.versao, _fonte:'supabase',
+      }));
+    }catch(e){}
+  }
+  // Fallback: localStorage
+  try{
+    return JSON.parse(localStorage.getItem(_BACKUP_LS_KEY)||'[]')
+      .map(b=>({...b, dados:undefined, _fonte:'local'}));
+  }catch(e){ return []; }
+}
+
+async function restaurarBackup(id){
+  if(!confirm('⚠️ Restaurar este backup vai substituir TODOS os dados atuais do sistema.\n\nEsta ação não pode ser desfeita. Tem certeza?')) return;
+
+  let backup = null;
+
+  // Busca dados completos do Supabase
+  if(window.HAW_SB?.isOnline?.() && window.HAW_SB.client){
+    try{
+      const {data,error} = await window.HAW_SB.client
+        .from('backups').select('*').eq('id',id).single();
+      if(!error && data) backup = {dados:data.dados, criadoEm:data.created_at};
+    }catch(e){}
+  }
+  // Fallback: localStorage
+  if(!backup){
+    try{
+      const lista = JSON.parse(localStorage.getItem(_BACKUP_LS_KEY)||'[]');
+      backup = lista.find(b=>b.id===id);
+    }catch(e){}
+  }
+
+  if(!backup?.dados){ alert('❌ Backup não encontrado ou dados corrompidos.'); return; }
+
+  Object.assign(DB, backup.dados);
+  window.DB = DB;
+  save();
+  // Re-renderiza tudo
+  renderDashboard(); renderPipeline(); renderClientes(); renderPedidos();
+  renderReceitas(); renderFinanceiro(); renderCatalogo(); renderRelatorios();
+  renderConfig(); populateSelects();
+  toast(`✅ Backup de ${new Date(backup.criadoEm).toLocaleDateString('pt-BR')} restaurado!`);
+  renderBackups();
+}
+
+async function excluirBackup(id){
+  if(!confirm('Excluir este backup permanentemente?')) return;
+  if(window.HAW_SB?.isOnline?.() && window.HAW_SB.client){
+    try{ await window.HAW_SB.client.from('backups').delete().eq('id',id); }catch(e){}
+  }
+  try{
+    const lista = JSON.parse(localStorage.getItem(_BACKUP_LS_KEY)||'[]');
+    localStorage.setItem(_BACKUP_LS_KEY, JSON.stringify(lista.filter(b=>b.id!==id)));
+  }catch(e){}
+  renderBackups();
+  toast('Backup excluído.');
+}
+
+async function exportarBackupJSON(id){
+  let dados = null;
+  if(window.HAW_SB?.isOnline?.() && window.HAW_SB.client){
+    try{
+      const {data,error} = await window.HAW_SB.client
+        .from('backups').select('*').eq('id',id).single();
+      if(!error && data) dados = data;
+    }catch(e){}
+  }
+  if(!dados){
+    try{
+      const lista = JSON.parse(localStorage.getItem(_BACKUP_LS_KEY)||'[]');
+      dados = lista.find(b=>b.id===id);
+    }catch(e){}
+  }
+  if(!dados){ toast('⚠️ Dados do backup não disponíveis localmente.'); return; }
+  const dt = (dados.created_at||dados.criadoEm||'').slice(0,10);
+  const blob = new Blob([JSON.stringify(dados,null,2)],{type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `haw-backup-${dt}-${dados.tipo||'backup'}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+async function renderBackups(){
+  const el = document.getElementById('backup-lista');
+  if(!el) return;
+  el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Carregando…</div>';
+
+  const lista = await listarBackups();
+
+  // Atualiza status cards
+  const autoEl   = document.getElementById('backup-auto-status');
+  const manualEl = document.getElementById('backup-manual-status');
+  const ultimoAuto   = lista.find(b=>b.tipo==='automatico');
+  const ultimoManual = lista.find(b=>b.tipo==='manual');
+  if(autoEl)   autoEl.textContent   = ultimoAuto   ? new Date(ultimoAuto.criadoEm).toLocaleString('pt-BR')   : 'Nenhum ainda';
+  if(manualEl) manualEl.textContent = ultimoManual ? new Date(ultimoManual.criadoEm).toLocaleString('pt-BR') : 'Nenhum ainda';
+
+  if(!lista.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Nenhum backup encontrado.</div>';
+    return;
+  }
+
+  el.innerHTML = lista.map(b=>{
+    const d    = new Date(b.criadoEm);
+    const dtBR = d.toLocaleDateString('pt-BR');
+    const hora = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const tipo = b.tipo==='manual' ? '🖐 Manual' : '🤖 Auto';
+    const cls  = b.tipo==='manual' ? 'badge-gold' : 'badge-navy';
+    const fnt  = b._fonte==='supabase' ? '☁️' : '💻';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1e2a46;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-weight:600;font-size:13px">${dtBR} às ${hora} <span style="font-size:11px;color:var(--muted)">${fnt}</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">
+          <span class="badge ${cls}" style="font-size:10px">${tipo}</span>
+          <span style="margin-left:8px">por ${b.usuarioNome||'Sistema'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="exportarBackupJSON('${b.id}')" title="Baixar JSON">⬇️ JSON</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--gold)" onclick="restaurarBackup('${b.id}')">🔄 Restaurar</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="excluirBackup('${b.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function fazerBackupManual(){
+  const btn = document.getElementById('btn-backup-manual');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Salvando…'; }
+  try{
+    await criarBackup('manual', currentUser?.nome||'Admin');
+    toast('✅ Backup manual criado com sucesso!');
+    renderBackups();
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='💾 Fazer Backup Agora'; }
+  }
+}
+
+// ── Scheduler: verifica a cada 30 min se é madrugada e se já houve backup hoje ──
+async function _autoBackupSeNecessario(){
+  const hoje  = new Date().toISOString().slice(0,10);
+  const ultimo= localStorage.getItem(_BACKUP_LAST_AUTO_KEY);
+  if(ultimo===hoje) return;
+  await criarBackup('automatico','Sistema (auto)');
+  localStorage.setItem(_BACKUP_LAST_AUTO_KEY, hoje);
+  console.log('[HAW] Backup automático criado:', hoje);
+}
+
+function iniciarSchedulerBackup(){
+  // Polling a cada 30 min — dispara backup se estiver entre 01h e 04h59
+  setInterval(async()=>{
+    const h = new Date().getHours();
+    if(h >= 1 && h <= 4) await _autoBackupSeNecessario();
+  }, 30 * 60 * 1000);
+
+  // Ao abrir o app: se ainda não houve backup hoje (fallback para quando
+  // o navegador não fica aberto durante a madrugada)
+  setTimeout(async()=>{
+    const hoje  = new Date().toISOString().slice(0,10);
+    const ultimo= localStorage.getItem(_BACKUP_LAST_AUTO_KEY);
+    if(ultimo !== hoje) await _autoBackupSeNecessario();
+  }, 6000); // aguarda DB estar carregado
+}
+
 // ── GLOBAL EXPORTS (garante acesso de onclick no HTML) ──
 window.nav=nav;
 window.openModal=openModal;
@@ -3201,6 +3476,11 @@ window.reRenderPreviewLab=reRenderPreviewLab;
 window.labToggleAll=labToggleAll;
 window.labVoltarStep1=labVoltarStep1;
 window.atualizarPreviewMarkup=atualizarPreviewMarkup;
+window.fazerBackupManual=fazerBackupManual;
+window.restaurarBackup=restaurarBackup;
+window.excluirBackup=excluirBackup;
+window.exportarBackupJSON=exportarBackupJSON;
+window.renderBackups=renderBackups;
 
 // (delegação de usuários removida — botões usam .onclick direto em renderConfig)
 
@@ -3221,6 +3501,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderConfig();
   populateSelects();
   checkSession();
+  iniciarSchedulerBackup();
 });
 </script>
 
