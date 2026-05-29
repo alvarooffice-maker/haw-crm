@@ -2144,7 +2144,7 @@ function salvarUsuario(){
     const novoTs=new Date().toISOString();
     DB.usuarios.push({id:novoId,nome,email,perfil:novoPerf,meta:novoMeta,ativo:true,senha:pin,createdAt:novoTs});
     // Grava PIN em haw_pins para que doLogin() funcione mesmo sem sync Supabase
-    try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
+    try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[novoId]=pin;p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
     save();
     // Tenta sync imediato para Supabase com UUID válido
     (async()=>{
@@ -3285,7 +3285,18 @@ async function restaurarBackup(id){
 
   if(!backup?.dados){ alert('❌ Backup não encontrado ou dados corrompidos.'); return; }
 
-  Object.assign(DB, backup.dados);
+  // Restaura campos normais (exceto usuarios — tem setter guard que bloqueia arrays vazios)
+  const {usuarios: usersBackup, ...restoDados} = backup.dados;
+  Object.assign(DB, restoDados);
+
+  // Restaura usuarios separadamente para contornar o setter guard
+  if(Array.isArray(usersBackup) && usersBackup.length > 0){
+    DB.usuarios = usersBackup;
+  } else {
+    // Backup sem usuários — preserva os atuais e avisa
+    console.warn('[HAW Restore] Backup sem lista de usuários — usuários atuais preservados.');
+  }
+
   window.DB = DB;
   save();
   // Re-renderiza tudo
@@ -3328,9 +3339,10 @@ async function exportarBackupJSON(id){
   const dt = (dados.created_at||dados.criadoEm||'').slice(0,10);
   const blob = new Blob([JSON.stringify(dados,null,2)],{type:'application/json'});
   const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
+  const a = document.createElement('a');
   a.href = url; a.download = `haw-backup-${dt}-${dados.tipo||'backup'}.json`;
-  a.click(); URL.revokeObjectURL(url);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 async function renderBackups(){
