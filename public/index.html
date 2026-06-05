@@ -939,18 +939,34 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
         <option value="em_laboratorio">Em Laboratório</option>
       </select></div></div>
       <div class="form-divider">🛍️ Itens do pedido</div>
+      <!-- Cabeçalho das colunas -->
+      <div style="display:grid;grid-template-columns:2fr 64px 86px 58px 28px;gap:8px;padding:0 0 4px;margin-bottom:2px">
+        <span style="font-size:10px;color:var(--muted);font-weight:600">Produto / Serviço</span>
+        <span style="font-size:10px;color:var(--muted);font-weight:600;text-align:center">Qtd</span>
+        <span style="font-size:10px;color:var(--muted);font-weight:600;text-align:right">Preço R$</span>
+        <span style="font-size:10px;color:var(--muted);font-weight:600;text-align:center">Desc %</span>
+        <span></span>
+      </div>
       <div id="ped-itens-list" style="margin-bottom:10px"></div>
       <button class="btn btn-ghost btn-sm" onclick="addItemPedido()" style="margin-bottom:14px">+ Adicionar item</button>
+      <!-- Resumo financeiro -->
       <div style="background:var(--gold-pale);border-radius:var(--rad);padding:12px 14px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;color:var(--gold-deep);font-weight:600">Subtotal</span>
-          <span style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--gold-deep)" id="ped-subtotal">R$ 0,00</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;color:var(--gold-deep);font-weight:600">Subtotal dos itens</span>
+          <span style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--gold-deep)" id="ped-subtotal">R$ 0,00</span>
         </div>
-        <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
-          <div class="form-group" style="flex:1"><label class="form-label">Desconto (%)</label><input class="form-input" id="ped-desconto" type="number" min="0" max="100" step="1" value="0" oninput="calcTotal()"></div>
-          <div style="text-align:right;padding-top:18px">
-            <div style="font-size:10px;color:var(--gold-deep);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Total</div>
-            <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--gold-deep)" id="ped-total">R$ 0,00</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:0 0 110px">
+            <label class="form-label">Desconto geral (%)</label>
+            <input class="form-input" id="ped-desconto" type="number" min="0" max="100" step="0.5" value="0" oninput="calcTotal()" style="text-align:center">
+          </div>
+          <div style="flex:1;padding-bottom:4px">
+            <div id="ped-desconto-valor" style="font-size:12px;color:#e07070;font-weight:600;min-height:18px"></div>
+            <div id="ped-desconto-economia" style="font-size:11px;color:var(--muted);min-height:14px"></div>
+          </div>
+          <div style="text-align:right;padding-bottom:2px">
+            <div style="font-size:10px;color:var(--gold-deep);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Total final</div>
+            <div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--gold-deep)" id="ped-total">R$ 0,00</div>
           </div>
         </div>
       </div>
@@ -1677,7 +1693,7 @@ function addItemPedido(item={}){
   const idx=pedidoItensCount;
   const div=document.createElement('div');
   div.id=`item-${idx}`;
-  div.style.cssText='display:grid;grid-template-columns:2fr 72px 90px 28px;gap:8px;align-items:start;margin-bottom:8px;position:relative';
+  div.style.cssText='display:grid;grid-template-columns:2fr 64px 86px 58px 28px;gap:8px;align-items:start;margin-bottom:10px;position:relative';
   div.innerHTML=`
     <div style="position:relative">
       <div style="display:flex;gap:4px;margin-bottom:4px">
@@ -1687,30 +1703,46 @@ function addItemPedido(item={}){
         <button type="button" class="item-tipo-btn" data-idx="${idx}" data-tipo="acessorio" onclick="setTipoItem(${idx},'acessorio',this)" style="flex:1;padding:4px 2px;font-size:10px;border-radius:5px;border:1px solid #2A3560;background:#1a2240;color:var(--muted);cursor:pointer;transition:.15s">✨ Acessórios</button>
       </div>
       <input class="form-input item-prod-search" id="item-search-${idx}" autocomplete="off"
-        placeholder="🔍 Buscar…"
+        placeholder="🔍 Buscar produto…"
         oninput="filtrarProdutos(${idx})"
         onfocus="mostrarDropdownProd(${idx})"
         onkeydown="navDropdown(event,${idx})">
       <input type="hidden" id="item-prod-${idx}" value="">
       <input type="hidden" id="item-tipo-${idx}" value="">
+      <input type="hidden" id="item-tabela-${idx}" value="">
       <div class="prod-dropdown" id="item-drop-${idx}"></div>
     </div>
-    <div><input class="form-input" id="item-qtd-${idx}" type="number" min="1" value="1" placeholder="Qtd" oninput="calcTotal()"></div>
-    <div><input class="form-input" id="item-preco-${idx}" type="number" step="0.01" min="0" placeholder="R$ 0,00" oninput="calcTotal()"></div>
-    <div><button class="btn btn-danger btn-sm" onclick="document.getElementById('item-${idx}').remove();calcTotal()" style="padding:7px 9px">×</button></div>`;
+    <div>
+      <input class="form-input" id="item-qtd-${idx}" type="number" min="1" value="1" placeholder="Qtd"
+        oninput="calcTotal()" style="text-align:center">
+    </div>
+    <div>
+      <input class="form-input" id="item-preco-${idx}" type="number" step="0.01" min="0" placeholder="0,00"
+        oninput="calcTotal();atualizarDescItem(${idx})" style="text-align:right">
+      <div id="item-tabela-hint-${idx}" style="font-size:9px;color:var(--muted);margin-top:2px;text-align:right;min-height:13px"></div>
+    </div>
+    <div>
+      <input class="form-input" id="item-desc-pct-${idx}" type="number" min="0" max="100" step="0.5"
+        placeholder="%" disabled
+        oninput="aplicarDescItem(${idx})"
+        style="text-align:center;padding-left:4px;padding-right:4px">
+      <div id="item-disc-badge-${idx}" style="font-size:10px;margin-top:2px;text-align:center;min-height:13px;font-weight:600"></div>
+    </div>
+    <div><button class="btn btn-danger btn-sm" onclick="document.getElementById('item-${idx}').remove();calcTotal()" style="padding:7px 9px;margin-top:1px">×</button></div>`;
   document.getElementById('ped-itens-list').appendChild(div);
   // Pré-preencher ao editar pedido existente
   if(item.prodId||item.desc){
     const prod=DB.produtos.find(p=>p.id===item.prodId);
     const nome=prod?prod.nome:(item.desc||'');
-    const el=document.getElementById(`item-search-${idx}`);
-    const hid=document.getElementById(`item-prod-${idx}`);
-    const precoEl=document.getElementById(`item-preco-${idx}`);
-    const qtdEl=document.getElementById(`item-qtd-${idx}`);
-    if(el) el.value=nome;
-    if(hid) hid.value=item.prodId||'';
-    if(precoEl) precoEl.value=item.preco||'';
-    if(qtdEl) qtdEl.value=item.qtd||1;
+    document.getElementById(`item-search-${idx}`).value=nome;
+    document.getElementById(`item-prod-${idx}`).value=item.prodId||'';
+    document.getElementById(`item-preco-${idx}`).value=item.preco||'';
+    document.getElementById(`item-qtd-${idx}`).value=item.qtd||1;
+    // Restaura preço de tabela para o indicador de desconto
+    if(prod?.preco){
+      document.getElementById(`item-tabela-${idx}`).value=prod.preco;
+    }
+    atualizarDescItem(idx);
   }
   calcTotal();
 }
@@ -1818,7 +1850,11 @@ function selecionarProd(idx,prodId,nome,preco){
   document.getElementById(`item-search-${idx}`).value=nome;
   document.getElementById(`item-prod-${idx}`).value=prodId;
   document.getElementById(`item-preco-${idx}`).value=preco||'';
+  // Grava preço de tabela como referência para o indicador de desconto
+  const tabelaEl=document.getElementById(`item-tabela-${idx}`);
+  if(tabelaEl) tabelaEl.value=preco||'';
   ocultarDropdownProd(idx);
+  atualizarDescItem(idx);
   calcTotal();
 }
 
@@ -1827,6 +1863,15 @@ function selecionarAvulso(idx){
   document.getElementById(`item-preco-${idx}`).value='';
   document.getElementById(`item-search-${idx}`).value='';
   document.getElementById(`item-search-${idx}`).placeholder='Descrição do item…';
+  // Limpa referência de tabela e indicadores
+  const tabelaEl=document.getElementById(`item-tabela-${idx}`);
+  if(tabelaEl) tabelaEl.value='';
+  const descEl=document.getElementById(`item-desc-pct-${idx}`);
+  if(descEl){descEl.value='';descEl.disabled=true;}
+  const badgeEl=document.getElementById(`item-disc-badge-${idx}`);
+  if(badgeEl) badgeEl.innerHTML='';
+  const hintEl=document.getElementById(`item-tabela-hint-${idx}`);
+  if(hintEl) hintEl.textContent='';
   ocultarDropdownProd(idx);
   document.getElementById(`item-search-${idx}`).focus();
 }
@@ -1886,9 +1931,71 @@ function calcTotal(){
   const itens=getItens();
   const sub=itens.reduce((s,i)=>s+i.sub,0);
   const desc=parseFloat(document.getElementById('ped-desconto').value)||0;
-  const total=sub*(1-desc/100);
+  const descValor=sub*desc/100;
+  const total=sub-descValor;
   document.getElementById('ped-subtotal').textContent=fmtMoney(sub);
   document.getElementById('ped-total').textContent=fmtMoney(total);
+  // Exibe valor do desconto geral e economia
+  const descValorEl=document.getElementById('ped-desconto-valor');
+  const descEconEl=document.getElementById('ped-desconto-economia');
+  if(descValorEl) descValorEl.textContent=desc>0?`− ${fmtMoney(descValor)}`:'';
+  if(descEconEl)  descEconEl.textContent=desc>0?`Economia de ${desc}% no pedido`:'';
+}
+
+// ── INDICADORES DE DESCONTO POR ITEM ─────────────────────────
+// Chamada quando o preço é alterado manualmente → atualiza o campo %
+function atualizarDescItem(idx){
+  const tabela  = parseFloat(document.getElementById(`item-tabela-${idx}`)?.value)||0;
+  const preco   = parseFloat(document.getElementById(`item-preco-${idx}`)?.value)||0;
+  const descEl  = document.getElementById(`item-desc-pct-${idx}`);
+  const badgeEl = document.getElementById(`item-disc-badge-${idx}`);
+  const hintEl  = document.getElementById(`item-tabela-hint-${idx}`);
+  if(!descEl) return;
+
+  if(!tabela){
+    descEl.value=''; descEl.disabled=true;
+    if(badgeEl) badgeEl.innerHTML='';
+    if(hintEl)  hintEl.textContent='';
+    return;
+  }
+
+  descEl.disabled=false;
+  if(hintEl) hintEl.textContent=`tabela ${fmtMoney(tabela)}`;
+
+  if(!preco){ if(badgeEl) badgeEl.innerHTML=''; return; }
+
+  const pct=((tabela-preco)/tabela*100);
+  // Atualiza campo % sem disparar seu próprio oninput
+  descEl.value=pct>0?pct.toFixed(1):'0';
+
+  if(badgeEl){
+    if(Math.abs(pct)<0.05){
+      badgeEl.innerHTML='<span style="color:var(--green)">✓ tabela</span>';
+    } else if(pct>0){
+      badgeEl.innerHTML=`<span style="color:#e07070">↓ ${pct.toFixed(1)}%</span>`;
+    } else {
+      badgeEl.innerHTML=`<span style="color:var(--gold)">↑ ${Math.abs(pct).toFixed(1)}%</span>`;
+    }
+  }
+}
+
+// Chamada quando o % de desconto é digitado manualmente → atualiza o preço
+function aplicarDescItem(idx){
+  const tabela=parseFloat(document.getElementById(`item-tabela-${idx}`)?.value)||0;
+  if(!tabela) return;
+  const pct   =parseFloat(document.getElementById(`item-desc-pct-${idx}`)?.value)||0;
+  const preco =parseFloat((tabela*(1-pct/100)).toFixed(2));
+  const precoEl=document.getElementById(`item-preco-${idx}`);
+  if(precoEl) precoEl.value=preco;
+  const badgeEl=document.getElementById(`item-disc-badge-${idx}`);
+  if(badgeEl){
+    if(pct<0.05){
+      badgeEl.innerHTML='<span style="color:var(--green)">✓ tabela</span>';
+    } else {
+      badgeEl.innerHTML=`<span style="color:#e07070">↓ ${pct.toFixed(1)}%</span>`;
+    }
+  }
+  calcTotal();
 }
 
 // ── PEDIDO RECEITA SELECT ──
@@ -3465,6 +3572,8 @@ window.selecionarProd=selecionarProd;
 window.selecionarAvulso=selecionarAvulso;
 window.filtrarProdutos=filtrarProdutos;
 window.mostrarDropdownProd=mostrarDropdownProd;
+window.atualizarDescItem=atualizarDescItem;
+window.aplicarDescItem=aplicarDescItem;
 window.navDropdown=navDropdown;
 window.setTipoItem=setTipoItem;
 window.onPedClienteChange=onPedClienteChange;
