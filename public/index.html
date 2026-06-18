@@ -682,7 +682,11 @@ tr:hover td{background:#FAFAF5}
         <div class="card" style="margin-bottom:12px">
           <div class="ch">
             <span class="ct">Tabelas de Preços dos Laboratórios</span>
-            <button class="btn btn-gold btn-sm" onclick="abrirImportarLab()">+ Importar PDF</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('input-json-labs').click()">📥 Importar JSON</button>
+              <input type="file" id="input-json-labs" accept=".json" style="display:none" onchange="importarJSONLabs(this.files[0]);this.value=''">
+              <button class="btn btn-gold btn-sm" onclick="abrirImportarLab()">+ Importar PDF</button>
+            </div>
           </div>
           <div style="padding:16px 20px">
             <div style="background:#f0f7ff;border:1px solid #cde;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2c5f8a;line-height:1.5">
@@ -3319,6 +3323,95 @@ function confirmarImportacaoLab() {
   renderCatalogo();
   populateSelects();
   toast(`✅ ${novos} novos produtos + ${atualizados} atualizados no catálogo!`);
+}
+
+// ── Importar JSON de múltiplos labs (gerado pelo script Python) ──
+let _jsonLabsPendente = null;
+
+function importarJSONLabs(file) {
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    let data;
+    try { data = JSON.parse(e.target.result); } catch(err) { toast('❌ JSON inválido'); return; }
+    if(!data.version || !Array.isArray(data.labs)) { toast('❌ Formato de JSON não reconhecido'); return; }
+
+    _jsonLabsPendente = data;
+
+    const totalProds = data.labs.reduce((s,l)=>s+l.produtos.length,0);
+    const labLines   = data.labs.map(l=>`<li><strong>${l.lab}</strong> — ${l.produtos.length} produtos</li>`).join('');
+
+    const existing = document.getElementById('json-import-preview');
+    if(existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.id = 'json-import-preview';
+    div.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad);padding:14px 16px;margin-top:12px';
+    div.innerHTML = `
+      <div style="font-weight:600;margin-bottom:8px">📥 ${totalProds} produtos encontrados</div>
+      <ul style="margin:0 0 10px 16px;font-size:13px;color:var(--muted)">${labLines}</ul>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+        Os preços importados são PVCs (tabela sugerida ao consumidor). O custo estimado será 40% do PVC — ajuste depois conforme seu contrato com o lab.
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-gold btn-sm" onclick="_confirmarJSONLabs()">✅ Confirmar importação</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('json-import-preview').remove();_jsonLabsPendente=null">Cancelar</button>
+      </div>`;
+
+    const lista = document.getElementById('lab-tabelas-lista');
+    if(lista) lista.parentNode.insertBefore(div, lista);
+  };
+  reader.readAsText(file);
+}
+
+function _confirmarJSONLabs() {
+  const data = _jsonLabsPendente;
+  if(!data) return;
+  let novos = 0, atualizados = 0;
+
+  for(const labEntry of data.labs) {
+    const labNome = labEntry.lab;
+    if(!labNome) continue;
+
+    if(!(DB.tabelas_lab||[]).find(t=>t.lab===labNome)) {
+      if(!DB.tabelas_lab) DB.tabelas_lab=[];
+      DB.tabelas_lab.push({ lab: labNome, markup: 1.0 });
+    }
+
+    for(const p of labEntry.produtos) {
+      if(!p.nome || !p.preco) continue;
+      const custo = p.custo || Math.round(p.preco * 0.4 * 100) / 100;
+      const existing = (DB.produtos||[]).find(x =>
+        !x.deleted &&
+        x.nome.toLowerCase()===p.nome.toLowerCase() &&
+        x.lab===labNome
+      );
+      if(existing) {
+        existing.preco        = p.preco;
+        existing.custo        = custo;
+        existing.subcategoria = p.subcategoria || existing.subcategoria;
+        atualizados++;
+      } else {
+        if(!DB.produtos) DB.produtos=[];
+        DB.produtos.push({
+          id: uid(), lab: labNome,
+          nome: p.nome, categoria: 'lente',
+          subcategoria: p.subcategoria || 'Lente',
+          descricao: '', preco: p.preco, custo,
+          ativo: true,
+        });
+        novos++;
+      }
+    }
+  }
+
+  _jsonLabsPendente = null;
+  save();
+  document.getElementById('json-import-preview')?.remove();
+  renderTabelasLab();
+  renderCatalogo();
+  populateSelects();
+  toast(`✅ ${novos} novos + ${atualizados} atualizados`);
 }
 
 // ── Renderizar lista de tabelas já importadas ──
