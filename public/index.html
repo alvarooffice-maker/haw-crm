@@ -1118,6 +1118,7 @@ let supabaseClient = null;
 let currentUser = {id:'u1',nome:'Dono HAW',perfil:'dono',initials:'D'};
 window.currentUser = currentUser;
 let pedidoItensCount = 0;
+let _nomeItemEditando = {};
 let chartFat = null, chartFunil = null, chartVendedor = null, chartFatMensal = null;
 
 // ── ACCESS CONTROL ──
@@ -1711,11 +1712,13 @@ function addItemPedido(item={}){
         placeholder="🔍 Buscar produto…"
         oninput="filtrarProdutos(${idx})"
         onfocus="mostrarDropdownProd(${idx})"
+        onblur="_sairModoEditarNome(${idx})"
         onkeydown="navDropdown(event,${idx})">
       <input type="hidden" id="item-prod-${idx}" value="">
       <input type="hidden" id="item-tipo-${idx}" value="">
       <input type="hidden" id="item-tabela-${idx}" value="">
       <div class="prod-dropdown" id="item-drop-${idx}"></div>
+      <div id="item-edit-nome-${idx}" style="display:none;font-size:10px;color:var(--gold);cursor:pointer;margin-top:3px;user-select:none" onclick="editarNomeItem(${idx})">✏️ editar nome</div>
     </div>
     <div>
       <input class="form-input" id="item-qtd-${idx}" type="number" min="1" value="1" placeholder="Qtd"
@@ -1739,13 +1742,16 @@ function addItemPedido(item={}){
   if(item.prodId||item.desc){
     const prod=DB.produtos.find(p=>p.id===item.prodId);
     const nome=prod?prod.nome:(item.desc||'');
-    document.getElementById(`item-search-${idx}`).value=nome;
+    document.getElementById(`item-search-${idx}`).value=item.desc||nome;
     document.getElementById(`item-prod-${idx}`).value=item.prodId||'';
     document.getElementById(`item-preco-${idx}`).value=item.preco||'';
     document.getElementById(`item-qtd-${idx}`).value=item.qtd||1;
-    // Restaura preço de tabela para o indicador de desconto
     if(prod?.preco){
       document.getElementById(`item-tabela-${idx}`).value=prod.preco;
+    }
+    if(item.prodId){
+      const editBtn=document.getElementById(`item-edit-nome-${idx}`);
+      if(editBtn) editBtn.style.display='block';
     }
     atualizarDescItem(idx);
   }
@@ -1826,6 +1832,7 @@ function _buildDropdownHTML(idx, lista){
 }
 
 function mostrarDropdownProd(idx){
+  if(_nomeItemEditando[idx]) return;
   const termo=document.getElementById(`item-search-${idx}`).value;
   const lista=_prodListaFiltrada(termo,idx);
   const drop=document.getElementById(`item-drop-${idx}`);
@@ -1840,6 +1847,9 @@ function ocultarDropdownProd(idx){
 }
 
 function filtrarProdutos(idx){
+  if(_nomeItemEditando[idx]){calcTotal();return;}
+  const editBtn=document.getElementById(`item-edit-nome-${idx}`);
+  if(editBtn) editBtn.style.display='none';
   const termo=document.getElementById(`item-search-${idx}`).value;
   const lista=_prodListaFiltrada(termo,idx);
   const drop=document.getElementById(`item-drop-${idx}`);
@@ -1855,10 +1865,11 @@ function selecionarProd(idx,prodId,nome,preco){
   document.getElementById(`item-search-${idx}`).value=nome;
   document.getElementById(`item-prod-${idx}`).value=prodId;
   document.getElementById(`item-preco-${idx}`).value=preco||'';
-  // Grava preço de tabela como referência para o indicador de desconto
   const tabelaEl=document.getElementById(`item-tabela-${idx}`);
   if(tabelaEl) tabelaEl.value=preco||'';
   ocultarDropdownProd(idx);
+  const editBtn=document.getElementById(`item-edit-nome-${idx}`);
+  if(editBtn) editBtn.style.display='block';
   atualizarDescItem(idx);
   calcTotal();
 }
@@ -1868,6 +1879,9 @@ function selecionarAvulso(idx){
   document.getElementById(`item-preco-${idx}`).value='';
   document.getElementById(`item-search-${idx}`).value='';
   document.getElementById(`item-search-${idx}`).placeholder='Descrição do item…';
+  _nomeItemEditando[idx]=false;
+  const editBtn=document.getElementById(`item-edit-nome-${idx}`);
+  if(editBtn) editBtn.style.display='none';
   // Limpa referência de tabela e indicadores
   const tabelaEl=document.getElementById(`item-tabela-${idx}`);
   if(tabelaEl) tabelaEl.value='';
@@ -1879,6 +1893,28 @@ function selecionarAvulso(idx){
   if(hintEl) hintEl.textContent='';
   ocultarDropdownProd(idx);
   document.getElementById(`item-search-${idx}`).focus();
+}
+
+function editarNomeItem(idx){
+  _nomeItemEditando[idx]=true;
+  const inp=document.getElementById(`item-search-${idx}`);
+  if(!inp) return;
+  ocultarDropdownProd(idx);
+  inp.focus();
+  inp.select();
+  const editBtn=document.getElementById(`item-edit-nome-${idx}`);
+  if(editBtn) editBtn.style.display='none';
+}
+
+function _sairModoEditarNome(idx){
+  if(!_nomeItemEditando[idx]) return;
+  setTimeout(()=>{
+    _nomeItemEditando[idx]=false;
+    const prodId=document.getElementById(`item-prod-${idx}`)?.value;
+    const editBtn=document.getElementById(`item-edit-nome-${idx}`);
+    if(editBtn) editBtn.style.display=prodId?'block':'none';
+    ocultarDropdownProd(idx);
+  },150);
 }
 
 // Navegação por teclado no dropdown (↑↓ Enter Esc)
@@ -3734,6 +3770,8 @@ window.addItemPedido=addItemPedido;
 window.selecionarProd=selecionarProd;
 window.selecionarAvulso=selecionarAvulso;
 window.filtrarProdutos=filtrarProdutos;
+window.editarNomeItem=editarNomeItem;
+window._sairModoEditarNome=_sairModoEditarNome;
 window.mostrarDropdownProd=mostrarDropdownProd;
 window.atualizarDescItem=atualizarDescItem;
 window.aplicarDescItem=aplicarDescItem;
