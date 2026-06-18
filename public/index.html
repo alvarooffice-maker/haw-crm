@@ -929,7 +929,8 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
     <div class="modal-body">
       <input type="hidden" id="ped-id">
       <div class="form-row"><div class="form-group"><label class="form-label">Cliente *</label><select class="form-input form-select" id="ped-cliente" onchange="onPedClienteChange()"></select></div>
-      <div class="form-group"><label class="form-label">Receita</label><select class="form-input form-select" id="ped-receita"><option value="">— selecione o cliente primeiro —</option></select></div></div>
+      <div class="form-group"><label class="form-label">Receita</label><select class="form-input form-select" id="ped-receita" onchange="renderSugestaoLentes(this.value)"><option value="">— selecione o cliente primeiro —</option></select></div></div>
+      <div id="ped-sugestao-lentes" style="display:none"></div>
       <div class="form-row"><div class="form-group"><label class="form-label">Vendedor *</label><select class="form-input form-select" id="ped-vendedor"></select></div>
       <div class="form-group"><label class="form-label">Status inicial</label><select class="form-input form-select" id="ped-status">
         <option value="lead">Lead</option>
@@ -2004,6 +2005,72 @@ function onPedClienteChange(){
   const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===cliId).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
   const sel=document.getElementById('ped-receita');
   sel.innerHTML='<option value="">— sem receita vinculada —</option>'+recs.map(r=>`<option value="${r.id}" ${r.isAtual?'selected':''}>Receita de ${fmtDate(r.dataReceita)}${r.medico?' — '+r.medico:''}</option>`).join('');
+  // auto-select receita atual e sugere lentes
+  const atual=recs.find(r=>r.isAtual);
+  renderSugestaoLentes(atual?atual.id:'');
+}
+
+function renderSugestaoLentes(receitaId){
+  const panel=document.getElementById('ped-sugestao-lentes');
+  if(!panel)return;
+  if(!receitaId){panel.style.display='none';panel.innerHTML='';return;}
+  const receita=DB.receitas.find(r=>r.id===receitaId);
+  if(!receita){panel.style.display='none';return;}
+  const lentes=(DB.produtos||[]).filter(p=>!p.deleted&&p.ativo!==false&&p.categoria==='lente');
+  if(!lentes.length){panel.style.display='none';return;}
+  const temAdicao=receita.odAdi!=null||receita.oeAdi!=null;
+  const maxEsf=Math.max(Math.abs(receita.odEsf||0),Math.abs(receita.oeEsf||0));
+  const maxCil=Math.max(Math.abs(receita.odCil||0),Math.abs(receita.oeCil||0));
+  function scoreLente(p){
+    const txt=((p.subcategoria||'')+' '+(p.nome||'')).toUpperCase();
+    let s=0;
+    if(temAdicao){
+      if(txt.includes('PROGRESS')||txt.includes('MULTIFOCAL'))s+=10;
+      else if(txt.includes('BIFOCAL'))s+=6;
+      else if(txt.includes('OCUP')||txt.includes('INTER'))s+=4;
+      else if(txt.includes('SIMPLES')||txt.includes('MONOFOCAL')||txt.includes('ACABADA'))s-=5;
+    }else{
+      if(txt.includes('SIMPLES')||txt.includes('MONOFOCAL')||txt.includes('ACABADA')||txt.includes('SEMI'))s+=10;
+      else if(txt.includes('DIGITAL')&&!txt.includes('PROGRESS'))s+=6;
+      else if(txt.includes('PROGRESS')||txt.includes('MULTIFOCAL'))s-=5;
+    }
+    if(maxEsf>=4.0||maxCil>=2.0){
+      if(txt.includes('1.74')||txt.includes('174'))s+=4;
+      else if(txt.includes('1.67')||txt.includes('167'))s+=3;
+    }else if(maxEsf>=2.0||maxCil>=1.0){
+      if(txt.includes('1.67')||txt.includes('167'))s+=2;
+    }
+    return s;
+  }
+  const ranked=lentes.map(p=>({p,s:scoreLente(p)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,8).map(x=>x.p);
+  if(!ranked.length){panel.style.display='none';return;}
+  const grupos={};
+  ranked.forEach(p=>{const k=p.subcategoria||'Outros';if(!grupos[k])grupos[k]=[];grupos[k].push(p);});
+  const tipoLabel=temAdicao?'progressiva / multifocal':'visão simples';
+  const adi=temAdicao?` + adi. ${fmt(Math.max(receita.odAdi||0,receita.oeAdi||0))}`:'';
+  const prescInfo=`OD ${fmtGrau(receita.odEsf,receita.odCil,receita.odEixo)} / OE ${fmtGrau(receita.oeEsf,receita.oeCil,receita.oeEixo)}${adi}`;
+  panel.style.display='block';
+  panel.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad);padding:10px 12px;margin:6px 0 4px">
+    <div style="font-size:11px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px">
+      <span style="font-weight:600;color:var(--text)">Sugestão de lentes</span>
+      <span style="color:var(--muted);font-size:10px">${tipoLabel} — ${prescInfo}</span>
+    </div>
+    ${Object.entries(grupos).map(([sub,prods])=>`
+      <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:6px 0 3px">${sub}</div>
+      ${prods.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--surface);border-radius:6px;margin-bottom:3px;cursor:pointer;border:1px solid transparent;transition:border-color .15s"
+        onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='transparent'"
+        onclick="adicionarSugestao('${p.id}')">
+        <div><span style="font-size:12px;font-weight:500;color:var(--text)">${p.nome}</span>${p.lab?`<span style="font-size:10px;color:var(--muted);margin-left:6px">${p.lab}</span>`:''}</div>
+        <span style="font-size:12px;font-family:var(--font-display);font-weight:600;color:var(--gold-deep);white-space:nowrap">${fmtMoney(p.preco)}</span>
+      </div>`).join('')}
+    `).join('')}
+  </div>`;
+}
+
+function adicionarSugestao(prodId){
+  const prod=DB.produtos.find(p=>p.id===prodId);
+  if(!prod)return;
+  addItemPedido({prodId:prod.id,desc:prod.nome,preco:prod.preco,qtd:1});
 }
 
 // ── SALVAR PEDIDO ──
@@ -2052,7 +2119,10 @@ function editarPedido(id){
     document.getElementById('ped-cliente').value=p.clienteId;
     document.getElementById('ped-vendedor').value=p.vendedorId||'';
     onPedClienteChange();
-    setTimeout(()=>{document.getElementById('ped-receita').value=p.receitaId||'';},50);
+    setTimeout(()=>{
+      document.getElementById('ped-receita').value=p.receitaId||'';
+      renderSugestaoLentes(p.receitaId||'');
+    },50);
     (p.itens||[]).forEach(i=>addItemPedido({prodId:i.prodId,desc:i.desc||i.descricao||'',preco:i.preco,qtd:i.qtd}));
     calcTotal();
   },50);
@@ -3577,6 +3647,8 @@ window.aplicarDescItem=aplicarDescItem;
 window.navDropdown=navDropdown;
 window.setTipoItem=setTipoItem;
 window.onPedClienteChange=onPedClienteChange;
+window.renderSugestaoLentes=renderSugestaoLentes;
+window.adicionarSugestao=adicionarSugestao;
 window.filterClientes=filterClientes;
 window.filterPedidos=filterPedidos;
 window.setPipelineVendedor=setPipelineVendedor;
