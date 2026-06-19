@@ -2363,15 +2363,16 @@ function salvarUsuario(){
     // Grava PIN em haw_pins para que doLogin() funcione mesmo sem sync Supabase
     try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[novoId]=pin;p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
     save();
-    // Tenta sync imediato para Supabase com UUID válido
+    // Tenta sync imediato para Supabase (sempre tenta, independente do status offline)
     (async()=>{
-      if(window.HAW_SB&&window.HAW_SB.isOnline()){
+      if(window.HAW_SB&&window.HAW_SB.client){
         try{
           const row={id:novoId,nome,email,perfil:novoPerf,meta_mensal:novoMeta,ativo:true,created_at:novoTs};
           const{error}=await window.HAW_SB.client.from('usuarios').upsert(row,{onConflict:'id'});
           if(error)throw error;
           toast('Usuário criado e sincronizado! ✅');
         }catch(e){
+          console.warn('[HAW] Falha ao sincronizar novo usuário:', e);
           toast('Usuário criado localmente. ⚠️ Não sincronizou com o banco — ele só aparece neste dispositivo.');
         }
       } else {
