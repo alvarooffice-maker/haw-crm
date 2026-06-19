@@ -138,8 +138,37 @@
         sb.from('usuarios').select('*'),
       ]);
 
-      if (clis.data)   window.DB.clientes  = clis.data.map(r => toCamel('clientes', r));
-      if (recs.data)   window.DB.receitas  = recs.data.map(r => toCamel('receitas', r));
+      // Merge clientes: preserva registros locais que ainda não chegaram ao Supabase
+      if (clis.data) {
+        const sbIds = new Set(clis.data.map(r => r.id));
+        const sbItems = clis.data.map(r => toCamel('clientes', r));
+        const localOnly = (window.DB.clientes || []).filter(c => !sbIds.has(c.id) && !c.deleted);
+        window.DB.clientes = [...sbItems, ...localOnly];
+        if (localOnly.length) {
+          sb.from('clientes').upsert(localOnly.map(r => toSnake('clientes', r)), { onConflict: 'id' })
+            .catch(e => console.warn('[HAW] Falha ao sincronizar clientes locais:', e));
+        }
+      }
+      // Merge receitas
+      if (recs.data) {
+        const sbIds = new Set(recs.data.map(r => r.id));
+        const sbItems = recs.data.map(r => toCamel('receitas', r));
+        const localOnly = (window.DB.receitas || []).filter(r => !sbIds.has(r.id) && !r.deleted);
+        window.DB.receitas = [...sbItems, ...localOnly];
+        if (localOnly.length) {
+          sb.from('receitas').upsert(localOnly.map(r => toSnake('receitas', r)), { onConflict: 'id' })
+            .catch(e => console.warn('[HAW] Falha ao sincronizar receitas locais:', e));
+        }
+      }
+      // Merge pedidos
+      if (peds.data) {
+        const sbPedIds = new Set(peds.data.map(r => r.id));
+        const localOnlyPeds = (window.DB.pedidos || []).filter(p => !sbPedIds.has(p.id) && !p.deleted);
+        if (localOnlyPeds.length) {
+          sb.from('pedidos').upsert(localOnlyPeds.map(r => toSnake('pedidos', r)), { onConflict: 'id' })
+            .catch(e => console.warn('[HAW] Falha ao sincronizar pedidos locais:', e));
+        }
+      }
       // Merge produtos: preserva itens locais (ex: importados da tabela lab) que não estão no Supabase
       if (prods.data) {
         const sbProdIds = new Set(prods.data.map(r => r.id));
@@ -208,7 +237,8 @@
         }
       }
       if (peds.data) {
-        window.DB.pedidos = peds.data.map(p => {
+        const sbPedIds2 = new Set(peds.data.map(p => p.id));
+        const sbPedidos = peds.data.map(p => {
           const obj = toCamel('pedidos', p);
           obj.itens = (itens.data || [])
             .filter(it => it.pedido_id === p.id)
@@ -218,6 +248,8 @@
             }));
           return obj;
         });
+        const localOnlyPeds2 = (window.DB.pedidos || []).filter(p => !sbPedIds2.has(p.id) && !p.deleted);
+        window.DB.pedidos = [...sbPedidos, ...localOnlyPeds2];
       }
 
       // Salvar localmente como cache
