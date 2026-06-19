@@ -154,7 +154,7 @@
       }
       // IDs de usuários demo que devem ser ignorados/deletados
       const DEMO_IDS = new Set(['u1', 'u2', 'u3']);
-      const DEMO_NAMES = new Set(['Dono HAW', 'Ana Lima', 'Carlos Souza', 'Admin HAW']);
+      const DEMO_NAMES = new Set(['Dono HAW', 'Ana Lima', 'Carlos Souza']);
 
       if (users.data && users.data.length > 0) {
         const localUsers = window.DB.usuarios || [];
