@@ -2929,7 +2929,9 @@ function renderFinanceiro(){
   const credPedidoIds=new Set((DB.crediarios||[]).filter(c=>c.status!=='cancelado'&&c.pedidoId).map(c=>c.pedidoId));
   const pedsSemCred=peds.filter(p=>!credPedidoIds.has(p.id));
   const entregues=pedsSemCred.filter(p=>['entregue','pos_venda'].includes(p.status));
-  const recMes=entregues.filter(p=>p.createdAt?.startsWith(mes));
+  // Usa a data de entrega/pagamento real (dataEntrega) — não a data de criação do pedido.
+  // Pedidos antigos sem dataEntrega caem no fallback createdAt.
+  const recMes=entregues.filter(p=>(p.dataEntrega||p.createdAt)?.startsWith(mes));
   let rec=recMes.reduce((s,p)=>s+Number(p.total||0),0);
   let arec=pedsSemCred.filter(p=>!['entregue','pos_venda','perdido'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0);
   const ticketBase=peds.filter(p=>['entregue','pos_venda'].includes(p.status));
@@ -2942,7 +2944,12 @@ function renderFinanceiro(){
     if(c.status==='cancelado') return;
     if(c.entrada>0 && (c.createdAt||'').startsWith(mes)) credRecMes+=Number(c.entrada);
     (c.parcelas||[]).forEach(p=>{
-      (p.pagamentos||[]).forEach(pg=>{ if((pg.data||'').startsWith(mes)) credRecMes+=Number(pg.valor||0); });
+      if(p.pagamentos&&p.pagamentos.length){
+        p.pagamentos.forEach(pg=>{ if((pg.data||'').startsWith(mes)) credRecMes+=Number(pg.valor||0); });
+      } else if((p.valorPago||0)>0 && (p.dataPagamento||'').startsWith(mes)){
+        // Pagamento registrado antes do histórico de parcelas existir — usa o registro legado.
+        credRecMes+=Number(p.valorPago);
+      }
       credAReceber+=Math.max(0,p.valorOriginal-(p.valorPago||0));
     });
   });
