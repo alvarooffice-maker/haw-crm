@@ -495,7 +495,7 @@ tr:hover td{background:#FAFAF5}
       <!-- Stats -->
       <div class="metrics c4" style="margin-bottom:20px">
         <div class="metric ma"><div class="ml">A receber</div><div class="mv" id="cred-stat-areceber">R$ 0</div><div class="ms">Saldo total em aberto</div></div>
-        <div class="metric" style="background:var(--danger-bg,#2a1a1a);border:1px solid #7c2d2d"><div class="ml" style="color:#f87171">Vencido</div><div class="mv" id="cred-stat-vencido" style="color:#f87171">R$ 0</div><div class="ms">Parcelas em atraso</div></div>
+        <div class="metric" style="background:var(--red-l);border:1px solid var(--red)"><div class="ml" style="color:var(--red)">Vencido</div><div class="mv" id="cred-stat-vencido" style="color:var(--red)">R$ 0</div><div class="ms" style="color:var(--red)">Parcelas em atraso</div></div>
         <div class="metric mb"><div class="ml">Vence em 30 dias</div><div class="mv" id="cred-stat-30d">R$ 0</div><div class="ms">Próximos vencimentos</div></div>
         <div class="metric mg"><div class="ml">Quitados no mês</div><div class="mv" id="cred-stat-quitados">R$ 0</div><div class="ms">Total recebido mês atual</div></div>
       </div>
@@ -503,11 +503,11 @@ tr:hover td{background:#FAFAF5}
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
         <div style="display:flex;gap:6px">
           <button class="btn btn-sm cred-filtro active" data-f="todos" onclick="setCreditFilter('todos',this)">Todos</button>
-          <button class="btn btn-sm cred-filtro" data-f="atrasado" onclick="setCreditFilter('atrasado',this)" style="color:#f87171;border-color:#7c2d2d">Atrasados</button>
+          <button class="btn btn-sm cred-filtro" data-f="atrasado" onclick="setCreditFilter('atrasado',this)" style="color:var(--red);border-color:var(--red)">Atrasados</button>
           <button class="btn btn-sm cred-filtro" data-f="ativo" onclick="setCreditFilter('ativo',this)">A vencer</button>
           <button class="btn btn-sm cred-filtro" data-f="quitado" onclick="setCreditFilter('quitado',this)">Quitados</button>
         </div>
-        <input type="text" id="cred-busca" placeholder="Buscar cliente..." oninput="renderCrediario()" style="flex:1;min-width:180px;max-width:280px;padding:6px 10px;border-radius:6px;border:1px solid #333;background:#1a1a2e;color:#eee;font-size:13px">
+        <input type="text" id="cred-busca" placeholder="Buscar cliente..." oninput="renderCrediario()" style="flex:1;min-width:180px;max-width:280px;padding:6px 10px;border-radius:6px;border:1px solid var(--border-light);background:var(--white);color:var(--black);font-size:13px">
       </div>
       <!-- Lista -->
       <div class="card" style="padding:0">
@@ -2857,11 +2857,30 @@ function fmtGrau(esf,cil,eixo){
 function renderFinanceiro(){
   const mes=new Date().toISOString().slice(0,7);
   const peds=DB.pedidos.filter(p=>!p.deleted);
-  const entregues=peds.filter(p=>['entregue','pos_venda'].includes(p.status));
+  // Pedidos com crediário próprio têm seu fluxo de caixa real controlado pelas parcelas,
+  // não pelo status do pedido — por isso são excluídos do cálculo binário abaixo (evita contar 2x).
+  const credPedidoIds=new Set((DB.crediarios||[]).filter(c=>c.status!=='cancelado'&&c.pedidoId).map(c=>c.pedidoId));
+  const pedsSemCred=peds.filter(p=>!credPedidoIds.has(p.id));
+  const entregues=pedsSemCred.filter(p=>['entregue','pos_venda'].includes(p.status));
   const recMes=entregues.filter(p=>p.createdAt?.startsWith(mes));
-  const rec=recMes.reduce((s,p)=>s+Number(p.total||0),0);
-  const arec=peds.filter(p=>!['entregue','pos_venda'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0);
-  const ticket=entregues.length?entregues.reduce((s,p)=>s+Number(p.total||0),0)/entregues.length:0;
+  let rec=recMes.reduce((s,p)=>s+Number(p.total||0),0);
+  let arec=pedsSemCred.filter(p=>!['entregue','pos_venda'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0);
+  const ticketBase=peds.filter(p=>['entregue','pos_venda'].includes(p.status));
+  const ticket=ticketBase.length?ticketBase.reduce((s,p)=>s+Number(p.total||0),0)/ticketBase.length:0;
+
+  // Crediário próprio: entrada + pagamentos de parcelas recebidos no mês entram como "Recebido";
+  // saldo devedor de todas as parcelas em aberto entra como "A receber".
+  let credRecMes=0, credAReceber=0;
+  (DB.crediarios||[]).forEach(c=>{
+    if(c.status==='cancelado') return;
+    if(c.entrada>0 && (c.createdAt||'').startsWith(mes)) credRecMes+=Number(c.entrada);
+    (c.parcelas||[]).forEach(p=>{
+      (p.pagamentos||[]).forEach(pg=>{ if((pg.data||'').startsWith(mes)) credRecMes+=Number(pg.valor||0); });
+      credAReceber+=Math.max(0,p.valorOriginal-(p.valorPago||0));
+    });
+  });
+  rec+=credRecMes; arec+=credAReceber;
+
   document.getElementById('fin-recebido').textContent=fmtMoney(rec);
   document.getElementById('fin-areceber').textContent=fmtMoney(arec);
   document.getElementById('fin-ticket').textContent=fmtMoney(ticket);
@@ -3949,7 +3968,7 @@ function renderCrediario() {
   const tbody = document.getElementById('cred-tbody');
   if (!tbody) return;
   if (!lista.length) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#666;padding:32px">Nenhum crediário encontrado</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">Nenhum crediário encontrado</td></tr>`;
     return;
   }
 
@@ -3971,21 +3990,21 @@ function renderCrediario() {
     const ped = c.pedidoId ? DB.pedidos.find(p=>p.id===c.pedidoId) : null;
     const pedLabel = ped ? `Pedido #${ped.numero}` : (c.descricao||'—');
     const cancelBtn = st !== 'cancelado' && st !== 'quitado'
-      ? `<button class="btn btn-sm" onclick="event.stopPropagation();excluirCrediario('${c.id}')" title="Cancelar" style="padding:2px 8px;font-size:11px;color:#f87171;border-color:#7c2d2d">✕</button>`
+      ? `<button class="btn btn-sm" onclick="event.stopPropagation();excluirCrediario('${c.id}')" title="Cancelar" style="padding:2px 8px;font-size:11px;color:var(--red);border-color:var(--red)">✕</button>`
       : '';
     return `<tr style="cursor:pointer" onclick="toggleCrediarioDetalhe('${c.id}')">
       <td><strong>${c.clienteNome||'—'}</strong></td>
-      <td style="font-size:12px;color:#aaa;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${pedLabel}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${pedLabel}</td>
       <td style="text-align:right;font-weight:600">${fmtMoney(c.total)}</td>
       <td style="text-align:right">${fmtMoney(c.entrada||0)}</td>
       <td style="text-align:center"><span style="font-size:12px">${pgPagas}/${pgTotal}</span></td>
       <td>${proxStr}</td>
-      <td style="text-align:right;font-weight:600;color:${saldo>0.01?'var(--gold)':'#4ade80'}">${fmtMoney(saldo)}</td>
+      <td style="text-align:right;font-weight:600;color:${saldo>0.01?'var(--gold-deep)':'var(--green)'}">${fmtMoney(saldo)}</td>
       <td style="text-align:center"><span class="badge ${sb.cls}">${sb.label}</span></td>
       <td style="text-align:center">${cancelBtn}</td>
     </tr>
     <tr id="detalhe-cred-${c.id}" style="display:none">
-      <td colspan="9" style="padding:0;background:#0a0e1a;border-bottom:2px solid #222A4A">${_renderParcelasInline(c)}</td>
+      <td colspan="9" style="padding:0;background:var(--off);border-bottom:2px solid var(--border-light)">${_renderParcelasInline(c)}</td>
     </tr>`;
   }).join('');
 }
@@ -3998,13 +4017,13 @@ function _renderParcelasInline(c) {
     const saldo = p.valorOriginal - (p.valorPago||0);
     const juros = calcJurosMora(p, c.taxaMora||1, c.multaMora||2);
     const totalPagar = Math.max(0, saldo) + juros;
-    const rowBg = p.pago ? '#0d1f0d' : atrasado ? '#1f0d0d' : '';
+    const rowBg = p.pago ? 'var(--green-l)' : atrasado ? 'var(--red-l)' : 'var(--white)';
     const badge = p.pago
       ? `<span class="badge badge-green">Pago</span>`
       : atrasado ? `<span class="badge badge-red">Atrasado</span>`
       : `<span class="badge badge-blue">Pendente</span>`;
     const pagoMeta = p.pago && p.formaPagamento
-      ? `<div style="font-size:10px;color:#666;margin-top:2px">${p.formaPagamento} · ${fmtDate(p.dataPagamento)}</div>` : '';
+      ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">${p.formaPagamento} · ${fmtDate(p.dataPagamento)}</div>` : '';
     const btnPagar = !p.pago
       ? `<button class="btn btn-gold btn-sm" onclick="abrirPagarParcela('${c.id}',${idx})" style="font-size:11px;padding:3px 10px;white-space:nowrap">Receber</button>`
       : '';
@@ -4013,22 +4032,22 @@ function _renderParcelasInline(c) {
       <td style="padding:7px 12px">${fmtDate(p.vencimento)}</td>
       <td style="padding:7px 12px;text-align:right">${fmtMoney(p.valorOriginal)}</td>
       <td style="padding:7px 12px;text-align:right">${p.valorPago>0?fmtMoney(p.valorPago):'—'}</td>
-      <td style="padding:7px 12px;text-align:right;color:#f87171">${juros>0.01?fmtMoney(juros):'—'}</td>
-      <td style="padding:7px 12px;text-align:right;font-weight:700">${p.pago?'<span style="color:#4ade80">—</span>':fmtMoney(totalPagar)}</td>
+      <td style="padding:7px 12px;text-align:right;color:var(--red)">${juros>0.01?fmtMoney(juros):'—'}</td>
+      <td style="padding:7px 12px;text-align:right;font-weight:700">${p.pago?'<span style="color:var(--green)">—</span>':fmtMoney(totalPagar)}</td>
       <td style="padding:7px 12px">${badge}${pagoMeta}</td>
       <td style="padding:7px 12px">${btnPagar}</td>
     </tr>`;
   }).join('');
   return `<div style="padding:0 0 8px 24px">
     <table style="width:100%;font-size:12px;border-collapse:collapse">
-      <thead><tr style="background:#13182C">
-        <th style="padding:6px 12px;text-align:left;font-weight:500;color:#888">Nº</th>
-        <th style="padding:6px 12px;text-align:left;font-weight:500;color:#888">Vencimento</th>
-        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">Valor Orig.</th>
-        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">Pago</th>
-        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">Juros/Multa</th>
-        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">A pagar</th>
-        <th style="padding:6px 12px;font-weight:500;color:#888">Status</th>
+      <thead><tr style="background:var(--off)">
+        <th style="padding:6px 12px;text-align:left;font-weight:500;color:var(--muted)">Nº</th>
+        <th style="padding:6px 12px;text-align:left;font-weight:500;color:var(--muted)">Vencimento</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:var(--muted)">Valor Orig.</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:var(--muted)">Pago</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:var(--muted)">Juros/Multa</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:var(--muted)">A pagar</th>
+        <th style="padding:6px 12px;font-weight:500;color:var(--muted)">Status</th>
         <th style="padding:6px 12px"></th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -4122,7 +4141,7 @@ function salvarCrediario() {
     const vd = new Date(d); vd.setMonth(vd.getMonth()+i);
     return { numero:i+1, vencimento:vd.toISOString().slice(0,10),
       valorOriginal:Math.round(valorParcela*100)/100, valorPago:0,
-      pago:false, formaPagamento:null, dataPagamento:null, observacao:'' };
+      pago:false, formaPagamento:null, dataPagamento:null, observacao:'', pagamentos:[] };
   });
   if (!DB.crediarios) DB.crediarios = [];
   DB.crediarios.push({
@@ -4134,6 +4153,7 @@ function salvarCrediario() {
   save();
   closeModal('modal-crediario');
   renderCrediario();
+  if (typeof renderFinanceiro === 'function') renderFinanceiro();
   toast(`Crediário criado — ${n}x ${fmtMoney(valorParcela)} ✅`);
 }
 
@@ -4144,6 +4164,7 @@ function excluirCrediario(id) {
   c.status = 'cancelado';
   save();
   renderCrediario();
+  if (typeof renderFinanceiro === 'function') renderFinanceiro();
   toast('Crediário cancelado.');
 }
 
@@ -4218,6 +4239,8 @@ function registrarPagamento() {
   if (!c) return;
   const p = c.parcelas[idx];
   if (!p) return;
+  if (!p.pagamentos) p.pagamentos = [];
+  p.pagamentos.push({ valor: recebido, forma, data, obs });
   p.valorPago = Math.round(((p.valorPago||0) + recebido)*100)/100;
   p.formaPagamento = forma;
   p.dataPagamento = data;
@@ -4228,6 +4251,7 @@ function registrarPagamento() {
   save();
   closeModal('modal-pagar-parcela');
   renderCrediario();
+  if (typeof renderFinanceiro === 'function') renderFinanceiro();
   setTimeout(()=>toggleCrediarioDetalhe(credId), 80);
   toast(p.pago ? `${p.numero}ª parcela quitada ✅` : `Pagamento parcial registrado. Falta ${fmtMoney(Math.max(0,p.valorOriginal-p.valorPago))}`);
 }
@@ -4334,8 +4358,8 @@ document.addEventListener('DOMContentLoaded',()=>{
             <tbody id="cred-preview-tbody"></tbody>
           </table>
         </div>
-        <div style="text-align:right;font-size:12px;margin-top:6px;color:#aaa">
-          Valor parcelado: <strong id="cred-preview-total" style="color:var(--gold)">R$ 0,00</strong>
+        <div style="text-align:right;font-size:12px;margin-top:6px;color:var(--muted)">
+          Valor parcelado: <strong id="cred-preview-total" style="color:var(--gold-deep)">R$ 0,00</strong>
         </div>
       </div>
     </div>
@@ -4357,50 +4381,50 @@ document.addEventListener('DOMContentLoaded',()=>{
       <input type="hidden" id="pp-cred-id">
       <input type="hidden" id="pp-parcela-idx">
       <!-- Info da parcela -->
-      <div style="background:#1a1a2e;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px">
+      <div style="background:var(--off);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="color:#aaa">Parcela</span><strong id="pp-info-num">—</strong>
+          <span style="color:var(--muted)">Parcela</span><strong id="pp-info-num">—</strong>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="color:#aaa">Vencimento</span><strong id="pp-info-venc">—</strong>
+          <span style="color:var(--muted)">Vencimento</span><strong id="pp-info-venc">—</strong>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="color:#aaa">Valor original</span><strong id="pp-info-orig">—</strong>
+          <span style="color:var(--muted)">Valor original</span><strong id="pp-info-orig">—</strong>
         </div>
         <div id="pp-juros-row" style="display:none;flex-wrap:wrap">
           <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:4px">
-            <span style="color:#f87171">Multa (2%)</span><strong id="pp-info-multa" style="color:#f87171">—</strong>
+            <span style="color:var(--red)">Multa (2%)</span><strong id="pp-info-multa" style="color:var(--red)">—</strong>
           </div>
           <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:4px">
-            <span style="color:#f87171">Juros mora</span><strong id="pp-info-juros" style="color:#f87171">—</strong>
+            <span style="color:var(--red)">Juros mora</span><strong id="pp-info-juros" style="color:var(--red)">—</strong>
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;border-top:1px solid #333;padding-top:8px;margin-top:4px">
-          <span style="color:#aaa">Total a pagar</span><strong id="pp-info-total" style="color:var(--gold);font-size:16px">—</strong>
+        <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border-light);padding-top:8px;margin-top:4px">
+          <span style="color:var(--muted)">Total a pagar</span><strong id="pp-info-total" style="color:var(--gold-deep);font-size:16px">—</strong>
         </div>
         <div id="pp-saldo-anterior-row" style="display:none;justify-content:space-between;margin-top:6px">
-          <span style="color:#aaa">Já recebido</span><strong id="pp-info-ja-recebido" style="color:#4ade80">—</strong>
+          <span style="color:var(--muted)">Já recebido</span><strong id="pp-info-ja-recebido" style="color:var(--green)">—</strong>
         </div>
         <div id="pp-saldo-row" style="display:none;justify-content:space-between;margin-top:6px">
-          <span style="color:#aaa">Falta receber</span><strong id="pp-info-falta" style="color:var(--gold)">—</strong>
+          <span style="color:var(--muted)">Falta receber</span><strong id="pp-info-falta" style="color:var(--gold-deep)">—</strong>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Valor recebido (R$) *</label>
         <input class="form-input" id="pp-valor" type="number" min="0" step="0.01" oninput="ppCalcTroco()" placeholder="0,00" style="font-size:18px;font-weight:700">
       </div>
-      <div id="pp-troco-box" style="display:none;background:#1a2e1a;border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
+      <div id="pp-troco-box" style="display:none;background:var(--green-l);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
         <div style="display:flex;justify-content:space-between">
-          <span id="pp-troco-label" style="color:#4ade80">Troco</span>
-          <strong id="pp-troco-val" style="color:#4ade80">R$ 0,00</strong>
+          <span id="pp-troco-label" style="color:var(--green)">Troco</span>
+          <strong id="pp-troco-val" style="color:var(--green)">R$ 0,00</strong>
         </div>
       </div>
-      <div id="pp-deficit-box" style="display:none;background:#2a1a1a;border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
+      <div id="pp-deficit-box" style="display:none;background:var(--red-l);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
         <div style="display:flex;justify-content:space-between">
-          <span style="color:#f87171">Falta</span>
-          <strong id="pp-deficit-val" style="color:#f87171">R$ 0,00</strong>
+          <span style="color:var(--red)">Falta</span>
+          <strong id="pp-deficit-val" style="color:var(--red)">R$ 0,00</strong>
         </div>
-        <div style="font-size:11px;color:#888;margin-top:4px">Parcela permanecerá em aberto com saldo reduzido</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Parcela permanecerá em aberto com saldo reduzido</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-group">
