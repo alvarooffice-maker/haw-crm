@@ -81,6 +81,7 @@
         syncTabela('pedidos'),
         syncPedidoItens(),
         syncTabela('usuarios').catch(() => {}), // falha silenciosa se RLS bloquear
+        syncTabela('crediarios').catch(() => {}), // tabela pode não existir ainda
       ]);
       setSyncStatus('online');
       if (typeof toast === 'function') toast('✅ Dados sincronizados com Supabase!');
@@ -252,6 +253,21 @@
         window.DB.pedidos = [...sbPedidos, ...localOnlyPeds2];
       }
 
+      // Merge crediarios (tabela opcional — falha silenciosa se não existir)
+      try {
+        const creds = await sb.from('crediarios').select('*').order('created_at', { ascending: false });
+        if (creds.data && creds.data.length > 0) {
+          const sbIds = new Set(creds.data.map(r => r.id));
+          const sbItems = creds.data.map(r => toCamel('crediarios', r));
+          const localOnly = (window.DB.crediarios || []).filter(c => !sbIds.has(c.id) && c.status !== 'cancelado');
+          window.DB.crediarios = [...sbItems, ...localOnly];
+          if (localOnly.length) {
+            sb.from('crediarios').upsert(localOnly.map(r => toSnake('crediarios', r)), { onConflict: 'id' })
+              .catch(e => console.warn('[HAW] Falha ao sincronizar crediários locais:', e));
+          }
+        }
+      } catch (e) { /* tabela crediarios ainda não criada no Supabase */ }
+
       // Salvar localmente como cache
       if (typeof save === 'function') save();
       setSyncStatus('online');
@@ -309,6 +325,12 @@
       forma_pagamento: 'pagamento', data_prevista_lab: 'prevLab',
       data_entrega: 'dataEntrega',
       deleted_at: 'deletedAt', created_at: 'createdAt', updated_at: 'updatedAt',
+    },
+    crediarios: {
+      cliente_id: 'clienteId', cliente_nome: 'clienteNome', pedido_id: 'pedidoId',
+      valor_parcelado: 'valorParcelado', num_parcelas: 'numParcelas',
+      taxa_mora: 'taxaMora', multa_mora: 'multaMora',
+      created_at: 'createdAt', updated_at: 'updatedAt',
     },
     usuarios: {
       meta_mensal: 'meta', created_at: 'createdAt', updated_at: 'updatedAt',

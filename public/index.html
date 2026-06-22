@@ -314,6 +314,7 @@ tr:hover td{background:#FAFAF5}
 
   <div class="sb-section">Gestão</div>
   <button class="sb-item" onclick="nav('financeiro')"><span class="si">💰</span><span>Financeiro</span></button>
+  <button class="sb-item" onclick="nav('crediario')"><span class="si">📋</span><span>Crediário</span><span class="sb-count" id="cnt-crediario">0</span></button>
   <button class="sb-item" onclick="nav('catalogo')"><span class="si">📦</span><span>Catálogo</span></button>
   <button class="sb-item" onclick="nav('relatorios')"><span class="si">📈</span><span>Relatórios</span></button>
 
@@ -484,6 +485,46 @@ tr:hover td{background:#FAFAF5}
               <th style="width:10%">Status</th>
             </tr></thead>
             <tbody id="receitas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ CREDIÁRIO ══════════════════ -->
+    <div class="tab-panel" id="tab-crediario">
+      <!-- Stats -->
+      <div class="metrics c4" style="margin-bottom:20px">
+        <div class="metric ma"><div class="ml">A receber</div><div class="mv" id="cred-stat-areceber">R$ 0</div><div class="ms">Saldo total em aberto</div></div>
+        <div class="metric" style="background:var(--danger-bg,#2a1a1a);border:1px solid #7c2d2d"><div class="ml" style="color:#f87171">Vencido</div><div class="mv" id="cred-stat-vencido" style="color:#f87171">R$ 0</div><div class="ms">Parcelas em atraso</div></div>
+        <div class="metric mb"><div class="ml">Vence em 30 dias</div><div class="mv" id="cred-stat-30d">R$ 0</div><div class="ms">Próximos vencimentos</div></div>
+        <div class="metric mg"><div class="ml">Quitados no mês</div><div class="mv" id="cred-stat-quitados">R$ 0</div><div class="ms">Total recebido mês atual</div></div>
+      </div>
+      <!-- Filtros -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm cred-filtro active" data-f="todos" onclick="setCreditFilter('todos',this)">Todos</button>
+          <button class="btn btn-sm cred-filtro" data-f="atrasado" onclick="setCreditFilter('atrasado',this)" style="color:#f87171;border-color:#7c2d2d">Atrasados</button>
+          <button class="btn btn-sm cred-filtro" data-f="ativo" onclick="setCreditFilter('ativo',this)">A vencer</button>
+          <button class="btn btn-sm cred-filtro" data-f="quitado" onclick="setCreditFilter('quitado',this)">Quitados</button>
+        </div>
+        <input type="text" id="cred-busca" placeholder="Buscar cliente..." oninput="renderCrediario()" style="flex:1;min-width:180px;max-width:280px;padding:6px 10px;border-radius:6px;border:1px solid #333;background:#1a1a2e;color:#eee;font-size:13px">
+      </div>
+      <!-- Lista -->
+      <div class="card" style="padding:0">
+        <div style="overflow-x:auto">
+          <table id="cred-table">
+            <thead><tr>
+              <th>Cliente</th>
+              <th>Descrição / Pedido</th>
+              <th style="text-align:right">Total</th>
+              <th style="text-align:right">Entrada</th>
+              <th style="text-align:center">Parcelas</th>
+              <th>Próx. Venc.</th>
+              <th style="text-align:right">Saldo Devedor</th>
+              <th style="text-align:center">Status</th>
+              <th style="width:80px"></th>
+            </tr></thead>
+            <tbody id="cred-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -1109,7 +1150,7 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
 
 // ── STATE ──
 let DB = {
-  clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],tabelas_lab:[],
+  clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],tabelas_lab:[],crediarios:[],
   settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7),
     empresa:{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15}}
 };
@@ -1123,9 +1164,9 @@ let chartFat = null, chartFunil = null, chartVendedor = null, chartFatMensal = n
 
 // ── ACCESS CONTROL ──
 const PAGE_ACCESS = {
-  vendedor:   ['dashboard','pipeline','clientes','pedidos','receitas','catalogo'],
-  gestor:     ['dashboard','pipeline','clientes','pedidos','receitas','catalogo','financeiro','relatorios'],
-  financeiro: ['dashboard','financeiro','relatorios'],
+  vendedor:   ['dashboard','pipeline','clientes','pedidos','receitas','catalogo','crediario'],
+  gestor:     ['dashboard','pipeline','clientes','pedidos','receitas','catalogo','financeiro','relatorios','crediario'],
+  financeiro: ['dashboard','financeiro','relatorios','crediario'],
   dono:       null, // acesso total
 };
 
@@ -1371,6 +1412,7 @@ const navConfig = {
   pedidos:{title:'Pedidos',sub:'Todos os pedidos',btn:'+ Novo Pedido',action:'openModal("modal-pedido")'},
   receitas:{title:'Receitas Ópticas',sub:'Prescrições dos clientes',btn:'+ Nova Receita',action:'openModal("modal-receita")'},
   financeiro:{title:'Financeiro',sub:'Controle de recebimentos',btn:''},
+  crediario:{title:'Crediário',sub:'Parcelamentos e pagamentos próprios',btn:'+ Novo Crediário',action:'abrirNovoCrediario()'},
   catalogo:{title:'Catálogo de Produtos',sub:'Armações, lentes e acessórios',btn:''},
   relatorios:{title:'Relatórios',sub:'Análise de desempenho',btn:''},
   config:{title:'Configurações',sub:'Sistema e usuários',btn:''},
@@ -1392,8 +1434,10 @@ function nav(page){
   if(cfg.btn){ab.textContent=cfg.btn;ab.style.display='flex';}
   else ab.style.display='none';
   if(page==='relatorios')setTimeout(renderRelatorioCharts,100);
+  if(page==='crediario')renderCrediario();
 }
 function tbAction(){
+  if(_currentPage==='crediario'){abrirNovoCrediario();return;}
   const modalMap={
     dashboard:'modal-pedido',pipeline:'modal-pedido',
     clientes:'modal-cliente',pedidos:'modal-pedido',receitas:'modal-receita'
@@ -1420,6 +1464,9 @@ function updateNavCounts(){
   document.getElementById('cnt-pedidos').textContent=DB.pedidos.filter(p=>!p.deleted).length;
   const open=DB.pedidos.filter(p=>!p.deleted&&!['entregue','pos_venda'].includes(p.status)).length;
   document.getElementById('cnt-pipeline').textContent=open;
+  const credAtivos=(DB.crediarios||[]).filter(c=>{const st=computeStatusCrediario(c);return st==='ativo'||st==='atrasado';}).length;
+  const credEl=document.getElementById('cnt-crediario');
+  if(credEl){credEl.textContent=credAtivos;credEl.style.display=credAtivos?'inline-block':'none';}
 }
 
 // ── SELECTS ──
@@ -3807,6 +3854,397 @@ window.excluirBackup=excluirBackup;
 window.exportarBackupJSON=exportarBackupJSON;
 window.renderBackups=renderBackups;
 
+// ── CREDIÁRIO ─────────────────────────────────────────────────────────────────
+
+let _credFiltro = 'todos';
+
+function setCreditFilter(f, btn) {
+  _credFiltro = f;
+  document.querySelectorAll('.cred-filtro').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderCrediario();
+}
+
+function calcJurosMora(p, taxaMoraMensal, multaPct) {
+  if (p.pago) return 0;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const vd = new Date(p.vencimento + 'T00:00:00');
+  if (vd >= hoje) return 0;
+  const diasAtraso = Math.floor((hoje - vd) / 86400000);
+  const saldo = Math.max(0, p.valorOriginal - (p.valorPago || 0));
+  if (saldo <= 0) return 0;
+  const multa = saldo * ((multaPct || 2) / 100);
+  const jurosDia = saldo * (((taxaMoraMensal || 1) / 100) / 30);
+  return Math.round((multa + jurosDia * diasAtraso) * 100) / 100;
+}
+
+function computeStatusCrediario(c) {
+  if (c.status === 'cancelado') return 'cancelado';
+  const todas = c.parcelas || [];
+  if (todas.length && todas.every(p => p.pago)) return 'quitado';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  if (todas.some(p => !p.pago && new Date(p.vencimento + 'T00:00:00') < hoje)) return 'atrasado';
+  return 'ativo';
+}
+
+function saldoDevedorCrediario(c) {
+  return (c.parcelas || []).reduce((s, p) => s + Math.max(0, p.valorOriginal - (p.valorPago || 0)), 0);
+}
+
+function proxVencimentoCrediario(c) {
+  const pendentes = (c.parcelas || []).filter(p => !p.pago);
+  if (!pendentes.length) return null;
+  return pendentes.reduce((mn, p) => {
+    const d = new Date(p.vencimento + 'T00:00:00');
+    return (!mn || d < mn) ? d : mn;
+  }, null);
+}
+
+function renderCrediario() {
+  if (!DB.crediarios) DB.crediarios = [];
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const em30 = new Date(hoje); em30.setDate(em30.getDate() + 30);
+  const mesAtual = new Date().toISOString().slice(0, 7);
+
+  let totalAReceber = 0, totalVencido = 0, total30d = 0, totalQuitadoMes = 0;
+  DB.crediarios.forEach(c => {
+    const st = computeStatusCrediario(c);
+    if (st === 'quitado') {
+      const ultPaga = [...(c.parcelas||[])].filter(p=>p.pago&&p.dataPagamento)
+        .sort((a,b)=>b.dataPagamento.localeCompare(a.dataPagamento))[0];
+      if (ultPaga && ultPaga.dataPagamento.slice(0,7) === mesAtual) totalQuitadoMes += c.total;
+      return;
+    }
+    if (st === 'cancelado') return;
+    (c.parcelas||[]).forEach(p => {
+      if (p.pago) return;
+      const saldo = Math.max(0, p.valorOriginal - (p.valorPago||0));
+      const vd = new Date(p.vencimento + 'T00:00:00');
+      totalAReceber += saldo;
+      if (vd < hoje) totalVencido += saldo;
+      else if (vd <= em30) total30d += saldo;
+    });
+  });
+  const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setEl('cred-stat-areceber', fmtMoney(totalAReceber));
+  setEl('cred-stat-vencido', fmtMoney(totalVencido));
+  setEl('cred-stat-30d', fmtMoney(total30d));
+  setEl('cred-stat-quitados', fmtMoney(totalQuitadoMes));
+
+  const ativos = DB.crediarios.filter(c => {
+    const st = computeStatusCrediario(c);
+    return st === 'ativo' || st === 'atrasado';
+  }).length;
+  const countEl = document.getElementById('cnt-crediario');
+  if (countEl) { countEl.textContent = ativos; countEl.style.display = ativos ? 'inline-block' : 'none'; }
+
+  const busca = (document.getElementById('cred-busca')?.value || '').toLowerCase();
+  let lista = DB.crediarios.filter(c => {
+    const st = computeStatusCrediario(c);
+    if (_credFiltro !== 'todos' && st !== _credFiltro) return false;
+    if (busca && !(c.clienteNome||'').toLowerCase().includes(busca)) return false;
+    return true;
+  }).sort((a, b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+
+  const tbody = document.getElementById('cred-tbody');
+  if (!tbody) return;
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#666;padding:32px">Nenhum crediário encontrado</td></tr>`;
+    return;
+  }
+
+  const ST_BADGE = {
+    ativo:     {cls:'badge-blue',  label:'Em dia'},
+    atrasado:  {cls:'badge-red',   label:'Atrasado'},
+    quitado:   {cls:'badge-green', label:'Quitado'},
+    cancelado: {cls:'badge-gray',  label:'Cancelado'},
+  };
+
+  tbody.innerHTML = lista.map(c => {
+    const st = computeStatusCrediario(c);
+    const sb = ST_BADGE[st] || {cls:'badge-gray', label:st};
+    const saldo = saldoDevedorCrediario(c);
+    const proxD = proxVencimentoCrediario(c);
+    const proxStr = proxD ? fmtDate(proxD.toISOString().slice(0,10)) : '—';
+    const pgPagas = (c.parcelas||[]).filter(p=>p.pago).length;
+    const pgTotal = (c.parcelas||[]).length;
+    const ped = c.pedidoId ? DB.pedidos.find(p=>p.id===c.pedidoId) : null;
+    const pedLabel = ped ? `Pedido #${ped.numero}` : (c.descricao||'—');
+    const cancelBtn = st !== 'cancelado' && st !== 'quitado'
+      ? `<button class="btn btn-sm" onclick="event.stopPropagation();excluirCrediario('${c.id}')" title="Cancelar" style="padding:2px 8px;font-size:11px;color:#f87171;border-color:#7c2d2d">✕</button>`
+      : '';
+    return `<tr style="cursor:pointer" onclick="toggleCrediarioDetalhe('${c.id}')">
+      <td><strong>${c.clienteNome||'—'}</strong></td>
+      <td style="font-size:12px;color:#aaa;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${pedLabel}</td>
+      <td style="text-align:right;font-weight:600">${fmtMoney(c.total)}</td>
+      <td style="text-align:right">${fmtMoney(c.entrada||0)}</td>
+      <td style="text-align:center"><span style="font-size:12px">${pgPagas}/${pgTotal}</span></td>
+      <td>${proxStr}</td>
+      <td style="text-align:right;font-weight:600;color:${saldo>0.01?'var(--gold)':'#4ade80'}">${fmtMoney(saldo)}</td>
+      <td style="text-align:center"><span class="badge ${sb.cls}">${sb.label}</span></td>
+      <td style="text-align:center">${cancelBtn}</td>
+    </tr>
+    <tr id="detalhe-cred-${c.id}" style="display:none">
+      <td colspan="9" style="padding:0;background:#0a0e1a;border-bottom:2px solid #222A4A">${_renderParcelasInline(c)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function _renderParcelasInline(c) {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const rows = (c.parcelas||[]).map((p, idx) => {
+    const vd = new Date(p.vencimento + 'T00:00:00');
+    const atrasado = !p.pago && vd < hoje;
+    const saldo = p.valorOriginal - (p.valorPago||0);
+    const juros = calcJurosMora(p, c.taxaMora||1, c.multaMora||2);
+    const totalPagar = Math.max(0, saldo) + juros;
+    const rowBg = p.pago ? '#0d1f0d' : atrasado ? '#1f0d0d' : '';
+    const badge = p.pago
+      ? `<span class="badge badge-green">Pago</span>`
+      : atrasado ? `<span class="badge badge-red">Atrasado</span>`
+      : `<span class="badge badge-blue">Pendente</span>`;
+    const pagoMeta = p.pago && p.formaPagamento
+      ? `<div style="font-size:10px;color:#666;margin-top:2px">${p.formaPagamento} · ${fmtDate(p.dataPagamento)}</div>` : '';
+    const btnPagar = !p.pago
+      ? `<button class="btn btn-gold btn-sm" onclick="abrirPagarParcela('${c.id}',${idx})" style="font-size:11px;padding:3px 10px;white-space:nowrap">Receber</button>`
+      : '';
+    return `<tr style="background:${rowBg}">
+      <td style="padding:7px 12px;font-weight:700">${p.numero}ª</td>
+      <td style="padding:7px 12px">${fmtDate(p.vencimento)}</td>
+      <td style="padding:7px 12px;text-align:right">${fmtMoney(p.valorOriginal)}</td>
+      <td style="padding:7px 12px;text-align:right">${p.valorPago>0?fmtMoney(p.valorPago):'—'}</td>
+      <td style="padding:7px 12px;text-align:right;color:#f87171">${juros>0.01?fmtMoney(juros):'—'}</td>
+      <td style="padding:7px 12px;text-align:right;font-weight:700">${p.pago?'<span style="color:#4ade80">—</span>':fmtMoney(totalPagar)}</td>
+      <td style="padding:7px 12px">${badge}${pagoMeta}</td>
+      <td style="padding:7px 12px">${btnPagar}</td>
+    </tr>`;
+  }).join('');
+  return `<div style="padding:0 0 8px 24px">
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      <thead><tr style="background:#13182C">
+        <th style="padding:6px 12px;text-align:left;font-weight:500;color:#888">Nº</th>
+        <th style="padding:6px 12px;text-align:left;font-weight:500;color:#888">Vencimento</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">Valor Orig.</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">Pago</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">Juros/Multa</th>
+        <th style="padding:6px 12px;text-align:right;font-weight:500;color:#888">A pagar</th>
+        <th style="padding:6px 12px;font-weight:500;color:#888">Status</th>
+        <th style="padding:6px 12px"></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function toggleCrediarioDetalhe(id) {
+  const row = document.getElementById(`detalhe-cred-${id}`);
+  if (!row) return;
+  const showing = row.style.display !== 'none';
+  document.querySelectorAll('[id^="detalhe-cred-"]').forEach(r => r.style.display = 'none');
+  if (!showing) row.style.display = 'table-row';
+}
+
+function abrirNovoCrediario() {
+  document.getElementById('cred-id').value = '';
+  document.getElementById('modal-cred-title').textContent = 'Novo Crediário';
+  document.getElementById('cred-descricao').value = '';
+  document.getElementById('cred-total').value = '';
+  document.getElementById('cred-entrada').value = '0';
+  document.getElementById('cred-nparcelas').value = '6';
+  document.getElementById('cred-taxa-mora').value = '1';
+  document.getElementById('cred-multa').value = '2';
+  document.getElementById('cred-preview').style.display = 'none';
+  const d = new Date(); d.setMonth(d.getMonth() + 1);
+  document.getElementById('cred-data1').value = d.toISOString().slice(0,10);
+  const selCli = document.getElementById('cred-cliente-id');
+  selCli.innerHTML = '<option value="">— Selecione o cliente —</option>' +
+    DB.clientes.filter(c=>!c.deleted).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  document.getElementById('cred-pedido-id').innerHTML = '<option value="">— Nenhum —</option>';
+  openModal('modal-crediario');
+}
+
+function credOnClienteChange() {
+  const cliId = document.getElementById('cred-cliente-id').value;
+  const selPed = document.getElementById('cred-pedido-id');
+  if (!cliId) { selPed.innerHTML = '<option value="">— Nenhum —</option>'; return; }
+  const peds = DB.pedidos.filter(p=>p.clienteId===cliId&&!p.deleted);
+  selPed.innerHTML = '<option value="">— Nenhum —</option>' +
+    peds.map(p=>`<option value="${p.id}">#${p.numero} — ${fmtMoney(p.total)} — ${fmtDate(p.createdAt)}</option>`).join('');
+  credRecalc();
+}
+
+function credOnPedidoChange() {
+  const pedId = document.getElementById('cred-pedido-id').value;
+  if (!pedId) return;
+  const ped = DB.pedidos.find(p=>p.id===pedId);
+  if (!ped) return;
+  document.getElementById('cred-total').value = (ped.total||'');
+  document.getElementById('cred-descricao').value = `Pedido #${ped.numero}`;
+  credRecalc();
+}
+
+function credRecalc() {
+  const total = parseFloat(document.getElementById('cred-total').value)||0;
+  const entrada = parseFloat(document.getElementById('cred-entrada').value)||0;
+  const n = parseInt(document.getElementById('cred-nparcelas').value)||1;
+  const data1Str = document.getElementById('cred-data1').value;
+  if (!total || !data1Str) { document.getElementById('cred-preview').style.display='none'; return; }
+  const valorParcelado = Math.max(0, total - entrada);
+  const valorParcela = valorParcelado / n;
+  const d = new Date(data1Str + 'T12:00:00');
+  const tbody = document.getElementById('cred-preview-tbody');
+  tbody.innerHTML = Array.from({length:n}, (_,i) => {
+    const vd = new Date(d); vd.setMonth(vd.getMonth()+i);
+    return `<tr><td>${i+1}ª</td><td>${fmtDate(vd.toISOString().slice(0,10))}</td><td style="text-align:right;font-weight:600">${fmtMoney(valorParcela)}</td></tr>`;
+  }).join('');
+  document.getElementById('cred-preview-total').textContent = fmtMoney(valorParcelado);
+  document.getElementById('cred-preview').style.display = 'block';
+}
+
+function salvarCrediario() {
+  const cliId = document.getElementById('cred-cliente-id').value;
+  const total = parseFloat(document.getElementById('cred-total').value)||0;
+  const data1Str = document.getElementById('cred-data1').value;
+  if (!cliId) { alert('Selecione o cliente.'); return; }
+  if (total <= 0) { alert('Informe o valor total.'); return; }
+  if (!data1Str) { alert('Informe a data da 1ª parcela.'); return; }
+  const cli = DB.clientes.find(c=>c.id===cliId);
+  const pedId = document.getElementById('cred-pedido-id').value || null;
+  const descricao = document.getElementById('cred-descricao').value.trim();
+  const entrada = parseFloat(document.getElementById('cred-entrada').value)||0;
+  const n = parseInt(document.getElementById('cred-nparcelas').value)||1;
+  const taxaMora = parseFloat(document.getElementById('cred-taxa-mora').value)||1;
+  const multaMora = parseFloat(document.getElementById('cred-multa').value)||2;
+  const valorParcelado = Math.max(0, total - entrada);
+  const valorParcela = valorParcelado / n;
+  const d = new Date(data1Str + 'T12:00:00');
+  const parcelas = Array.from({length:n}, (_,i) => {
+    const vd = new Date(d); vd.setMonth(vd.getMonth()+i);
+    return { numero:i+1, vencimento:vd.toISOString().slice(0,10),
+      valorOriginal:Math.round(valorParcela*100)/100, valorPago:0,
+      pago:false, formaPagamento:null, dataPagamento:null, observacao:'' };
+  });
+  if (!DB.crediarios) DB.crediarios = [];
+  DB.crediarios.push({
+    id: (typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():uid(),
+    clienteId:cliId, clienteNome:cli?cli.nome:'', pedidoId:pedId, descricao,
+    total, entrada, valorParcelado, numParcelas:n, taxaMora, multaMora,
+    parcelas, status:'ativo', createdAt:new Date().toISOString(),
+  });
+  save();
+  closeModal('modal-crediario');
+  renderCrediario();
+  toast(`Crediário criado — ${n}x ${fmtMoney(valorParcela)} ✅`);
+}
+
+function excluirCrediario(id) {
+  if (!confirm('Cancelar este crediário? O registro será mantido como cancelado.')) return;
+  const c = DB.crediarios.find(x=>x.id===id);
+  if (!c) return;
+  c.status = 'cancelado';
+  save();
+  renderCrediario();
+  toast('Crediário cancelado.');
+}
+
+function abrirPagarParcela(credId, parcelaIdx) {
+  const c = DB.crediarios.find(x=>x.id===credId);
+  if (!c) return;
+  const p = c.parcelas[parcelaIdx];
+  if (!p) return;
+  document.getElementById('pp-cred-id').value = credId;
+  document.getElementById('pp-parcela-idx').value = parcelaIdx;
+  document.getElementById('modal-pp-title').textContent = `Registrar Pagamento — ${c.clienteNome}`;
+  document.getElementById('pp-info-num').textContent = `${p.numero}ª de ${c.numParcelas}`;
+  document.getElementById('pp-info-venc').textContent = fmtDate(p.vencimento);
+  document.getElementById('pp-info-orig').textContent = fmtMoney(p.valorOriginal);
+  const jaRecebido = p.valorPago||0;
+  const saldoParcela = Math.max(0, p.valorOriginal - jaRecebido);
+  const sarEl = document.getElementById('pp-saldo-anterior-row');
+  const srEl = document.getElementById('pp-saldo-row');
+  if (jaRecebido > 0.01) {
+    sarEl.style.display='flex';
+    document.getElementById('pp-info-ja-recebido').textContent = fmtMoney(jaRecebido);
+    srEl.style.display='flex';
+    document.getElementById('pp-info-falta').textContent = fmtMoney(saldoParcela);
+  } else { sarEl.style.display='none'; srEl.style.display='none'; }
+  const juros = calcJurosMora(p, c.taxaMora||1, c.multaMora||2);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const vd = new Date(p.vencimento+'T00:00:00');
+  const jurosRow = document.getElementById('pp-juros-row');
+  if (juros > 0.01) {
+    jurosRow.style.display='flex';
+    const multa = saldoParcela*((c.multaMora||2)/100);
+    document.getElementById('pp-info-multa').textContent = fmtMoney(multa);
+    document.getElementById('pp-info-juros').textContent = fmtMoney(juros-multa);
+  } else jurosRow.style.display='none';
+  const totalPagar = saldoParcela + juros;
+  document.getElementById('pp-info-total').textContent = fmtMoney(totalPagar);
+  document.getElementById('pp-valor').value = totalPagar.toFixed(2);
+  document.getElementById('pp-valor').dataset.totalPagar = totalPagar.toFixed(2);
+  document.getElementById('pp-troco-box').style.display='none';
+  document.getElementById('pp-deficit-box').style.display='none';
+  document.getElementById('pp-forma').value='pix';
+  document.getElementById('pp-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('pp-obs').value='';
+  openModal('modal-pagar-parcela');
+  setTimeout(()=>document.getElementById('pp-valor').focus(),120);
+}
+
+function ppCalcTroco() {
+  const recebido = parseFloat(document.getElementById('pp-valor').value)||0;
+  const total = parseFloat(document.getElementById('pp-valor').dataset.totalPagar)||0;
+  const diff = recebido - total;
+  const tBox = document.getElementById('pp-troco-box');
+  const dBox = document.getElementById('pp-deficit-box');
+  if (recebido <= 0) { tBox.style.display='none'; dBox.style.display='none'; return; }
+  if (diff > 0.01) {
+    tBox.style.display='block'; document.getElementById('pp-troco-val').textContent=fmtMoney(diff); dBox.style.display='none';
+  } else if (diff < -0.01) {
+    dBox.style.display='block'; document.getElementById('pp-deficit-val').textContent=fmtMoney(Math.abs(diff)); tBox.style.display='none';
+  } else { tBox.style.display='none'; dBox.style.display='none'; }
+}
+
+function registrarPagamento() {
+  const credId = document.getElementById('pp-cred-id').value;
+  const idx = parseInt(document.getElementById('pp-parcela-idx').value);
+  const recebido = parseFloat(document.getElementById('pp-valor').value)||0;
+  const forma = document.getElementById('pp-forma').value;
+  const data = document.getElementById('pp-data').value;
+  const obs = document.getElementById('pp-obs').value.trim();
+  if (recebido <= 0) { alert('Informe o valor recebido.'); return; }
+  if (!data) { alert('Informe a data do pagamento.'); return; }
+  const c = DB.crediarios.find(x=>x.id===credId);
+  if (!c) return;
+  const p = c.parcelas[idx];
+  if (!p) return;
+  p.valorPago = Math.round(((p.valorPago||0) + recebido)*100)/100;
+  p.formaPagamento = forma;
+  p.dataPagamento = data;
+  if (obs) p.observacao = obs;
+  const totalPagar = parseFloat(document.getElementById('pp-valor').dataset.totalPagar)||p.valorOriginal;
+  if (p.valorPago >= totalPagar - 0.02) p.pago = true;
+  c.status = computeStatusCrediario(c);
+  save();
+  closeModal('modal-pagar-parcela');
+  renderCrediario();
+  setTimeout(()=>toggleCrediarioDetalhe(credId), 80);
+  toast(p.pago ? `${p.numero}ª parcela quitada ✅` : `Pagamento parcial registrado. Falta ${fmtMoney(Math.max(0,p.valorOriginal-p.valorPago))}`);
+}
+
+window.renderCrediario=renderCrediario;
+window.setCreditFilter=setCreditFilter;
+window.abrirNovoCrediario=abrirNovoCrediario;
+window.credOnClienteChange=credOnClienteChange;
+window.credOnPedidoChange=credOnPedidoChange;
+window.credRecalc=credRecalc;
+window.salvarCrediario=salvarCrediario;
+window.excluirCrediario=excluirCrediario;
+window.abrirPagarParcela=abrirPagarParcela;
+window.ppCalcTroco=ppCalcTroco;
+window.registrarPagamento=registrarPagamento;
+window.toggleCrediarioDetalhe=toggleCrediarioDetalhe;
+
 // (delegação de usuários removida — botões usam .onclick direto em renderConfig)
 
 // ── INIT (after all functions defined) ──
@@ -3831,6 +4269,168 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 
 <!-- Modal: Alterar meu PIN -->
+<!-- ══════════════════ MODAL CREDIÁRIO ══════════════════ -->
+<div class="modal-overlay" id="modal-crediario">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-cred-title">Novo Crediário</span>
+      <button class="modal-close" onclick="closeModal('modal-crediario')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cred-id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Cliente *</label>
+          <select class="form-input" id="cred-cliente-id" onchange="credOnClienteChange()">
+            <option value="">— Selecione o cliente —</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Pedido vinculado (opcional)</label>
+          <select class="form-input" id="cred-pedido-id" onchange="credOnPedidoChange()">
+            <option value="">— Nenhum —</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Descrição</label>
+          <input class="form-input" id="cred-descricao" placeholder="Ex: Óculos completo — armação + lente">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor total (R$) *</label>
+          <input class="form-input" id="cred-total" type="number" min="0" step="0.01" oninput="credRecalc()" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Entrada (R$)</label>
+          <input class="form-input" id="cred-entrada" type="number" min="0" step="0.01" value="0" oninput="credRecalc()" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nº de parcelas *</label>
+          <select class="form-input" id="cred-nparcelas" onchange="credRecalc()">
+            <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option>
+            <option value="4">4x</option><option value="5">5x</option><option value="6" selected>6x</option>
+            <option value="7">7x</option><option value="8">8x</option><option value="9">9x</option>
+            <option value="10">10x</option><option value="12">12x</option><option value="18">18x</option><option value="24">24x</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data 1ª parcela *</label>
+          <input class="form-input" id="cred-data1" type="date" oninput="credRecalc()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Juros de mora (% a.m.)</label>
+          <input class="form-input" id="cred-taxa-mora" type="number" min="0" max="5" step="0.01" value="1" placeholder="1,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Multa por atraso (%)</label>
+          <input class="form-input" id="cred-multa" type="number" min="0" max="2" step="0.01" value="2" placeholder="2,00">
+        </div>
+      </div>
+      <!-- Preview de parcelas -->
+      <div id="cred-preview" style="margin-top:16px;display:none">
+        <div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Pré-visualização das parcelas</div>
+        <div style="overflow-x:auto">
+          <table style="font-size:12px">
+            <thead><tr><th style="width:50px">Nº</th><th>Vencimento</th><th style="text-align:right">Valor</th></tr></thead>
+            <tbody id="cred-preview-tbody"></tbody>
+          </table>
+        </div>
+        <div style="text-align:right;font-size:12px;margin-top:6px;color:#aaa">
+          Valor parcelado: <strong id="cred-preview-total" style="color:var(--gold)">R$ 0,00</strong>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-crediario')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarCrediario()">💾 Salvar Crediário</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MODAL PAGAR PARCELA ══════════════════ -->
+<div class="modal-overlay" id="modal-pagar-parcela">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-pp-title">Registrar Pagamento</span>
+      <button class="modal-close" onclick="closeModal('modal-pagar-parcela')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pp-cred-id">
+      <input type="hidden" id="pp-parcela-idx">
+      <!-- Info da parcela -->
+      <div style="background:#1a1a2e;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:#aaa">Parcela</span><strong id="pp-info-num">—</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:#aaa">Vencimento</span><strong id="pp-info-venc">—</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:#aaa">Valor original</span><strong id="pp-info-orig">—</strong>
+        </div>
+        <div id="pp-juros-row" style="display:none;flex-wrap:wrap">
+          <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:4px">
+            <span style="color:#f87171">Multa (2%)</span><strong id="pp-info-multa" style="color:#f87171">—</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:4px">
+            <span style="color:#f87171">Juros mora</span><strong id="pp-info-juros" style="color:#f87171">—</strong>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-top:1px solid #333;padding-top:8px;margin-top:4px">
+          <span style="color:#aaa">Total a pagar</span><strong id="pp-info-total" style="color:var(--gold);font-size:16px">—</strong>
+        </div>
+        <div id="pp-saldo-anterior-row" style="display:none;justify-content:space-between;margin-top:6px">
+          <span style="color:#aaa">Já recebido</span><strong id="pp-info-ja-recebido" style="color:#4ade80">—</strong>
+        </div>
+        <div id="pp-saldo-row" style="display:none;justify-content:space-between;margin-top:6px">
+          <span style="color:#aaa">Falta receber</span><strong id="pp-info-falta" style="color:var(--gold)">—</strong>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor recebido (R$) *</label>
+        <input class="form-input" id="pp-valor" type="number" min="0" step="0.01" oninput="ppCalcTroco()" placeholder="0,00" style="font-size:18px;font-weight:700">
+      </div>
+      <div id="pp-troco-box" style="display:none;background:#1a2e1a;border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
+        <div style="display:flex;justify-content:space-between">
+          <span id="pp-troco-label" style="color:#4ade80">Troco</span>
+          <strong id="pp-troco-val" style="color:#4ade80">R$ 0,00</strong>
+        </div>
+      </div>
+      <div id="pp-deficit-box" style="display:none;background:#2a1a1a;border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:#f87171">Falta</span>
+          <strong id="pp-deficit-val" style="color:#f87171">R$ 0,00</strong>
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:4px">Parcela permanecerá em aberto com saldo reduzido</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Forma de pagamento *</label>
+          <select class="form-input" id="pp-forma">
+            <option value="pix">Pix</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cartao_debito">Cartão Débito</option>
+            <option value="cartao_credito">Cartão Crédito</option>
+            <option value="transferencia">Transferência</option>
+            <option value="cheque">Cheque</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data do pagamento</label>
+          <input class="form-input" id="pp-data" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observação</label>
+        <input class="form-input" id="pp-obs" placeholder="Opcional">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pagar-parcela')">Cancelar</button>
+      <button class="btn btn-gold" onclick="registrarPagamento()">✅ Confirmar Recebimento</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-alterar-pin">
   <div class="modal" style="max-width:360px">
     <div class="modal-header">
