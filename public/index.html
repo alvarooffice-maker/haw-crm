@@ -980,13 +980,30 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
       <div class="form-group"><label class="form-label">Receita</label><select class="form-input form-select" id="ped-receita" onchange="renderSugestaoLentes(this.value)"><option value="">— selecione o cliente primeiro —</option></select></div></div>
       <div id="ped-sugestao-lentes" style="display:none"></div>
       <div class="form-row"><div class="form-group"><label class="form-label">Vendedor *</label><select class="form-input form-select" id="ped-vendedor"></select></div>
-      <div class="form-group"><label class="form-label">Status inicial</label><select class="form-input form-select" id="ped-status">
+      <div class="form-group"><label class="form-label">Status</label><select class="form-input form-select" id="ped-status" onchange="_toggleMotivoPerdaPed()">
         <option value="lead">Lead</option>
         <option value="atendimento" selected>Atendimento</option>
         <option value="proposta_enviada">Proposta Enviada</option>
         <option value="pedido_feito">Pedido Feito</option>
         <option value="em_laboratorio">Em Laboratório</option>
+        <option value="pronto">Pronto para entrega</option>
+        <option value="entregue">Entregue</option>
+        <option value="pos_venda">Pós-venda</option>
+        <option value="perdido">Perdido</option>
       </select></div></div>
+      <div id="ped-motivo-wrap" style="display:none">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Motivo da perda *</label>
+            <select class="form-input form-select" id="ped-motivo" onchange="_toggleMotivoOutroPed()">
+              <option value="">— Selecione —</option>
+            </select>
+          </div>
+          <div class="form-group" id="ped-motivo-outro-wrap" style="display:none">
+            <label class="form-label">Especifique</label>
+            <input class="form-input" id="ped-motivo-outro" placeholder="Descreva o motivo">
+          </div>
+        </div>
+      </div>
       <div class="form-divider">🛍️ Itens do pedido</div>
       <!-- Cabeçalho das colunas -->
       <div style="display:grid;grid-template-columns:2fr 64px 86px 58px 28px;gap:8px;padding:0 0 4px;margin-bottom:2px">
@@ -1540,6 +1557,9 @@ function openModal(id,data={}){
     document.getElementById('ped-id').value='';
     document.getElementById('modal-ped-title').textContent='Novo Pedido';
     populateSelects();
+    const selMotivoPed=document.getElementById('ped-motivo');
+    if(selMotivoPed)selMotivoPed.innerHTML='<option value="">— Selecione —</option>'+MOTIVOS_PERDA.map(m=>`<option value="${m}">${m}</option>`).join('');
+    _toggleMotivoPerdaPed();
   }
   if(id==='modal-cliente'){
     document.getElementById('cli-id').value='';
@@ -2192,6 +2212,14 @@ function adicionarSugestao(prodId){
 function salvarPedido(){
   const cliId=document.getElementById('ped-cliente').value;
   if(!cliId){alert('Selecione o cliente');return;}
+  const novoStatus=document.getElementById('ped-status').value;
+  let motivoPerda=null;
+  if(novoStatus==='perdido'){
+    const motivo=document.getElementById('ped-motivo').value;
+    if(!motivo){alert('Selecione o motivo da perda.');return;}
+    if(motivo==='Outro'&&!document.getElementById('ped-motivo-outro').value.trim()){alert('Especifique o motivo.');return;}
+    motivoPerda=motivo==='Outro'?document.getElementById('ped-motivo-outro').value.trim():motivo;
+  }
   const itens=getItens();
   const sub=itens.reduce((s,i)=>s+i.sub,0);
   const desc=parseFloat(document.getElementById('ped-desconto').value)||0;
@@ -2202,7 +2230,7 @@ function salvarPedido(){
     id:existId||uid(),numero:isNew?nextNumero():(DB.pedidos.find(p=>p.id===existId)||{}).numero,
     clienteId:cliId,receitaId:document.getElementById('ped-receita').value||null,
     vendedorId:document.getElementById('ped-vendedor').value,
-    status:document.getElementById('ped-status').value,
+    status:novoStatus,motivoPerda,
     itens,subtotal:sub,desconto:desc,total,
     pagamento:document.getElementById('ped-pgto').value,
     parcelas:document.getElementById('ped-parcelas').value,
@@ -2210,6 +2238,7 @@ function salvarPedido(){
     obs:document.getElementById('ped-obs').value,
     updatedAt:new Date().toISOString()
   };
+  if(novoStatus==='entregue'&&!(DB.pedidos.find(p=>p.id===existId)||{}).dataEntrega)obj.dataEntrega=new Date().toISOString();
   if(isNew){obj.createdAt=new Date().toISOString();DB.pedidos.push(obj)}
   else{const i=DB.pedidos.findIndex(p=>p.id===existId);if(i>=0)DB.pedidos[i]=Object.assign(DB.pedidos[i],obj)}
   save();closeModal('modal-pedido');
@@ -2224,6 +2253,12 @@ function editarPedido(id){
   document.getElementById('modal-ped-title').textContent=`Editar Pedido #${p.numero}`;
   document.getElementById('ped-id').value=p.id;
   document.getElementById('ped-status').value=p.status;
+  const selMotivoPed=document.getElementById('ped-motivo');
+  selMotivoPed.innerHTML='<option value="">— Selecione —</option>'+MOTIVOS_PERDA.map(m=>`<option value="${m}">${m}</option>`).join('');
+  selMotivoPed.value=p.motivoPerda&&MOTIVOS_PERDA.includes(p.motivoPerda)?p.motivoPerda:(p.motivoPerda?'Outro':'');
+  document.getElementById('ped-motivo-outro').value=p.motivoPerda&&!MOTIVOS_PERDA.includes(p.motivoPerda)?p.motivoPerda:'';
+  _toggleMotivoPerdaPed();
+  _toggleMotivoOutroPed();
   document.getElementById('ped-pgto').value=p.pagamento||'';
   document.getElementById('ped-parcelas').value=p.parcelas||'1';
   document.getElementById('ped-obs').value=p.obs||'';
@@ -2264,6 +2299,16 @@ function _toggleMotivoPerda(){
 function _toggleMotivoOutro(){
   const wrap=document.getElementById('st-motivo-outro-wrap');
   wrap.style.display=document.getElementById('st-motivo').value==='Outro'?'block':'none';
+}
+function _toggleMotivoPerdaPed(){
+  const wrap=document.getElementById('ped-motivo-wrap');
+  if(!wrap)return;
+  wrap.style.display=document.getElementById('ped-status').value==='perdido'?'block':'none';
+}
+function _toggleMotivoOutroPed(){
+  const wrap=document.getElementById('ped-motivo-outro-wrap');
+  if(!wrap)return;
+  wrap.style.display=document.getElementById('ped-motivo').value==='Outro'?'block':'none';
 }
 function confirmarStatus(){
   const id=document.getElementById('st-ped-id').value;
@@ -2819,7 +2864,7 @@ function renderPipeline(filtroVendedor='todos'){
 }
 function addParaStage(status){
   openModal('modal-pedido');
-  setTimeout(()=>{document.getElementById('ped-status').value=status;},50);
+  setTimeout(()=>{document.getElementById('ped-status').value=status;_toggleMotivoPerdaPed();},50);
 }
 
 // ── CLIENTES ──
@@ -3903,6 +3948,8 @@ window.abrirStatus=abrirStatus;
 window.confirmarStatus=confirmarStatus;
 window._toggleMotivoPerda=_toggleMotivoPerda;
 window._toggleMotivoOutro=_toggleMotivoOutro;
+window._toggleMotivoPerdaPed=_toggleMotivoPerdaPed;
+window._toggleMotivoOutroPed=_toggleMotivoOutroPed;
 window.abrirPedidoParaCliente=abrirPedidoParaCliente;
 window.verPerfil=verPerfil;
 window.perfilTab=perfilTab;
