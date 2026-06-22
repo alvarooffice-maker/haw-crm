@@ -152,6 +152,8 @@ tr:hover td{background:#FAFAF5}
 .col-pronto .pipeline-col-header{background:#1A2E2E;color:#7ACCCC;border-bottom-color:#3A8A8A}
 .col-entregue .pipeline-col-header{background:#2E1A2E;color:#CC88CC;border-bottom-color:#8A3A8A}
 .col-pos .pipeline-col-header{background:#2A1A1A;color:#CC8888;border-bottom-color:#8A3A3A}
+.col-perdido .pipeline-col-header{background:#330F0F;color:#E08A8A;border-bottom-color:#7A2A2A}
+.pc-flag-lab{display:inline-block;margin-top:6px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px}
 
 /* ── DASHBOARD ALERTS ── */
 .alert-list{padding:4px 0}
@@ -451,6 +453,7 @@ tr:hover td{background:#FAFAF5}
         <button class="fb" onclick="filterPedidos('em_laboratorio',this)">Em Lab</button>
         <button class="fb" onclick="filterPedidos('pronto',this)">Prontos</button>
         <button class="fb" onclick="filterPedidos('entregue',this)">Entregues</button>
+        <button class="fb" onclick="filterPedidos('perdido',this)">Perdidos</button>
       </div>
       <div class="card">
         <div class="ch"><span class="ct">Pedidos</span><span class="badge badge-gold" id="cnt-ped-badge">0</span></div>
@@ -1083,7 +1086,7 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
     <div class="modal-body">
       <input type="hidden" id="st-ped-id">
       <div class="form-group" style="margin-bottom:14px"><label class="form-label">Novo status</label>
-        <select class="form-input form-select" id="st-novo">
+        <select class="form-input form-select" id="st-novo" onchange="_toggleMotivoPerda()">
           <option value="lead">Lead</option>
           <option value="atendimento">Atendimento</option>
           <option value="proposta_enviada">Proposta Enviada</option>
@@ -1092,7 +1095,19 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
           <option value="pronto">Pronto para entrega</option>
           <option value="entregue">Entregue</option>
           <option value="pos_venda">Pós-venda</option>
+          <option value="perdido">Perdido</option>
         </select>
+      </div>
+      <div id="st-motivo-wrap" style="display:none;margin-bottom:14px">
+        <div class="form-group"><label class="form-label">Motivo da perda *</label>
+          <select class="form-input form-select" id="st-motivo" onchange="_toggleMotivoOutro()">
+            <option value="">— Selecione —</option>
+          </select>
+        </div>
+        <div class="form-group" id="st-motivo-outro-wrap" style="display:none">
+          <label class="form-label">Especifique</label>
+          <input class="form-input" id="st-motivo-outro" placeholder="Descreva o motivo">
+        </div>
       </div>
       <div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="st-obs" placeholder="Opcional"></div>
     </div>
@@ -1312,6 +1327,7 @@ const PIPELINE_STAGES = [
   {key:'pronto',label:'Pronto ✓',col:'col-pronto'},
   {key:'entregue',label:'Entregue',col:'col-entregue'},
   {key:'pos_venda',label:'Pós-venda',col:'col-pos'},
+  {key:'perdido',label:'Perdido',col:'col-perdido'},
 ];
 
 const STATUS_BADGE = {
@@ -1323,7 +1339,19 @@ const STATUS_BADGE = {
   pronto:{cls:'badge-green',label:'Pronto ✓'},
   entregue:{cls:'badge-green',label:'Entregue'},
   pos_venda:{cls:'badge-amber',label:'Pós-venda'},
+  perdido:{cls:'badge-red',label:'Perdido'},
 };
+
+const MOTIVOS_PERDA = [
+  'Fechou outro orçamento',
+  'Fechou com a concorrência',
+  'Oportunidade futura',
+  'Fazendo cotação',
+  'Preço alto',
+  'Sem retorno do cliente',
+  'Desistiu da compra',
+  'Outro',
+];
 
 // ── INIT ──
 // ── STORAGE ──
@@ -1462,7 +1490,7 @@ function renderSidebarUser(){
 function updateNavCounts(){
   document.getElementById('cnt-clientes').textContent=DB.clientes.filter(c=>!c.deleted).length;
   document.getElementById('cnt-pedidos').textContent=DB.pedidos.filter(p=>!p.deleted).length;
-  const open=DB.pedidos.filter(p=>!p.deleted&&!['entregue','pos_venda'].includes(p.status)).length;
+  const open=DB.pedidos.filter(p=>!p.deleted&&!['entregue','pos_venda','perdido'].includes(p.status)).length;
   document.getElementById('cnt-pipeline').textContent=open;
   const credAtivos=(DB.crediarios||[]).filter(c=>{const st=computeStatusCrediario(c);return st==='ativo'||st==='atrasado';}).length;
   const credEl=document.getElementById('cnt-crediario');
@@ -2220,16 +2248,42 @@ function abrirStatus(id){
   const p=DB.pedidos.find(x=>x.id===id);if(!p)return;
   document.getElementById('st-ped-id').value=id;
   document.getElementById('st-novo').value=p.status;
+  const selMotivo=document.getElementById('st-motivo');
+  selMotivo.innerHTML='<option value="">— Selecione —</option>'+MOTIVOS_PERDA.map(m=>`<option value="${m}">${m}</option>`).join('');
+  selMotivo.value=p.motivoPerda&&MOTIVOS_PERDA.includes(p.motivoPerda)?p.motivoPerda:(p.motivoPerda?'Outro':'');
+  document.getElementById('st-motivo-outro').value=p.motivoPerda&&!MOTIVOS_PERDA.includes(p.motivoPerda)?p.motivoPerda:'';
+  document.getElementById('st-obs').value='';
+  _toggleMotivoPerda();
+  _toggleMotivoOutro();
   openModal('modal-status');
+}
+function _toggleMotivoPerda(){
+  const wrap=document.getElementById('st-motivo-wrap');
+  wrap.style.display=document.getElementById('st-novo').value==='perdido'?'block':'none';
+}
+function _toggleMotivoOutro(){
+  const wrap=document.getElementById('st-motivo-outro-wrap');
+  wrap.style.display=document.getElementById('st-motivo').value==='Outro'?'block':'none';
 }
 function confirmarStatus(){
   const id=document.getElementById('st-ped-id').value;
   const novoStatus=document.getElementById('st-novo').value;
+  if(novoStatus==='perdido'){
+    const motivo=document.getElementById('st-motivo').value;
+    if(!motivo){alert('Selecione o motivo da perda.');return;}
+    if(motivo==='Outro'&&!document.getElementById('st-motivo-outro').value.trim()){alert('Especifique o motivo.');return;}
+  }
   const i=DB.pedidos.findIndex(p=>p.id===id);
   if(i>=0){
     DB.pedidos[i].status=novoStatus;
     DB.pedidos[i].updatedAt=new Date().toISOString();
     if(novoStatus==='entregue')DB.pedidos[i].dataEntrega=new Date().toISOString();
+    if(novoStatus==='perdido'){
+      const motivo=document.getElementById('st-motivo').value;
+      DB.pedidos[i].motivoPerda=motivo==='Outro'?document.getElementById('st-motivo-outro').value.trim():motivo;
+    } else {
+      DB.pedidos[i].motivoPerda=null;
+    }
   }
   save();closeModal('modal-status');
   renderPipeline();renderPedidos();renderDashboard();renderFinanceiro();renderRelatorios();updateNavCounts();
@@ -2645,7 +2699,7 @@ function renderDashboard(){
   const mesEntregues=mesPeds.filter(p=>p.status==='entregue'||p.status==='pos_venda');
   const fat=mesEntregues.reduce((s,p)=>s+Number(p.total||0),0);
   const ticket=mesEntregues.length?fat/mesEntregues.length:0;
-  const aberto=peds.filter(p=>!['entregue','pos_venda'].includes(p.status)).length;
+  const aberto=peds.filter(p=>!['entregue','pos_venda','perdido'].includes(p.status)).length;
   const prontos=peds.filter(p=>p.status==='pronto').length;
   document.getElementById('d-fat').textContent=fmtMoney(fat);
   document.getElementById('d-fat-sub').textContent=mesEntregues.length+' pedidos fechados';
@@ -2697,7 +2751,7 @@ function renderDashboard(){
   // FUNIL
   const funnel=document.getElementById('funnel-grid');
   if(funnel){
-    const colors=['#3D4F8A','#3A7A3A','#8A7A3A','#C9A84C','#3A6A8A','#3A8A8A','#8A3A8A','#8A3A3A'];
+    const colors=['#3D4F8A','#3A7A3A','#8A7A3A','#C9A84C','#3A6A8A','#3A8A8A','#8A3A8A','#8A3A3A','#7A2A2A'];
     funnel.innerHTML=PIPELINE_STAGES.map((s,i)=>{
       const cnt=peds.filter(p=>p.status===s.key).length;
       return`<div style="background:var(--white);border:1px solid var(--border-light);border-radius:var(--rad);padding:12px;text-align:center;border-top:3px solid ${colors[i]}">
@@ -2723,6 +2777,16 @@ function renderFatChart(){
 }
 
 // ── PIPELINE ──
+function _flagPrevLab(prevLabIso){
+  if(!prevLabIso) return '';
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const prev=new Date(prevLabIso+'T00:00:00');
+  const dias=Math.round((prev-hoje)/86400000);
+  if(dias<0) return `<div class="pc-flag-lab" style="background:var(--red-l);color:var(--red)">⏰ Atrasado ${Math.abs(dias)}d</div>`;
+  if(dias===0) return `<div class="pc-flag-lab" style="background:var(--amber-l);color:var(--amber)">⏰ Vence hoje</div>`;
+  if(dias<=3) return `<div class="pc-flag-lab" style="background:var(--amber-l);color:var(--amber)">⏰ ${dias}d restantes</div>`;
+  return `<div class="pc-flag-lab" style="background:var(--blue-l);color:var(--blue)">⏰ ${dias}d restantes</div>`;
+}
 function renderPipeline(filtroVendedor='todos'){
   const board=document.getElementById('pipeline-board');
   const peds=DB.pedidos.filter(p=>!p.deleted&&(filtroVendedor==='todos'||p.vendedorId===filtroVendedor));
@@ -2735,10 +2799,13 @@ function renderPipeline(filtroVendedor='todos'){
           const cli=DB.clientes.find(c=>c.id===p.clienteId)||{nome:'?'};
           const dias=Math.floor((Date.now()-new Date(p.createdAt))/86400000);
           const primItem=(p.itens||[])[0];
+          const flagLab=stage.key==='em_laboratorio'?_flagPrevLab(p.prevLab):'';
+          const motivoTag=stage.key==='perdido'&&p.motivoPerda?`<div class="pc-flag-lab" style="background:var(--red-l);color:var(--red)">${p.motivoPerda}</div>`:'';
           return`<div class="pipeline-card" onclick="editarPedido('${p.id}')">
             <div class="pc-name">${cli.nome}</div>
             <div class="pc-produto">${primItem?primItem.desc:'Pedido #'+p.numero}</div>
             <div class="pc-meta"><span class="pc-valor">${fmtMoney(p.total)}</span><span class="pc-dias">${dias}d</span></div>
+            ${flagLab}${motivoTag}
           </div>`;}).join(''):`<div style="text-align:center;padding:16px;font-size:11px;color:#555">Vazio</div>`}
         <button style="width:100%;background:transparent;border:1px dashed #333;color:#555;border-radius:var(--rad);padding:8px;font-size:11px;cursor:pointer;margin-top:4px" onclick="addParaStage('${stage.key}')">+ Novo</button>
       </div>
@@ -2814,7 +2881,7 @@ function renderPedidosData(peds){
       <td style="font-weight:500">${cli.nome}</td>
       <td style="overflow:hidden;text-overflow:ellipsis">${primItem?primItem.desc:'—'}</td>
       <td style="font-weight:700;font-family:var(--font-display)">${fmtMoney(p.total)}</td>
-      <td><span class="badge ${sb.cls}">${sb.label}</span></td>
+      <td><span class="badge ${sb.cls}">${sb.label}</span>${p.status==='perdido'&&p.motivoPerda?`<div style="font-size:10px;color:var(--muted);margin-top:2px">${p.motivoPerda}</div>`:''}</td>
       <td>
         <button class="btn btn-ghost btn-sm" onclick="editarPedido('${p.id}')">✏️</button>
         <button class="btn btn-ghost btn-sm" onclick="abrirStatus('${p.id}')">🔄</button>
@@ -2864,7 +2931,7 @@ function renderFinanceiro(){
   const entregues=pedsSemCred.filter(p=>['entregue','pos_venda'].includes(p.status));
   const recMes=entregues.filter(p=>p.createdAt?.startsWith(mes));
   let rec=recMes.reduce((s,p)=>s+Number(p.total||0),0);
-  let arec=pedsSemCred.filter(p=>!['entregue','pos_venda'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0);
+  let arec=pedsSemCred.filter(p=>!['entregue','pos_venda','perdido'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0);
   const ticketBase=peds.filter(p=>['entregue','pos_venda'].includes(p.status));
   const ticket=ticketBase.length?ticketBase.reduce((s,p)=>s+Number(p.total||0),0)/ticketBase.length:0;
 
@@ -3827,6 +3894,8 @@ window.excluirCliente=excluirCliente;
 window.excluirPedido=excluirPedido;
 window.abrirStatus=abrirStatus;
 window.confirmarStatus=confirmarStatus;
+window._toggleMotivoPerda=_toggleMotivoPerda;
+window._toggleMotivoOutro=_toggleMotivoOutro;
 window.abrirPedidoParaCliente=abrirPedidoParaCliente;
 window.verPerfil=verPerfil;
 window.perfilTab=perfilTab;

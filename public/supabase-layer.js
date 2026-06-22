@@ -78,7 +78,7 @@
         syncTabela('clientes'),
         syncTabela('receitas'),
         syncTabela('produtos'),
-        syncTabela('pedidos'),
+        syncTabela('pedidos').catch(() => {}), // falha silenciosa se coluna motivo_perda não existir ainda
         syncPedidoItens(),
         syncTabela('usuarios').catch(() => {}), // falha silenciosa se RLS bloquear
         syncTabela('crediarios').catch(() => {}), // tabela pode não existir ainda
@@ -323,7 +323,7 @@
       desconto_pct: 'desconto', desconto_motivo: 'descontoMotivo',
       desconto_autorizado_por: 'descontoAutorizadoPor',
       forma_pagamento: 'pagamento', data_prevista_lab: 'prevLab',
-      data_entrega: 'dataEntrega',
+      data_entrega: 'dataEntrega', motivo_perda: 'motivoPerda',
       deleted_at: 'deletedAt', created_at: 'createdAt', updated_at: 'updatedAt',
     },
     crediarios: {
