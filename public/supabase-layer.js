@@ -412,20 +412,30 @@
 
   // ── RETRY AUTOMÁTICO ─────────────────────────────────────
   let _retryInterval = null;
+  let _retryAttempts = 0;
+
+  async function _tentarReconectar() {
+    if (syncStatus !== 'offline') return;
+    console.log('[HAW] Tentando reconectar ao Supabase... tentativa', _retryAttempts + 1);
+    const ok = await loadFromSupabase();
+    if (ok) {
+      _retryAttempts = 0;
+      if (_retryInterval) { clearInterval(_retryInterval); _retryInterval = null; }
+      setupRealtime();
+      _reRenderAll();
+      if (typeof toast === 'function') toast('✅ Conexão restaurada — dados sincronizados!');
+    } else {
+      _retryAttempts++;
+    }
+  }
+
   function _startRetry() {
-    if (_retryInterval) return;
-    _retryInterval = setInterval(async () => {
-      if (syncStatus !== 'offline') { clearInterval(_retryInterval); _retryInterval = null; return; }
-      console.log('[HAW] Tentando reconectar ao Supabase...');
-      const ok = await loadFromSupabase();
-      if (ok) {
-        clearInterval(_retryInterval); _retryInterval = null;
-        _showOfflineBanner(false);
-        setupRealtime();
-        _reRenderAll();
-        if (typeof toast === 'function') toast('✅ Conexão restaurada — dados sincronizados!');
-      }
-    }, 2 * 60 * 1000); // tenta a cada 2 minutos
+    if (_retryInterval) return; // já está rodando
+    // Tentativas rápidas no início, depois estabiliza em 2 minutos
+    setTimeout(() => _tentarReconectar(), 15000);   // 15s
+    setTimeout(() => _tentarReconectar(), 45000);   // 45s
+    setTimeout(() => _tentarReconectar(), 120000);  // 2min
+    _retryInterval = setInterval(() => _tentarReconectar(), 2 * 60 * 1000);
   }
 
   // ── AUTO-INIT ─────────────────────────────────────────────
@@ -439,8 +449,8 @@
       const indicator = document.createElement('span');
       indicator.id = 'sync-status';
       indicator.style.cssText = 'font-size:11px;font-weight:500;cursor:pointer';
-      indicator.title = 'Clique para sincronizar';
-      indicator.onclick = () => window.HAW_SB.sync();
+      indicator.title = 'Clique para sincronizar agora';
+      indicator.onclick = () => { _tentarReconectar(); window.HAW_SB.sync(); };
       tbRight.prepend(indicator);
     }
 
@@ -457,6 +467,23 @@
     } else {
       setSyncStatus('offline');
     }
+
+    // Reconecta imediatamente quando a rede voltar (ex: WiFi reconectado)
+    window.addEventListener('online', async () => {
+      if (syncStatus === 'offline') {
+        console.log('[HAW] Rede voltou — reconectando ao Supabase...');
+        await _tentarReconectar();
+      }
+    });
+
+    // Avisa antes de fechar a aba se há dados pendentes de sync
+    window.addEventListener('beforeunload', (e) => {
+      if (localStorage.getItem('haw_pending_sync') === '1' && syncStatus === 'offline') {
+        e.preventDefault();
+        e.returnValue = 'Há dados não sincronizados com o servidor. Tem certeza que quer sair?';
+        return e.returnValue;
+      }
+    });
   });
 
   // ── OVERRIDE: save() ─────────────────────────────────────
@@ -464,12 +491,12 @@
     const originalSave = window.save;
     if (!originalSave) return;
     window.save = function () {
-      originalSave(); // sempre salva localStorage
+      originalSave(); // sempre salva localStorage primeiro
       if (sb && syncStatus !== 'offline') {
         clearTimeout(window._sbSyncTimer);
         window._sbSyncTimer = setTimeout(() => window.HAW_SB.sync(), 1000);
       } else if (sb) {
-        // offline: marca pendente e garante que retry está rodando
+        // offline: marca pendente, mostra banner, inicia retry
         localStorage.setItem('haw_pending_sync', '1');
         _showOfflineBanner(true);
         _startRetry();
