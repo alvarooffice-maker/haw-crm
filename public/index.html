@@ -287,6 +287,7 @@ tr:hover td{background:#FAFAF5}
     <div class="login-sub">Faça login para continuar</div>
     <label class="login-label">Usuário</label>
     <select class="login-select" id="login-user" onchange="_loginHint()"></select>
+    <div id="login-loading" style="font-size:11px;color:rgba(255,255,255,.45);margin:-10px 0 10px;min-height:16px;text-align:center"></div>
     <label class="login-label">PIN (4 dígitos)</label>
     <input class="login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')doLogin()" oninput="_loginHint()">
     <div id="login-hint" style="font-size:11px;color:#F7CF13;margin:-12px 0 10px;min-height:16px"></div>
@@ -1220,8 +1221,16 @@ function filterSidebar(){
 function populateLoginUsers(){
   const sel=document.getElementById('login-user');
   if(!sel)return;
-  // ativo !== false: trata null/undefined como ativo (evita excluir usuários sem campo ativo definido)
-  sel.innerHTML=DB.usuarios.filter(u=>u.ativo!==false).map(u=>`<option value="${u.id}">${u.nome} (${u.perfil})</option>`).join('');
+  const ativos=DB.usuarios.filter(u=>u.ativo!==false);
+  sel.innerHTML=ativos.map(u=>`<option value="${u.id}">${u.nome} (${u.perfil})</option>`).join('');
+  // Oculta o aviso de carregando quando usuários reais chegaram (mais de 1 ou Supabase carregou)
+  const loadEl=document.getElementById('login-loading');
+  if(loadEl){
+    if(ativos.length>1){
+      loadEl.textContent='';
+    }
+  }
+  _loginHint();
 }
 
 // Retorna o PIN armazenado para um usuário (ou null se não tiver)
@@ -1332,6 +1341,15 @@ function checkSession(){
   }
   populateLoginUsers();
   document.getElementById('login-screen').classList.remove('hidden');
+  // Avisa que está buscando usuários do servidor se só há o padrão
+  const loadEl=document.getElementById('login-loading');
+  if(loadEl&&DB.usuarios.filter(u=>u.ativo!==false).length<=1){
+    loadEl.textContent='⏳ Buscando usuários do servidor...';
+    setTimeout(()=>{
+      if(loadEl.textContent.startsWith('⏳'))
+        loadEl.textContent='Sem conexão. Use Admin HAW / PIN 0000.';
+    },10000);
+  }
 }
 
 // ── PIPELINE CONFIG ──
