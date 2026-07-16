@@ -36,6 +36,10 @@
       el.textContent = s === 'online' ? '🟢 Online' : s === 'syncing' ? '🔄 Sincronizando…' : '🔴 Offline';
       el.style.color = s === 'online' ? 'var(--green)' : s === 'syncing' ? 'var(--gold)' : 'var(--red)';
     }
+    if (s === 'online') {
+      localStorage.removeItem('haw_pending_sync');
+      _showOfflineBanner(false);
+    }
   }
 
   // ── AUTH ──────────────────────────────────────────────────
@@ -374,14 +378,62 @@
     get client() { return sb; },
   };
 
+  // ── RE-RENDER HELPER ─────────────────────────────────────
+  function _reRenderAll() {
+    setTimeout(() => {
+      [renderDashboard, renderPipeline, renderClientes, renderPedidos,
+       renderReceitas, renderFinanceiro, renderCatalogo, renderRelatorios,
+       renderConfig, updateNavCounts, populateSelects, populateLoginUsers]
+      .forEach(fn => { try { if (typeof fn === 'function') fn(); } catch(e){} });
+    }, 200);
+  }
+
+  // ── OFFLINE BANNER ───────────────────────────────────────
+  function _showOfflineBanner(show) {
+    let banner = document.getElementById('haw-offline-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'haw-offline-banner';
+      banner.style.cssText = [
+        'position:fixed;top:0;left:0;right:0;z-index:99998',
+        'background:#c0392b;color:#fff;text-align:center',
+        'padding:7px 16px;font-size:12px;font-weight:600',
+        'display:none;letter-spacing:.02em',
+      ].join(';');
+      document.body.prepend(banner);
+    }
+    if (show) {
+      banner.textContent = '⚠️  SEM CONEXÃO COM SERVIDOR — dados salvos localmente e serão sincronizados quando a conexão voltar';
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // ── RETRY AUTOMÁTICO ─────────────────────────────────────
+  let _retryInterval = null;
+  function _startRetry() {
+    if (_retryInterval) return;
+    _retryInterval = setInterval(async () => {
+      if (syncStatus !== 'offline') { clearInterval(_retryInterval); _retryInterval = null; return; }
+      console.log('[HAW] Tentando reconectar ao Supabase...');
+      const ok = await loadFromSupabase();
+      if (ok) {
+        clearInterval(_retryInterval); _retryInterval = null;
+        _showOfflineBanner(false);
+        setupRealtime();
+        _reRenderAll();
+        if (typeof toast === 'function') toast('✅ Conexão restaurada — dados sincronizados!');
+      }
+    }, 2 * 60 * 1000); // tenta a cada 2 minutos
+  }
+
   // ── AUTO-INIT ─────────────────────────────────────────────
-  // Executar após o DOM carregar — config.js já executou neste ponto
   document.addEventListener('DOMContentLoaded', async () => {
-    // Inicializar Supabase AGORA (config.js já carregou de forma síncrona)
     sb = initSupabase();
     window._hawSB = sb;
 
-    // Adicionar indicador de status na topbar
+    // Indicador de status na topbar
     const tbRight = document.querySelector('.topbar-right');
     if (tbRight) {
       const indicator = document.createElement('span');
@@ -397,43 +449,32 @@
       const ok = await loadFromSupabase();
       if (ok) {
         setupRealtime();
-        // Re-render tudo com dados do servidor
-        setTimeout(() => {
-          if (typeof renderDashboard  === 'function') renderDashboard();
-          if (typeof renderPipeline   === 'function') renderPipeline();
-          if (typeof renderClientes   === 'function') renderClientes();
-          if (typeof renderPedidos    === 'function') renderPedidos();
-          if (typeof renderReceitas   === 'function') renderReceitas();
-          if (typeof renderFinanceiro === 'function') renderFinanceiro();
-          if (typeof renderCatalogo   === 'function') renderCatalogo();
-          if (typeof renderRelatorios === 'function') renderRelatorios();
-          if (typeof renderConfig     === 'function') renderConfig();
-          if (typeof updateNavCounts  === 'function') updateNavCounts();
-          if (typeof populateSelects    === 'function') populateSelects();
-          // Atualiza dropdown de login SEMPRE após dados do Supabase chegarem
-          if (typeof populateLoginUsers === 'function') populateLoginUsers();
-        }, 200);
+        _reRenderAll();
+      } else {
+        _showOfflineBanner(true);
+        _startRetry();
       }
     } else {
       setSyncStatus('offline');
     }
   });
 
-  // ── OVERRIDE: save() para persistir no Supabase ──────────
-  // Aguarda o index.html definir save() e sobrescreve
-  // Usa 'load' (após DOMContentLoaded) — sb já está inicializado
+  // ── OVERRIDE: save() ─────────────────────────────────────
   window.addEventListener('load', () => {
     const originalSave = window.save;
-    if (originalSave) {
-      window.save = function () {
-        originalSave(); // salva localStorage
-        if (sb && syncStatus !== 'offline') {
-          // Debounce: sync 1s depois do último save
-          clearTimeout(window._sbSyncTimer);
-          window._sbSyncTimer = setTimeout(() => window.HAW_SB.sync(), 1000);
-        }
-      };
-    }
+    if (!originalSave) return;
+    window.save = function () {
+      originalSave(); // sempre salva localStorage
+      if (sb && syncStatus !== 'offline') {
+        clearTimeout(window._sbSyncTimer);
+        window._sbSyncTimer = setTimeout(() => window.HAW_SB.sync(), 1000);
+      } else if (sb) {
+        // offline: marca pendente e garante que retry está rodando
+        localStorage.setItem('haw_pending_sync', '1');
+        _showOfflineBanner(true);
+        _startRetry();
+      }
+    };
   });
 
 })();
