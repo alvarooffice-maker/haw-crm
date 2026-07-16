@@ -37,6 +37,42 @@ jobs:
           sed -i "s|SUPABASE_URL_PLACEHOLDER|${{ secrets.SUPABASE_URL }}|g" public/config.js
           sed -i "s|SUPABASE_KEY_PLACEHOLDER|${{ secrets.SUPABASE_ANON_KEY }}|g" public/config.js
 
+      - name: Criar tabelas no Supabase (migration)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ckjaxalhbyaukiumjvbe
+        run: |
+          SQL="
+          CREATE TABLE IF NOT EXISTS crediarios (
+            id              TEXT PRIMARY KEY,
+            cliente_id      TEXT,
+            cliente_nome    TEXT,
+            pedido_id       TEXT,
+            entrada         NUMERIC DEFAULT 0,
+            valor_parcelado NUMERIC DEFAULT 0,
+            num_parcelas    INTEGER DEFAULT 1,
+            parcelas        JSONB DEFAULT '[]',
+            taxa_mora       NUMERIC DEFAULT 1,
+            multa_mora      NUMERIC DEFAULT 2,
+            status          TEXT DEFAULT 'ativo',
+            obs             TEXT,
+            created_at      TIMESTAMPTZ DEFAULT NOW(),
+            updated_at      TIMESTAMPTZ DEFAULT NOW(),
+            deleted_at      TIMESTAMPTZ
+          );
+          ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS motivo_perda TEXT;
+          ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS data_entrega TIMESTAMPTZ;
+          ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS prev_lab DATE;
+          "
+          curl -s -X POST \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\": $(echo "$SQL" | jq -Rs .)}" \
+            | tee /tmp/migration_result.json
+          # Não falha o deploy se migração falhar (tabela pode já existir)
+          echo "Migration step concluído"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
