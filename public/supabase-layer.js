@@ -150,7 +150,7 @@
         const localOnly = (window.DB.clientes || []).filter(c => !sbIds.has(c.id) && !c.deleted);
         window.DB.clientes = [...sbItems, ...localOnly];
         if (localOnly.length) {
-          sb.from('clientes').upsert(localOnly.map(r => toSnake('clientes', r)), { onConflict: 'id' })
+          Promise.resolve(sb.from('clientes').upsert(localOnly.map(r => toSnake('clientes', r)), { onConflict: 'id' }))
             .catch(e => console.warn('[HAW] Falha ao sincronizar clientes locais:', e));
         }
       }
@@ -161,7 +161,7 @@
         const localOnly = (window.DB.receitas || []).filter(r => !sbIds.has(r.id) && !r.deleted);
         window.DB.receitas = [...sbItems, ...localOnly];
         if (localOnly.length) {
-          sb.from('receitas').upsert(localOnly.map(r => toSnake('receitas', r)), { onConflict: 'id' })
+          Promise.resolve(sb.from('receitas').upsert(localOnly.map(r => toSnake('receitas', r)), { onConflict: 'id' }))
             .catch(e => console.warn('[HAW] Falha ao sincronizar receitas locais:', e));
         }
       }
@@ -170,7 +170,7 @@
         const sbPedIds = new Set(peds.data.map(r => r.id));
         const localOnlyPeds = (window.DB.pedidos || []).filter(p => !sbPedIds.has(p.id) && !p.deleted);
         if (localOnlyPeds.length) {
-          sb.from('pedidos').upsert(localOnlyPeds.map(r => toSnake('pedidos', r)), { onConflict: 'id' })
+          Promise.resolve(sb.from('pedidos').upsert(localOnlyPeds.map(r => toSnake('pedidos', r)), { onConflict: 'id' }))
             .catch(e => console.warn('[HAW] Falha ao sincronizar pedidos locais:', e));
         }
       }
@@ -182,7 +182,7 @@
         window.DB.produtos = [...sbProds, ...localOnly];
         // Sincronizar produtos locais para o Supabase
         if (localOnly.length) {
-          sb.from('produtos').upsert(localOnly.map(r => toSnake('produtos', r)), { onConflict: 'id' })
+          Promise.resolve(sb.from('produtos').upsert(localOnly.map(r => toSnake('produtos', r)), { onConflict: 'id' }))
             .catch(e => console.warn('[HAW] Falha ao sincronizar produtos locais:', e));
         }
       }
@@ -266,7 +266,7 @@
           const localOnly = (window.DB.crediarios || []).filter(c => !sbIds.has(c.id) && c.status !== 'cancelado');
           window.DB.crediarios = [...sbItems, ...localOnly];
           if (localOnly.length) {
-            sb.from('crediarios').upsert(localOnly.map(r => toSnake('crediarios', r)), { onConflict: 'id' })
+            Promise.resolve(sb.from('crediarios').upsert(localOnly.map(r => toSnake('crediarios', r)), { onConflict: 'id' }))
               .catch(e => console.warn('[HAW] Falha ao sincronizar crediários locais:', e));
           }
         }
