@@ -4130,6 +4130,9 @@ function renderCrediario() {
     const pgTotal = (c.parcelas||[]).length;
     const ped = c.pedidoId ? DB.pedidos.find(p=>p.id===c.pedidoId) : null;
     const pedLabel = ped ? `Pedido #${ped.numero}` : (c.descricao||'—');
+    const editBtn = st !== 'cancelado' && st !== 'quitado'
+      ? `<button class="btn btn-sm" onclick="event.stopPropagation();abrirEditarCrediario('${c.id}')" title="Editar" style="padding:2px 8px;font-size:11px;margin-right:4px">✏️</button>`
+      : '';
     const cancelBtn = st !== 'cancelado' && st !== 'quitado'
       ? `<button class="btn btn-sm" onclick="event.stopPropagation();excluirCrediario('${c.id}')" title="Cancelar" style="padding:2px 8px;font-size:11px;color:var(--red);border-color:var(--red)">✕</button>`
       : '';
@@ -4142,7 +4145,7 @@ function renderCrediario() {
       <td>${proxStr}</td>
       <td style="text-align:right;font-weight:600;color:${saldo>0.01?'var(--gold-deep)':'var(--green)'}">${fmtMoney(saldo)}</td>
       <td style="text-align:center"><span class="badge ${sb.cls}">${sb.label}</span></td>
-      <td style="text-align:center">${cancelBtn}</td>
+      <td style="text-align:center;white-space:nowrap">${editBtn}${cancelBtn}</td>
     </tr>
     <tr id="detalhe-cred-${c.id}" style="display:none">
       <td colspan="9" style="padding:0;background:var(--off);border-bottom:2px solid var(--border-light)">${_renderParcelasInline(c)}</td>
@@ -4241,7 +4244,15 @@ function toggleCrediarioDetalhe(id) {
   if (!showing) row.style.display = 'table-row';
 }
 
+function _credResetFields() {
+  ['cred-total','cred-entrada','cred-nparcelas','cred-cliente-id','cred-pedido-id'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = false; el.style.opacity = ''; }
+  });
+}
+
 function abrirNovoCrediario() {
+  _credResetFields();
   document.getElementById('cred-id').value = '';
   document.getElementById('modal-cred-title').textContent = 'Novo Crediário';
   document.getElementById('cred-descricao').value = '';
@@ -4257,6 +4268,54 @@ function abrirNovoCrediario() {
   selCli.innerHTML = '<option value="">— Selecione o cliente —</option>' +
     DB.clientes.filter(c=>!c.deleted).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
   document.getElementById('cred-pedido-id').innerHTML = '<option value="">— Nenhum —</option>';
+  openModal('modal-crediario');
+}
+
+function abrirEditarCrediario(id) {
+  const c = DB.crediarios.find(x => x.id === id);
+  if (!c) return;
+  const temPagas = (c.parcelas||[]).some(p => p.pago);
+  _credResetFields();
+  document.getElementById('cred-id').value = c.id;
+  document.getElementById('modal-cred-title').textContent = 'Editar Crediário';
+  document.getElementById('cred-descricao').value = c.descricao || '';
+  document.getElementById('cred-total').value = c.total || '';
+  document.getElementById('cred-entrada').value = c.entrada || 0;
+  document.getElementById('cred-taxa-mora').value = c.taxaMora ?? 1;
+  document.getElementById('cred-multa').value = c.multaMora ?? 2;
+  // Data1 = vencimento da primeira parcela não paga
+  const primUnpaid = (c.parcelas||[]).find(p => !p.pago);
+  document.getElementById('cred-data1').value = primUnpaid
+    ? primUnpaid.vencimento : (c.parcelas?.[0]?.vencimento || '');
+  // Número de parcelas: total ou restantes não pagas
+  const nParcelas = c.numParcelas || (c.parcelas||[]).length;
+  const selN = document.getElementById('cred-nparcelas');
+  selN.value = nParcelas;
+  if (!selN.value) { // se o valor não existe no select, adiciona temporariamente
+    const opt = document.createElement('option');
+    opt.value = nParcelas; opt.textContent = nParcelas + 'x';
+    selN.appendChild(opt); selN.value = nParcelas;
+  }
+  // Cliente e pedido: preenche e bloqueia (não pode trocar após criado)
+  const selCli = document.getElementById('cred-cliente-id');
+  selCli.innerHTML = '<option value="">— Selecione o cliente —</option>' +
+    DB.clientes.filter(cl=>!cl.deleted).map(cl=>`<option value="${cl.id}">${cl.nome}</option>`).join('');
+  selCli.value = c.clienteId || '';
+  selCli.disabled = true; selCli.style.opacity = '0.6';
+  const peds = DB.pedidos.filter(p=>p.clienteId===c.clienteId&&!p.deleted);
+  const selPed = document.getElementById('cred-pedido-id');
+  selPed.innerHTML = '<option value="">— Nenhum —</option>' +
+    peds.map(p=>`<option value="${p.id}">#${p.numero} — ${fmtMoney(p.total)} — ${fmtDate(p.createdAt)}</option>`).join('');
+  selPed.value = c.pedidoId || '';
+  selPed.disabled = true; selPed.style.opacity = '0.6';
+  // Se tem parcelas pagas: bloqueia total/entrada/nparcelas
+  if (temPagas) {
+    ['cred-total','cred-entrada','cred-nparcelas'].forEach(fid => {
+      const el = document.getElementById(fid);
+      el.disabled = true; el.style.opacity = '0.6';
+    });
+  }
+  document.getElementById('cred-preview').style.display = 'none';
   openModal('modal-crediario');
 }
 
@@ -4299,22 +4358,67 @@ function credRecalc() {
 }
 
 function salvarCrediario() {
-  const cliId = document.getElementById('cred-cliente-id').value;
-  const total = parseFloat(document.getElementById('cred-total').value)||0;
+  const editId = document.getElementById('cred-id').value;
   const data1Str = document.getElementById('cred-data1').value;
-  if (!cliId) { alert('Selecione o cliente.'); return; }
-  if (total <= 0) { alert('Informe o valor total.'); return; }
   if (!data1Str) { alert('Informe a data da 1ª parcela.'); return; }
-  const cli = DB.clientes.find(c=>c.id===cliId);
-  const pedId = document.getElementById('cred-pedido-id').value || null;
   const descricao = document.getElementById('cred-descricao').value.trim();
-  const entrada = parseFloat(document.getElementById('cred-entrada').value)||0;
-  const n = parseInt(document.getElementById('cred-nparcelas').value)||1;
   const taxaMora = parseFloat(document.getElementById('cred-taxa-mora').value)||1;
   const multaMora = parseFloat(document.getElementById('cred-multa').value)||2;
+  const d = new Date(data1Str + 'T12:00:00');
+
+  // ── MODO EDIÇÃO ──────────────────────────────────────────────
+  if (editId) {
+    const c = DB.crediarios.find(x => x.id === editId);
+    if (!c) return;
+    const temPagas = (c.parcelas||[]).some(p => p.pago);
+    c.descricao = descricao;
+    c.taxaMora = taxaMora;
+    c.multaMora = multaMora;
+    if (!temPagas) {
+      // Sem pagamentos: recalcula tudo
+      const total = parseFloat(document.getElementById('cred-total').value)||0;
+      const entrada = parseFloat(document.getElementById('cred-entrada').value)||0;
+      const n = parseInt(document.getElementById('cred-nparcelas').value)||1;
+      const valorParcelado = Math.max(0, total - entrada);
+      const valorParcela = valorParcelado / n;
+      c.total = total; c.entrada = entrada; c.valorParcelado = valorParcelado; c.numParcelas = n;
+      c.parcelas = Array.from({length:n}, (_,i) => {
+        const vd = new Date(d); vd.setMonth(vd.getMonth()+i);
+        return { numero:i+1, vencimento:vd.toISOString().slice(0,10),
+          valorOriginal:Math.round(valorParcela*100)/100, valorPago:0,
+          pago:false, formaPagamento:null, dataPagamento:null, observacao:'', pagamentos:[] };
+      });
+    } else {
+      // Com pagamentos: só desloca datas das parcelas não pagas
+      let unpaidCount = 0;
+      c.parcelas = c.parcelas.map(p => {
+        if (p.pago) return p;
+        const vd = new Date(d); vd.setMonth(vd.getMonth() + unpaidCount++);
+        return { ...p, vencimento: vd.toISOString().slice(0,10) };
+      });
+    }
+    c.updatedAt = new Date().toISOString();
+    _credResetFields();
+    save();
+    closeModal('modal-crediario');
+    renderCrediario();
+    if (typeof renderFinanceiro === 'function') renderFinanceiro();
+    setTimeout(() => toggleCrediarioDetalhe(editId), 80);
+    toast('Crediário atualizado ✅');
+    return;
+  }
+
+  // ── MODO CRIAÇÃO ─────────────────────────────────────────────
+  const cliId = document.getElementById('cred-cliente-id').value;
+  const total = parseFloat(document.getElementById('cred-total').value)||0;
+  if (!cliId) { alert('Selecione o cliente.'); return; }
+  if (total <= 0) { alert('Informe o valor total.'); return; }
+  const cli = DB.clientes.find(c=>c.id===cliId);
+  const pedId = document.getElementById('cred-pedido-id').value || null;
+  const entrada = parseFloat(document.getElementById('cred-entrada').value)||0;
+  const n = parseInt(document.getElementById('cred-nparcelas').value)||1;
   const valorParcelado = Math.max(0, total - entrada);
   const valorParcela = valorParcelado / n;
-  const d = new Date(data1Str + 'T12:00:00');
   const parcelas = Array.from({length:n}, (_,i) => {
     const vd = new Date(d); vd.setMonth(vd.getMonth()+i);
     return { numero:i+1, vencimento:vd.toISOString().slice(0,10),
@@ -4442,6 +4546,7 @@ window.credOnPedidoChange=credOnPedidoChange;
 window.credRecalc=credRecalc;
 window.salvarCrediario=salvarCrediario;
 window.excluirCrediario=excluirCrediario;
+window.abrirEditarCrediario=abrirEditarCrediario;
 window.abrirPagarParcela=abrirPagarParcela;
 window.ppCalcTroco=ppCalcTroco;
 window.registrarPagamento=registrarPagamento;
