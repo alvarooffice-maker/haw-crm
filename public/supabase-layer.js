@@ -174,13 +174,14 @@
             .catch(e => console.warn('[HAW] Falha ao sincronizar pedidos locais:', e));
         }
       }
-      // Merge produtos: preserva itens locais (ex: importados da tabela lab) que não estão no Supabase
+      // Merge produtos: usa lab+nome como chave para evitar duplicatas quando IDs diferem
       if (prods.data) {
-        const sbProdIds = new Set(prods.data.map(r => r.id));
-        const sbProds   = prods.data.map(r => toCamel('produtos', r));
-        const localOnly = (window.DB.produtos || []).filter(p => !sbProdIds.has(p.id) && !p.deleted);
+        const sbProds = prods.data.map(r => toCamel('produtos', r));
+        const sbKeys  = new Set(sbProds.map(r => (r.lab + '||' + r.nome).toLowerCase()));
+        const localOnly = (window.DB.produtos || []).filter(p =>
+          !sbKeys.has((p.lab + '||' + p.nome).toLowerCase()) && !p.deleted
+        );
         window.DB.produtos = [...sbProds, ...localOnly];
-        // Sincronizar produtos locais para o Supabase
         if (localOnly.length) {
           Promise.resolve(sb.from('produtos').upsert(localOnly.map(r => toSnake('produtos', r)), { onConflict: 'id' }))
             .catch(e => console.warn('[HAW] Falha ao sincronizar produtos locais:', e));

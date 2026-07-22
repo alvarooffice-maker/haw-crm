@@ -1,6 +1,8 @@
--- Seed catálogo de lentes (379 produtos) — gerado automaticamente
--- custo+312% aplicado a todos os labs. IDs determinísticos via MD5(lab||nome).
--- Executado a cada deploy para garantir que o catálogo não seja perdido.
+-- Seed catalogo de lentes (379 produtos) - gerado automaticamente
+-- custo+312% aplicado a todos os labs. IDs deterministicos via MD5(lab||nome).
+-- Executado a cada deploy para garantir que o catalogo nao seja perdido.
+-- Remove apenas os produtos dos labs do catalogo para evitar duplicatas de IDs.
+DELETE FROM produtos WHERE lab IN ('DLab','Braslab','Zeiss','Essilor','Orfeu');
 CREATE TABLE IF NOT EXISTS produtos (
   id           TEXT PRIMARY KEY,
   lab          TEXT,
