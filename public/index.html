@@ -164,6 +164,7 @@ tr:hover td{background:#FAFAF5}
 .alert-dot.red{background:var(--red)}
 .alert-dot.gold{background:var(--gold)}
 .alert-dot.blue{background:var(--blue)}
+.alert-dot.amber{background:var(--amber)}
 .alert-text{flex:1;font-size:12px}
 .alert-sub{font-size:10px;color:var(--muted)}
 .alert-time{font-size:10px;color:var(--muted);flex-shrink:0}
@@ -277,6 +278,36 @@ tr:hover td{background:#FAFAF5}
   color:var(--gold);text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;z-index:1}
 .prod-avulso{padding:8px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-style:italic}
 .prod-avulso:hover{background:#2a3a6a;color:#fff}
+
+/* ── BUSCA GLOBAL DROPDOWN ── */
+.search-wrap{position:relative}
+.search-drop{display:none;position:absolute;top:calc(100% + 6px);left:0;width:380px;background:var(--white);
+  border:1px solid var(--border-light);border-radius:var(--rad-lg);box-shadow:0 8px 32px rgba(0,0,0,.14);
+  z-index:9999;max-height:440px;overflow-y:auto}
+.search-drop-section{padding:7px 14px 5px;font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em;background:var(--off);
+  border-bottom:1px solid var(--border-light);position:sticky;top:0}
+.search-drop-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;
+  border-bottom:1px solid var(--border-light);transition:background .1s}
+.search-drop-item:hover{background:var(--off)}
+.search-drop-item:last-child{border-bottom:none}
+.sdrop-icon{font-size:16px;flex-shrink:0;width:24px;text-align:center}
+.sdrop-label{font-size:12px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sdrop-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.sdrop-badge{margin-left:auto;font-size:10px;font-weight:600;color:var(--muted);
+  background:var(--off);padding:2px 7px;border-radius:99px;flex-shrink:0;border:1px solid var(--border-light)}
+.search-drop-empty{padding:18px;text-align:center;font-size:12px;color:var(--muted)}
+
+/* ── SIDEBAR NOME ÓTICA ── */
+#store-name-sb{font-size:10px;font-weight:600;color:var(--gold);text-align:center;
+  padding:6px 10px 0;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── PRINT CREDIÁRIO ── */
+@media print{
+  body *{visibility:hidden}
+  #print-area,#print-area *{visibility:visible}
+  #print-area{position:fixed;top:0;left:0;width:100%;background:#fff;color:#000;padding:24px;font-family:Arial,sans-serif}
+}
 </style>
 
 <!-- ══ LOGIN SCREEN ══ -->
@@ -304,6 +335,7 @@ tr:hover td{background:#FAFAF5}
          alt="HAW Vision"
          style="width:100%;max-width:158px;display:block;margin:0 auto;border-radius:4px"
          draggable="false">
+  <div id="store-name-sb"></div>
   </div>
 
   <div class="sb-section">Principal</div>
@@ -345,7 +377,7 @@ tr:hover td{background:#FAFAF5}
       <div class="page-sub" id="page-sub">Visão geral do negócio</div>
     </div>
     <div class="topbar-right">
-      <div class="search-wrap"><input type="text" placeholder="Buscar cliente, pedido…" id="global-search" oninput="globalSearch(this.value)"></div>
+      <div class="search-wrap"><input type="text" placeholder="Buscar… (Ctrl+K)" id="global-search" oninput="globalSearch(this.value)" onblur="setTimeout(closeSearchDrop,200)" onfocus="globalSearch(this.value)"><div id="search-drop" class="search-drop"></div></div>
       <button class="tb-btn tb-btn-gold" id="tb-action-btn" onclick="tbAction()">+ Novo Pedido</button>
       <button onclick="abrirAlterarPin()" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600" title="Alterar meu PIN">🔐 PIN</button>
       <button onclick="doLogout()" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600" title="Sair">↩ Sair</button>
@@ -381,6 +413,20 @@ tr:hover td{background:#FAFAF5}
           <div class="ml">Prontos p/ Entrega</div>
           <div class="mv" id="d-prontos">0</div>
           <div class="ms">Aguardando cliente</div>
+        </div>
+      </div>
+      <div class="metrics c2" style="margin-bottom:20px">
+        <div class="metric" style="border-top:3px solid var(--green)">
+          <div class="metric-icon">📅</div>
+          <div class="ml">Faturamento Hoje</div>
+          <div class="mv" id="d-fat-hoje">R$ 0</div>
+          <div class="ms" id="d-fat-hoje-sub">0 pedidos hoje</div>
+        </div>
+        <div class="metric" style="border-top:3px solid var(--red);cursor:pointer" onclick="nav('crediario')" title="Ver crediários">
+          <div class="metric-icon">📋</div>
+          <div class="ml">Crediários Vencidos</div>
+          <div class="mv" id="d-cred-vencidos">0</div>
+          <div class="ms" id="d-cred-vencidos-sub">parcelas em atraso</div>
         </div>
       </div>
 
@@ -1311,6 +1357,7 @@ function doLogin(){
   document.getElementById('login-screen').classList.add('hidden');
   filterSidebar();
   renderSidebarUser();
+  _aplicarNomeOtica();
   const first=(PAGE_ACCESS[currentUser.perfil]||['dashboard'])[0]||'dashboard';
   nav(first);
 }
@@ -1335,6 +1382,7 @@ function checkSession(){
         document.getElementById('login-screen').classList.add('hidden');
         filterSidebar();
         renderSidebarUser();
+        _aplicarNomeOtica();
         return;
       }
     }catch(e){}
@@ -1635,14 +1683,73 @@ function filterPedidos(f,btn){
 }
 
 // ── GLOBAL SEARCH ──
-function globalSearch(q){
-  if(!q.trim()){renderClientes();renderPedidos();return;}
-  const term=q.toLowerCase();
-  const clis=DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term)));
-  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term)));
-  renderClientesData(clis);
-  renderPedidosData(peds);
+function closeSearchDrop(){
+  const d=document.getElementById('search-drop');
+  if(d)d.style.display='none';
 }
+function globalSearch(q){
+  const drop=document.getElementById('search-drop');
+  if(!q||!q.trim()){
+    renderClientes();renderPedidos();
+    if(drop)drop.style.display='none';
+    return;
+  }
+  const term=q.toLowerCase();
+  const clis=DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))).slice(0,5);
+  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term))).slice(0,5);
+  const creds=(DB.crediarios||[]).filter(c=>!c.deleted&&((c.clienteNome||'').toLowerCase().includes(term)||(c.descricao||'').toLowerCase().includes(term))).slice(0,4);
+  renderClientesData(DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))));
+  renderPedidosData(DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term))));
+  if(!drop)return;
+  if(!clis.length&&!peds.length&&!creds.length){
+    drop.innerHTML='<div class="search-drop-empty">Nenhum resultado para "<strong>'+q+'</strong>"</div>';
+    drop.style.display='block';return;
+  }
+  let html='';
+  if(clis.length){
+    html+='<div class="search-drop-section">Clientes</div>';
+    clis.forEach(c=>{
+      html+=`<div class="search-drop-item" onclick="verPerfil('${c.id}');closeSearchDrop();document.getElementById('global-search').value=''">
+        <span class="sdrop-icon">👤</span>
+        <div style="min-width:0"><div class="sdrop-label">${c.nome}</div><div class="sdrop-sub">${c.telefone||c.cpf||'sem contato'}</div></div>
+        <span class="sdrop-badge">${(DB.pedidos.filter(p=>!p.deleted&&p.clienteId===c.id)).length} ped.</span>
+      </div>`;
+    });
+  }
+  if(peds.length){
+    html+='<div class="search-drop-section">Pedidos</div>';
+    peds.forEach(p=>{
+      const cli=DB.clientes.find(c=>c.id===p.clienteId)||{nome:'?'};
+      const st=(STATUS_BADGE[p.status]||{label:p.status}).label;
+      html+=`<div class="search-drop-item" onclick="nav('pedidos');closeSearchDrop();document.getElementById('global-search').value=''">
+        <span class="sdrop-icon">🛍️</span>
+        <div style="min-width:0"><div class="sdrop-label">#${p.numero} — ${cli.nome}</div><div class="sdrop-sub">${fmtMoney(p.total||0)} · ${st}</div></div>
+        <span class="sdrop-badge">${fmtDate(p.createdAt)}</span>
+      </div>`;
+    });
+  }
+  if(creds.length){
+    html+='<div class="search-drop-section">Crediário</div>';
+    creds.forEach(cr=>{
+      const venc=(cr.parcelas||[]).filter(p=>!p.pago&&p.dataVenc&&new Date(p.dataVenc)<new Date()).length;
+      html+=`<div class="search-drop-item" onclick="nav('crediario');closeSearchDrop();document.getElementById('global-search').value=''">
+        <span class="sdrop-icon">📋</span>
+        <div style="min-width:0"><div class="sdrop-label">${cr.clienteNome}</div><div class="sdrop-sub">${cr.descricao||''} · ${fmtMoney(cr.total||0)}</div></div>
+        ${venc?`<span class="sdrop-badge" style="color:var(--red);border-color:var(--red)">${venc} venc.</span>`:''}
+      </div>`;
+    });
+  }
+  drop.innerHTML=html;
+  drop.style.display='block';
+}
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){
+    e.preventDefault();
+    const inp=document.getElementById('global-search');
+    if(inp){inp.focus();inp.select();}
+  }
+  if(e.key==='Escape')closeSearchDrop();
+});
 
 
 // ── SALVAR CLIENTE ──
@@ -1702,7 +1809,9 @@ function verPerfil(id){
   const c=DB.clientes.find(x=>x.id===id);if(!c)return;
   const peds=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===id);
   const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===id).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
+  const creds=(DB.crediarios||[]).filter(cr=>!cr.deleted&&cr.clienteId===id);
   const ult=peds.filter(p=>p.status==='entregue').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
+  const totalGasto=peds.filter(p=>p.status==='entregue'||p.status==='pos_venda').reduce((s,p)=>s+Number(p.total||0),0);
   document.getElementById('perfil-nome-header').textContent=c.nome;
   document.getElementById('perfil-body').innerHTML=`
     <div class="perfil-header">
@@ -1713,6 +1822,7 @@ function verPerfil(id){
         <div class="perfil-tags">
           <span class="badge badge-gold">${c.status||'ativo'}</span>
           ${ult?`<span class="badge badge-gray">Última compra: ${fmtDate(ult.createdAt)}</span>`:''}
+          ${totalGasto>0?`<span class="badge badge-green">Total gasto: ${fmtMoney(totalGasto)}</span>`:''}
         </div>
       </div>
       <div style="margin-left:auto;display:flex;gap:8px">
@@ -1723,6 +1833,7 @@ function verPerfil(id){
     <div class="inner-tabs">
       <button class="inner-tab active" onclick="perfilTab('pedidos-${id}',this)">Pedidos (${peds.length})</button>
       <button class="inner-tab" onclick="perfilTab('receitas-${id}',this)">Receitas (${recs.length})</button>
+      <button class="inner-tab" onclick="perfilTab('crediario-${id}',this)">Crediário (${creds.length})</button>
     </div>
     <div id="perfil-tab-pedidos-${id}">
       ${peds.length?`<table><thead><tr><th>#</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody>
@@ -1758,12 +1869,34 @@ function verPerfil(id){
             ${r.dnp?`<div style="margin-top:8px;font-size:11px;color:var(--muted)">DNP: ${r.dnp}mm</div>`:''}
           </div>
         </div>`).join(''):`<div class="empty"><div class="empty-icon">👁️</div><div class="empty-title">Nenhuma receita cadastrada</div><button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="openModal('modal-receita',{clienteId:'${id}'})">+ Nova Receita</button></div>`}
+    </div>
+    <div id="perfil-tab-crediario-${id}" style="display:none">
+      ${creds.length?creds.map(cr=>{
+        const venc=(cr.parcelas||[]).filter(p=>!p.pago&&p.dataVenc&&new Date(p.dataVenc)<new Date()).length;
+        const pagas=(cr.parcelas||[]).filter(p=>p.pago).length;
+        const total=cr.parcelas?.length||cr.numParcelas||0;
+        return`<div class="card" style="margin-bottom:12px">
+          <div class="ch">
+            <span class="ct">${cr.descricao||'Crediário'}</span>
+            ${venc?`<span class="badge badge-red">${venc} vencida${venc>1?'s':''}</span>`:`<span class="badge badge-green">${pagas}/${total} pagas</span>`}
+          </div>
+          <div style="padding:12px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+            <div><div style="color:var(--muted);font-size:10px">Total</div><div style="font-weight:700">${fmtMoney(cr.total||0)}</div></div>
+            <div><div style="color:var(--muted);font-size:10px">Parcelas</div><div style="font-weight:700">${pagas}/${total} pagas</div></div>
+            <div><div style="color:var(--muted);font-size:10px">Status</div><div style="font-weight:700;color:${cr.status==='quitado'?'var(--green)':venc?'var(--red)':'var(--amber)'}">${cr.status==='quitado'?'Quitado':venc?'Em atraso':'Em dia'}</div></div>
+          </div>
+          <div style="padding:0 16px 12px;display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-perfil');nav('crediario')">Ver detalhes</button>
+            <button class="btn btn-ghost btn-sm" onclick="imprimirCrediario('${cr.id}')">🖨️ Imprimir</button>
+          </div>
+        </div>`;
+      }).join(''):`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Nenhum crediário</div></div>`}
     </div>`;
   openModal('modal-perfil');
 }
 function perfilTab(tabId,btn){
-  const base=tabId.replace(/^(pedidos|receitas)-/,'');
-  ['pedidos','receitas'].forEach(t=>{
+  const base=tabId.replace(/^(pedidos|receitas|crediario)-/,'');
+  ['pedidos','receitas','crediario'].forEach(t=>{
     const el=document.getElementById(`perfil-tab-${t}-${base}`);
     if(el)el.style.display='none';
   });
@@ -2553,6 +2686,12 @@ function salvarMetas(){
   });
   save();toast('Metas salvas!');
 }
+function _aplicarNomeOtica(){
+  const nome=(DB.settings&&DB.settings.empresa&&DB.settings.empresa.nome)||'';
+  const el=document.getElementById('store-name-sb');
+  if(el)el.textContent=nome&&nome!=='HAW Vision'?nome:'';
+  if(nome&&nome!=='HAW Vision')document.title=nome+' · CRM';
+}
 function salvarEmpresa(){
   const emp=DB.settings.empresa||{};
   DB.settings.empresa={
@@ -2565,6 +2704,7 @@ function salvarEmpresa(){
     estado:document.getElementById('emp-estado').value.trim().toUpperCase()||'PA',
   };
   save();
+  _aplicarNomeOtica();
   toast('Dados da empresa salvos!');
 }
 
@@ -2756,6 +2896,7 @@ function toast(msg){
 // ── DASHBOARD ──
 function renderDashboard(){
   const mes=new Date().toISOString().slice(0,7);
+  const hoje=new Date().toISOString().slice(0,10);
   const peds=DB.pedidos.filter(p=>!p.deleted);
   const mesPeds=peds.filter(p=>p.createdAt&&p.createdAt.startsWith(mes));
   const entregues=peds.filter(p=>p.status==='entregue'||p.status==='pos_venda');
@@ -2770,6 +2911,25 @@ function renderDashboard(){
   document.getElementById('d-aberto').textContent=aberto;
   document.getElementById('d-prontos').textContent=prontos;
 
+  // FATURAMENTO HOJE
+  const hojeEntregues=peds.filter(p=>(p.status==='entregue'||p.status==='pos_venda')&&p.updatedAt&&p.updatedAt.startsWith(hoje));
+  const fatHoje=hojeEntregues.reduce((s,p)=>s+Number(p.total||0),0);
+  const elFH=document.getElementById('d-fat-hoje');
+  const elFHSub=document.getElementById('d-fat-hoje-sub');
+  if(elFH)elFH.textContent=fmtMoney(fatHoje);
+  if(elFHSub)elFHSub.textContent=hojeEntregues.length+' pedido'+(hojeEntregues.length!==1?'s':'')+' hoje';
+
+  // CREDIÁRIOS VENCIDOS
+  const now=new Date();
+  let parcelasVencidas=0;
+  (DB.crediarios||[]).filter(c=>!c.deleted&&c.status!=='quitado').forEach(c=>{
+    (c.parcelas||[]).forEach(p=>{if(!p.pago&&p.dataVenc&&new Date(p.dataVenc)<now)parcelasVencidas++;});
+  });
+  const elCV=document.getElementById('d-cred-vencidos');
+  const elCVSub=document.getElementById('d-cred-vencidos-sub');
+  if(elCV)elCV.textContent=parcelasVencidas;
+  if(elCVSub)elCVSub.style.color=parcelasVencidas>0?'var(--red)':'var(--muted)';
+
   // ALERTAS
   const alertas=[];
   peds.filter(p=>p.status==='pronto').forEach(p=>{
@@ -2780,10 +2940,22 @@ function renderDashboard(){
     const days=p.updatedAt?Math.floor((Date.now()-new Date(p.updatedAt))/86400000):0;
     if(days>10){const cli=DB.clientes.find(c=>c.id===p.clienteId)||{nome:'?'};alertas.push({dot:'red',text:`Pedido #${p.numero} — ${days} dias em lab`,sub:cli.nome,time:`${days}d`});}
   });
-  const now=new Date();
+  // Crediários vencidos nos alertas
+  (DB.crediarios||[]).filter(c=>!c.deleted&&c.status!=='quitado').forEach(c=>{
+    const venc=(c.parcelas||[]).filter(p=>!p.pago&&p.dataVenc&&new Date(p.dataVenc)<now);
+    if(venc.length){
+      const oldest=venc.reduce((a,b)=>new Date(a.dataVenc)<new Date(b.dataVenc)?a:b);
+      const dias=Math.floor((now-new Date(oldest.dataVenc))/86400000);
+      alertas.push({dot:'red',text:`Crediário — ${c.clienteNome}`,sub:`${venc.length} parcela${venc.length>1?'s':''} vencida${venc.length>1?'s':''}`,time:`${dias}d`});
+    }
+  });
   DB.clientes.filter(c=>!c.deleted).forEach(c=>{
     const ultPed=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===c.id&&p.status==='entregue').sort((a,b)=>b.createdAt?.localeCompare(a.createdAt))[0];
-    if(ultPed){const m=Math.floor((now-new Date(ultPed.createdAt))/2592000000);if(m>=11&&m<14)alertas.push({dot:'blue',text:`${c.nome} — retorno`,sub:`${m} meses sem comprar`,time:`${m}m`});}
+    if(ultPed){
+      const m=Math.floor((now-new Date(ultPed.createdAt))/2592000000);
+      if(m>=11&&m<14)alertas.push({dot:'blue',text:`${c.nome} — retorno`,sub:`${m} meses sem comprar`,time:`${m}m`});
+      else if(m>=3&&m<11)alertas.push({dot:'amber',text:`${c.nome} — reativação`,sub:`${m} meses sem comprar`,time:`${m}m`});
+    }
   });
   document.getElementById('cnt-alertas').textContent=alertas.length;
   const al=document.getElementById('alert-list');
@@ -4219,6 +4391,9 @@ function _renderParcelasInline(c) {
     </div>` : '';
 
   return `<div style="padding:0 0 8px 24px">
+    <div style="padding:6px 0 10px;display:flex;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="imprimirCrediario('${c.id}')" style="font-size:11px">🖨️ Imprimir crediário</button>
+    </div>
     <table style="width:100%;font-size:12px;border-collapse:collapse">
       <thead><tr style="background:var(--off)">
         <th style="padding:6px 12px;text-align:left;font-weight:500;color:var(--muted)">Nº</th>
@@ -4242,6 +4417,85 @@ function toggleCrediarioDetalhe(id) {
   const showing = row.style.display !== 'none';
   document.querySelectorAll('[id^="detalhe-cred-"]').forEach(r => r.style.display = 'none');
   if (!showing) row.style.display = 'table-row';
+}
+
+function imprimirCrediario(id) {
+  const c = (DB.crediarios||[]).find(x => x.id === id);
+  if (!c) return;
+  const emp = (DB.settings&&DB.settings.empresa)||{nome:'HAW Vision',cnpj:'',telefone:''};
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const FORMA = {pix:'PIX',dinheiro:'Dinheiro',cartao_debito:'Débito',cartao_credito:'Crédito',transferencia:'Transferência',cheque:'Cheque'};
+  const pagas = (c.parcelas||[]).filter(p=>p.pago).length;
+  const total = (c.parcelas||[]).length;
+  const totalPago = (c.parcelas||[]).reduce((s,p)=>s+(p.valorPago||0),0);
+  const saldoRest = (c.total||0) - totalPago - (c.entrada||0);
+
+  const linhas = (c.parcelas||[]).map(p => {
+    const vd = new Date(p.vencimento+'T00:00:00');
+    const atras = !p.pago && vd < new Date();
+    const st = p.pago ? 'PAGO' : atras ? 'ATRASADO' : 'PENDENTE';
+    const cor = p.pago ? '#2E7D52' : atras ? '#8B2E2E' : '#555';
+    return `<tr style="border-bottom:1px solid #eee">
+      <td style="padding:6px 8px">${p.numero}ª</td>
+      <td style="padding:6px 8px">${fmtDate(p.vencimento)}</td>
+      <td style="padding:6px 8px;text-align:right">R$ ${(p.valorOriginal||0).toFixed(2)}</td>
+      <td style="padding:6px 8px;text-align:right">${p.valorPago>0?'R$ '+p.valorPago.toFixed(2):'—'}</td>
+      <td style="padding:6px 8px;text-align:center;font-weight:600;color:${cor}">${st}</td>
+      <td style="padding:6px 8px;font-size:11px;color:#777">${p.dataPagamento?fmtDate(p.dataPagamento):''}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Crediário — ${c.clienteNome}</title>
+    <style>
+      body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:24px;max-width:800px;margin:0 auto}
+      h1{font-size:18px;margin:0}h2{font-size:14px;margin:0;color:#555}
+      .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #222}
+      .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;background:#f8f8f8;padding:14px;border-radius:6px}
+      .info-item label{font-size:10px;color:#777;text-transform:uppercase;font-weight:600;display:block}
+      .info-item span{font-size:14px;font-weight:700}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      thead tr{background:#f0f0f0}
+      th{padding:7px 8px;text-align:left;font-weight:600;font-size:11px;color:#555}
+      .totals{margin-top:16px;text-align:right;font-size:13px}
+      .totals div{margin-bottom:4px}
+      .totals .grand{font-size:16px;font-weight:700;margin-top:8px}
+      .footer{margin-top:32px;border-top:1px solid #ddd;padding-top:12px;font-size:11px;color:#888;display:flex;justify-content:space-between}
+      @media print{button{display:none}}
+    </style>
+  </head><body>
+    <div class="header">
+      <div><h1>${emp.nome}</h1><h2>${emp.cnpj?'CNPJ: '+emp.cnpj:''}</h2></div>
+      <div style="text-align:right"><div style="font-size:16px;font-weight:700">CREDIÁRIO</div><div style="font-size:11px;color:#777">Emitido em ${hoje}</div></div>
+    </div>
+    <div class="info-grid">
+      <div class="info-item"><label>Cliente</label><span>${c.clienteNome}</span></div>
+      <div class="info-item"><label>Descrição</label><span>${c.descricao||'—'}</span></div>
+      <div class="info-item"><label>Total do contrato</label><span>R$ ${(c.total||0).toFixed(2)}</span></div>
+      <div class="info-item"><label>Entrada</label><span>R$ ${(c.entrada||0).toFixed(2)}</span></div>
+      <div class="info-item"><label>Parcelas</label><span>${pagas}/${total} pagas</span></div>
+      <div class="info-item"><label>Saldo restante</label><span style="color:${saldoRest>0?'#8B2E2E':'#2E7D52'}">R$ ${Math.max(0,saldoRest).toFixed(2)}</span></div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Nº</th><th>Vencimento</th><th style="text-align:right">Valor</th>
+        <th style="text-align:right">Pago</th><th style="text-align:center">Status</th><th>Pagamento em</th>
+      </tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+    <div class="totals">
+      <div>Total pago: <strong>R$ ${totalPago.toFixed(2)}</strong></div>
+      <div class="grand">Saldo restante: R$ ${Math.max(0,saldoRest).toFixed(2)}</div>
+    </div>
+    <div class="footer">
+      <span>${emp.nome}${emp.telefone?' · '+emp.telefone:''}</span>
+      <span>Documento gerado em ${hoje}</span>
+    </div>
+    <div style="margin-top:16px;text-align:center"><button onclick="window.print()" style="padding:8px 24px;font-size:13px;cursor:pointer">🖨️ Imprimir</button></div>
+  </body></html>`;
+
+  const w = window.open('','_blank','width=860,height=700');
+  if (w) { w.document.write(html); w.document.close(); }
 }
 
 function _credResetFields() {
