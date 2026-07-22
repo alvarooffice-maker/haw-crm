@@ -4275,28 +4275,28 @@ function abrirEditarCrediario(id) {
   const c = DB.crediarios.find(x => x.id === id);
   if (!c) return;
   const temPagas = (c.parcelas||[]).some(p => p.pago);
+  // Abrir modal PRIMEIRO (openModal reseta todos os inputs internamente)
+  openModal('modal-crediario');
+  // Depois preencher os campos
   _credResetFields();
   document.getElementById('cred-id').value = c.id;
   document.getElementById('modal-cred-title').textContent = 'Editar Crediário';
   document.getElementById('cred-descricao').value = c.descricao || '';
-  document.getElementById('cred-total').value = c.total || '';
-  document.getElementById('cred-entrada').value = c.entrada || 0;
+  document.getElementById('cred-total').value = c.total != null ? c.total : '';
+  document.getElementById('cred-entrada').value = c.entrada != null ? c.entrada : 0;
   document.getElementById('cred-taxa-mora').value = c.taxaMora ?? 1;
   document.getElementById('cred-multa').value = c.multaMora ?? 2;
-  // Data1 = vencimento da primeira parcela não paga
   const primUnpaid = (c.parcelas||[]).find(p => !p.pago);
   document.getElementById('cred-data1').value = primUnpaid
     ? primUnpaid.vencimento : (c.parcelas?.[0]?.vencimento || '');
-  // Número de parcelas: total ou restantes não pagas
   const nParcelas = c.numParcelas || (c.parcelas||[]).length;
   const selN = document.getElementById('cred-nparcelas');
   selN.value = nParcelas;
-  if (!selN.value) { // se o valor não existe no select, adiciona temporariamente
+  if (!selN.value) {
     const opt = document.createElement('option');
     opt.value = nParcelas; opt.textContent = nParcelas + 'x';
     selN.appendChild(opt); selN.value = nParcelas;
   }
-  // Cliente e pedido: preenche e bloqueia (não pode trocar após criado)
   const selCli = document.getElementById('cred-cliente-id');
   selCli.innerHTML = '<option value="">— Selecione o cliente —</option>' +
     DB.clientes.filter(cl=>!cl.deleted).map(cl=>`<option value="${cl.id}">${cl.nome}</option>`).join('');
@@ -4308,7 +4308,6 @@ function abrirEditarCrediario(id) {
     peds.map(p=>`<option value="${p.id}">#${p.numero} — ${fmtMoney(p.total)} — ${fmtDate(p.createdAt)}</option>`).join('');
   selPed.value = c.pedidoId || '';
   selPed.disabled = true; selPed.style.opacity = '0.6';
-  // Se tem parcelas pagas: bloqueia total/entrada/nparcelas
   if (temPagas) {
     ['cred-total','cred-entrada','cred-nparcelas'].forEach(fid => {
       const el = document.getElementById(fid);
@@ -4316,7 +4315,6 @@ function abrirEditarCrediario(id) {
     });
   }
   document.getElementById('cred-preview').style.display = 'none';
-  openModal('modal-crediario');
 }
 
 function credOnClienteChange() {
