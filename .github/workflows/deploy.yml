@@ -63,6 +63,10 @@ jobs:
           ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS motivo_perda TEXT;
           ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS data_entrega TIMESTAMPTZ;
           ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS prev_lab DATE;
+          ALTER TABLE crediarios ADD COLUMN IF NOT EXISTS total NUMERIC DEFAULT 0;
+          ALTER TABLE crediarios ADD COLUMN IF NOT EXISTS descricao TEXT;
+          ALTER TABLE crediarios ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+          ALTER TABLE crediarios ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
           "
           curl -s -X POST \
             "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query" \
