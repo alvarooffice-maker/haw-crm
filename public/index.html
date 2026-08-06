@@ -319,6 +319,16 @@ tr:hover td{background:#FAFAF5}
   #print-area,#print-area *{visibility:visible}
   #print-area{position:fixed;top:0;left:0;width:100%;background:#fff;color:#000;padding:24px;font-family:Arial,sans-serif}
 }
+/* ── MODAL OS ── */
+.os-rx-grid{display:grid;grid-template-columns:60px repeat(8,1fr);gap:1px;background:var(--border-light);border:1px solid var(--border-light);border-radius:var(--rad);overflow:hidden;margin-top:4px}
+.os-rx-grid .rh{background:var(--navy,#13182C);color:var(--gold,#F7CF13);font-size:10px;font-weight:700;text-align:center;padding:5px 2px;letter-spacing:.02em}
+.os-rx-grid .rl{background:var(--navy,#13182C);color:#fff;font-size:11px;font-weight:700;text-align:center;padding:0 2px;display:flex;align-items:center;justify-content:center}
+.os-rx-grid input{background:var(--white);border:none;padding:5px 4px;font-size:12px;text-align:center;width:100%;min-width:0;outline:none}
+.os-rx-grid input:focus{background:#fffbe6;box-shadow:inset 0 0 0 2px var(--gold,#F7CF13)}
+.os-cb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px 10px;margin-top:4px}
+.os-cb-item{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}
+.os-cb-item input{width:14px;height:14px;cursor:pointer;accent-color:var(--navy,#13182C)}
+.os-sec-title{font-size:11px;font-weight:700;color:var(--navy,#13182C);letter-spacing:.05em;text-transform:uppercase;margin:14px 0 2px;padding-bottom:3px;border-bottom:2px solid var(--gold,#F7CF13)}
 </style>
 
 <!-- ══ LOGIN SCREEN ══ -->
@@ -517,6 +527,7 @@ tr:hover td{background:#FAFAF5}
         </div>
         <div style="display:flex;gap:6px;align-items:center;margin-left:auto">
           <span class="badge badge-gold" id="cnt-ped-badge">0</span>
+          <button class="btn btn-ghost" style="padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px" onclick="novaOrdemServico()">📋 Nova OS</button>
           <div style="display:flex;gap:3px;background:var(--off);border:1px solid var(--border-light);border-radius:var(--rad);padding:3px">
             <button id="ped-view-kb" class="fb active" style="margin:0;padding:5px 12px;font-size:11px" onclick="setPedidosView('kanban')">🗂 Kanban</button>
             <button id="ped-view-li" class="fb" style="margin:0;padding:5px 12px;font-size:11px" onclick="setPedidosView('lista')">☰ Lista</button>
@@ -5119,7 +5130,299 @@ function salvarMeuPin(){
 }
 window.abrirAlterarPin=abrirAlterarPin;
 window.salvarMeuPin=salvarMeuPin;
+
+// ── ORDEM DE SERVIÇO ────────────────────────────────────────────
+function _nextOsNum(){
+  const s=DB.settings||{};
+  const ano=new Date().getFullYear();
+  const lastAno=s.osAno||0;
+  let seq=(lastAno===ano?(s.osSeq||0):0)+1;
+  DB.settings={...s,osAno:ano,osSeq:seq};
+  save();
+  return `OS-${ano}-${String(seq).padStart(3,'0')}`;
+}
+
+function novaOrdemServico(){
+  openModal('modal-os');
+  // OS number
+  document.getElementById('os-num').value=_nextOsNum();
+  // Date
+  document.getElementById('os-data').value=new Date().toISOString().slice(0,10);
+  // Populate autocomplete
+  const dl=document.getElementById('os-cli-list');
+  if(dl)dl.innerHTML=DB.clientes.filter(c=>!c.deleted).map(c=>`<option value="${c.nome}">`).join('');
+  // Clear checkboxes (openModal already clears inputs but not checkboxes)
+  ['os-arm-acetato','os-arm-metal','os-arm-tr90','os-arm-titanio','os-arm-nylon','os-arm-parafusada',
+   'os-tr-ar','os-tr-azul','os-tr-foto','os-tr-hidro','os-tr-risco','os-tr-uv'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.checked=false;
+  });
+}
+
+function gerarOsPDF(){
+  const v=id=>document.getElementById(id)?.value||'';
+  const ck=id=>document.getElementById(id)?.checked?'✓':'';
+  const emp=(DB.settings&&DB.settings.empresa)||{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém / PA'};
+  const nomeOtica=emp.nome||'HAW Vision';
+  const valorFmt=v('os-valor')?'R$ '+Number(v('os-valor')).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
+
+  const cellStyle=`border:1px solid #13182C;padding:5px 4px;text-align:center;font-size:11px;min-width:42px`;
+  const hStyle=`background:#13182C;color:#F7CF13;font-weight:700;font-size:10px;padding:5px 3px;text-align:center;border:1px solid #13182C`;
+
+  function rxTable(title,rows){
+    const [od,oe]=rows;
+    return `<div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#13182C;border-bottom:2px solid #F7CF13;padding-bottom:2px;margin-bottom:4px;text-transform:uppercase">${title}</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="${hStyle};width:50px">OLHO</th>
+          ${od.map((_,i)=>`<th style="${hStyle}">${['ESFÉRICO','CILÍND.','EIXO',title.includes('PERTO')?'ADIÇÃO':'DP',title.includes('PERTO')?'HORZ.':'DNP D',title.includes('PERTO')?'VERT.':'DNP E',title.includes('PERTO')?'DIAG.':'AÇÃO',title.includes('PERTO')?'ARM.':'PONTE'][i]}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          <tr><td style="${cellStyle};font-weight:800;background:#f0f4fb">O.D.</td>${od.map(v=>`<td style="${cellStyle}">${v}</td>`).join('')}</tr>
+          <tr style="background:#f9fafc"><td style="${cellStyle};font-weight:800">O.E.</td>${oe.map(v=>`<td style="${cellStyle}">${v}</td>`).join('')}</tr>
+        </tbody>
+      </table></div>`;
+  }
+
+  const longe=rxTable('PARA LONGE',[
+    [v('os-od-esf'),v('os-od-cil'),v('os-od-eix'),v('os-od-dp'),v('os-od-dnpd'),v('os-od-dnpe'),v('os-od-aco'),v('os-od-ponte')],
+    [v('os-oe-esf'),v('os-oe-cil'),v('os-oe-eix'),v('os-oe-dp'),v('os-oe-dnpd'),v('os-oe-dnpe'),v('os-oe-aco'),v('os-oe-ponte')]
+  ]);
+  const perto=rxTable('PARA PERTO / ADIÇÃO',[
+    [v('os-pp-od-esf'),v('os-pp-od-cil'),v('os-pp-od-eix'),v('os-pp-od-adc'),v('os-pp-od-horz'),v('os-pp-od-vert'),v('os-pp-od-diag'),v('os-pp-od-arm')],
+    [v('os-pp-oe-esf'),v('os-pp-oe-cil'),v('os-pp-oe-eix'),v('os-pp-oe-adc'),v('os-pp-oe-horz'),v('os-pp-oe-vert'),v('os-pp-oe-diag'),v('os-pp-oe-arm')]
+  ]);
+
+  const cbRow=(items)=>items.map(([id,lbl])=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="display:inline-block;width:12px;height:12px;border:1px solid #555;text-align:center;line-height:12px;font-size:9px">${ck(id)}</span>${lbl}</div>`).join('');
+
+  const logoEl=document.querySelector('#haw-pdf-logo img');
+  const logoSrc=logoEl?logoEl.src:'';
+
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>OS ${v('os-num')}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#fff;color:#000;padding:16px 20px}
+    @page{size:A4;margin:14mm 16mm}
+    @media print{.no-print{display:none!important}.cut-line{border-top:1px dashed #aaa;margin:14px 0;text-align:center;font-size:9px;color:#888;padding-top:4px}}
+    .os-wrap{max-width:720px;margin:0 auto}
+    .hdr{background:#13182C;color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-radius:4px 4px 0 0}
+    .hdr-title{font-size:20px;font-weight:900;letter-spacing:.04em;color:#fff}
+    .hdr-sub{font-size:9px;color:#F7CF13;font-weight:700;margin-top:2px}
+    .gold-bar{background:#F7CF13;height:4px;margin-bottom:12px;border-radius:0 0 2px 2px}
+    .field-row{display:grid;gap:8px;margin-bottom:8px}
+    .field-item label{font-size:9px;font-weight:700;color:#13182C;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:2px}
+    .field-item .fval{border-bottom:1.5px solid #13182C;padding:2px 0 3px;font-size:12px;min-height:20px}
+    .sec-title{font-size:11px;font-weight:700;color:#13182C;border-bottom:2px solid #F7CF13;padding-bottom:2px;margin:10px 0 4px;text-transform:uppercase}
+    .cb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 14px;margin-bottom:8px}
+    .obs-box{border:1px solid #ccc;background:#f7f8fb;min-height:52px;padding:7px;font-size:11px;border-radius:3px;white-space:pre-wrap}
+    .footer-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px;padding-top:8px;border-top:1px solid #ddd;font-size:9px;color:#555}
+    .sign-line{border-top:1px solid #000;width:200px;text-align:center;padding-top:2px;font-size:9px}
+    .btn-print{background:#13182C;color:#F7CF13;border:none;padding:9px 22px;font-size:13px;font-weight:700;border-radius:4px;cursor:pointer;margin:14px auto;display:block}
+    .btn-print:hover{background:#1e2a45}
+  </style></head><body>
+  <div class="os-wrap">
+    <div class="hdr">
+      ${logoSrc?`<img src="${logoSrc}" style="height:45px;filter:brightness(0) invert(1)" onerror="this.style.display='none'">`:''}
+      <div>
+        <div style="font-size:10px;color:#F7CF13;font-weight:700">${nomeOtica.toUpperCase()}</div>
+        <div style="font-size:8px;color:#fff;opacity:.8">${emp.telefone||''} &nbsp;|&nbsp; ${emp.cidade||'Belém / PA'}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="hdr-title">ORDEM DE SERVIÇO</div>
+        <div class="hdr-sub">Nº ${v('os-num')}</div>
+      </div>
+    </div>
+    <div class="gold-bar"></div>
+
+    <div class="field-row" style="grid-template-columns:3fr 1fr 2fr 1fr">
+      <div class="field-item"><label>Paciente</label><div class="fval">${v('os-paciente')}</div></div>
+      <div class="field-item"><label>Nº OS</label><div class="fval" style="font-weight:800">${v('os-num')}</div></div>
+      <div class="field-item"><label>Telefone</label><div class="fval">${v('os-tel')}</div></div>
+      <div class="field-item"><label>Data</label><div class="fval">${v('os-data').split('-').reverse().join('/')}</div></div>
+    </div>
+
+    ${longe}${perto}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div class="sec-title">Tipo de Armação</div>
+        <div class="cb-grid">
+          ${cbRow([['os-arm-acetato','Acetato'],['os-arm-metal','Metal / Aço'],['os-arm-tr90','TR-90 / Grilamid'],['os-arm-titanio','Titânio'],['os-arm-nylon','Nylon (Fio)'],['os-arm-parafusada','Parafusada']])}
+        </div>
+      </div>
+      <div>
+        <div class="sec-title">Tratamentos</div>
+        <div class="cb-grid">
+          ${cbRow([['os-tr-ar','Antirreflexo'],['os-tr-azul','Filtro Luz Azul'],['os-tr-foto','Fotossensível'],['os-tr-hidro','Hidrofóbico'],['os-tr-risco','Anti-risco'],['os-tr-uv','Proteção UV 400']])}
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-title">Observações Técnicas</div>
+    <div class="obs-box">${v('os-obs')||'&nbsp;'}</div>
+
+    <div class="field-row" style="grid-template-columns:1fr 1fr 2fr;margin-top:10px">
+      <div class="field-item"><label>Data de Entrega</label><div class="fval">${v('os-entrega').split('-').reverse().join('/')}</div></div>
+      <div class="field-item"><label>Valor Total</label><div class="fval" style="font-weight:700;font-size:14px">${valorFmt}</div></div>
+      <div class="field-item"><label>Forma de Pagamento</label><div class="fval">${v('os-pagamento')}</div></div>
+    </div>
+
+    <div class="footer-row">
+      <div>
+        <div class="sign-line">Assinatura do Cliente</div>
+      </div>
+      <div style="text-align:right">
+        <div style="margin-bottom:16px">_________________________________</div>
+        <div>Responsável Técnico &nbsp;|&nbsp; CRO: ___________</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:8px;color:#aaa;margin-top:12px">
+      ${nomeOtica} &nbsp;·&nbsp; CNPJ: ${emp.cnpj||''} &nbsp;·&nbsp; Validade recomendada: 6 meses
+    </div>
+
+    <button class="btn-print no-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+  </div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script>
+  </body></html>`;
+
+  const w=window.open('','_blank','width=800,height=900');
+  if(!w){toast('Permita pop-ups para gerar o PDF.');return;}
+  w.document.write(html);
+  w.document.close();
+  closeModal('modal-os');
+}
+
+window.novaOrdemServico=novaOrdemServico;
+window.gerarOsPDF=gerarOsPDF;
 </script>
+
+<!-- ══════════════════ MODAL ORDEM DE SERVIÇO ══════════════════ -->
+<div class="modal-overlay" id="modal-os">
+  <div class="modal" style="max-width:760px;width:96vw">
+    <div class="modal-header">
+      <span class="modal-title">📋 Nova Ordem de Serviço</span>
+      <button class="modal-close" onclick="closeModal('modal-os')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:78vh;overflow-y:auto">
+
+      <!-- Paciente / OS / Tel / Data -->
+      <div style="display:grid;grid-template-columns:2fr 1fr 1.5fr 1fr;gap:10px;margin-bottom:6px">
+        <div class="fg">
+          <label class="fl">Paciente</label>
+          <input type="text" id="os-paciente" list="os-cli-list" placeholder="Nome do paciente" autocomplete="off">
+          <datalist id="os-cli-list"></datalist>
+        </div>
+        <div class="fg">
+          <label class="fl">Nº OS</label>
+          <input type="text" id="os-num" readonly style="background:var(--off);font-weight:700;color:var(--navy,#13182C)">
+        </div>
+        <div class="fg">
+          <label class="fl">Telefone</label>
+          <input type="text" id="os-tel" placeholder="(91) 9____-____">
+        </div>
+        <div class="fg">
+          <label class="fl">Data</label>
+          <input type="date" id="os-data">
+        </div>
+      </div>
+
+      <!-- Para Longe -->
+      <div class="os-sec-title">Para Longe</div>
+      <div class="os-rx-grid" id="os-longe-grid">
+        <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
+        <div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
+        <div class="rh">DP</div><div class="rh">DNP D</div><div class="rh">DNP E</div>
+        <div class="rh">Ação</div><div class="rh">Ponte</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="os-od-esf" placeholder="+/-0.00"><input type="text" id="os-od-cil" placeholder="-0.00">
+        <input type="text" id="os-od-eix" placeholder="0°"><input type="text" id="os-od-dp" placeholder="0.0">
+        <input type="text" id="os-od-dnpd" placeholder="0.0"><input type="text" id="os-od-dnpe" placeholder="0.0">
+        <input type="text" id="os-od-aco" placeholder="—"><input type="text" id="os-od-ponte" placeholder="mm">
+        <div class="rl">O.E.</div>
+        <input type="text" id="os-oe-esf" placeholder="+/-0.00"><input type="text" id="os-oe-cil" placeholder="-0.00">
+        <input type="text" id="os-oe-eix" placeholder="0°"><input type="text" id="os-oe-dp" placeholder="0.0">
+        <input type="text" id="os-oe-dnpd" placeholder="0.0"><input type="text" id="os-oe-dnpe" placeholder="0.0">
+        <input type="text" id="os-oe-aco" placeholder="—"><input type="text" id="os-oe-ponte" placeholder="mm">
+      </div>
+
+      <!-- Para Perto -->
+      <div class="os-sec-title">Para Perto / Adição</div>
+      <div class="os-rx-grid">
+        <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
+        <div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
+        <div class="rh">Adição</div><div class="rh">Horz.</div><div class="rh">Vert.</div>
+        <div class="rh">Diag.</div><div class="rh">Arm.</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="os-pp-od-esf" placeholder="+/-0.00"><input type="text" id="os-pp-od-cil" placeholder="-0.00">
+        <input type="text" id="os-pp-od-eix" placeholder="0°"><input type="text" id="os-pp-od-adc" placeholder="+0.00">
+        <input type="text" id="os-pp-od-horz" placeholder="0.0"><input type="text" id="os-pp-od-vert" placeholder="0.0">
+        <input type="text" id="os-pp-od-diag" placeholder="—"><input type="text" id="os-pp-od-arm" placeholder="—">
+        <div class="rl">O.E.</div>
+        <input type="text" id="os-pp-oe-esf" placeholder="+/-0.00"><input type="text" id="os-pp-oe-cil" placeholder="-0.00">
+        <input type="text" id="os-pp-oe-eix" placeholder="0°"><input type="text" id="os-pp-oe-adc" placeholder="+0.00">
+        <input type="text" id="os-pp-oe-horz" placeholder="0.0"><input type="text" id="os-pp-oe-vert" placeholder="0.0">
+        <input type="text" id="os-pp-oe-diag" placeholder="—"><input type="text" id="os-pp-oe-arm" placeholder="—">
+      </div>
+
+      <!-- Armação + Tratamentos -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:4px">
+        <div>
+          <div class="os-sec-title">Tipo de Armação</div>
+          <div class="os-cb-grid">
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-acetato"> Acetato</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-metal"> Metal / Aço</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-tr90"> TR-90 / Grilamid</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-titanio"> Titânio</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-nylon"> Nylon (Fio)</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-parafusada"> Parafusada</label>
+          </div>
+        </div>
+        <div>
+          <div class="os-sec-title">Tratamentos Escolhidos</div>
+          <div class="os-cb-grid">
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-ar"> Antirreflexo</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-azul"> Filtro Luz Azul</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-foto"> Fotossensível</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-hidro"> Hidrofóbico</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-risco"> Anti-risco</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-uv"> Proteção UV 400</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observações -->
+      <div class="os-sec-title">Observações Técnicas</div>
+      <textarea id="os-obs" rows="3" placeholder="Recomendações de lentes, cuidados especiais, detalhes do pedido..." style="width:100%;resize:vertical"></textarea>
+
+      <!-- Entrega / Valor / Pagamento -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:10px;margin-top:8px">
+        <div class="fg">
+          <label class="fl">Data de Entrega</label>
+          <input type="date" id="os-entrega">
+        </div>
+        <div class="fg">
+          <label class="fl">Valor Total (R$)</label>
+          <input type="number" id="os-valor" placeholder="0,00" min="0" step="0.01">
+        </div>
+        <div class="fg">
+          <label class="fl">Forma de Pagamento</label>
+          <select id="os-pagamento">
+            <option value="">— Selecione —</option>
+            <option>Dinheiro</option><option>Cartão de Débito</option>
+            <option>Cartão de Crédito</option><option>Pix</option>
+            <option>Crediário HAW</option><option>Convênio</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-os')">Cancelar</button>
+      <button class="btn btn-gold" onclick="gerarOsPDF()">🖨️ Gerar PDF &amp; Imprimir</button>
+    </div>
+  </div>
+</div>
 
 <script src="supabase-layer.js?v=5" onerror="console.warn('[HAW] supabase-layer offline')"></script>
 
