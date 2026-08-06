@@ -362,6 +362,7 @@ tr:hover td{background:#FAFAF5}
   <div class="sb-section">Principal</div>
   <button class="sb-item active" onclick="nav('dashboard')"><span class="si">📊</span><span>Dashboard</span></button>
   <button class="sb-item" onclick="nav('pipeline')"><span class="si">🏷️</span><span>Pipeline</span><span class="sb-count" id="cnt-pipeline">0</span></button>
+  <button class="sb-item" onclick="nav('vendas')"><span class="si">🚀</span><span>Portal de Vendas</span></button>
 
   <div class="sb-section">Vendas</div>
   <button class="sb-item" onclick="nav('clientes')"><span class="si">👥</span><span>Clientes</span><span class="sb-count" id="cnt-clientes">0</span></button>
@@ -483,6 +484,56 @@ tr:hover td{background:#FAFAF5}
         <button class="fb active" onclick="setPipelineVendedor('todos',this)">Todos</button>
       </div>
       <div class="pipeline-board" id="pipeline-board"></div>
+    </div>
+
+    <!-- ══════════════════ PORTAL DE VENDAS ══════════════════ -->
+    <div class="tab-panel" id="tab-vendas">
+      <div style="display:flex;flex-direction:column;align-items:center;padding:28px 24px 24px;background:linear-gradient(160deg,#0d1120 0%,#13182C 60%,#1a2240 100%);border-radius:16px;margin:0;min-height:calc(100vh - 120px)">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.18em;color:#F7CF13;text-transform:uppercase;margin-bottom:8px">HAW Vision — Portal de Vendas</div>
+          <div style="font-size:26px;font-weight:800;color:#fff;line-height:1.2">O que vamos fazer hoje?</div>
+          <div style="font-size:13px;color:#8899bb;margin-top:6px">Selecione uma operação para começar</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;width:100%;max-width:800px;flex:1">
+          <!-- Novo Cliente -->
+          <button onclick="openModal('modal-cliente')" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
+            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">👥</div>
+            <div>
+              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Novo Cliente</div>
+              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Cadastrar um novo cliente<br>no sistema</div>
+            </div>
+            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
+          </button>
+          <!-- Novo Pedido -->
+          <button onclick="openModal('modal-pedido')" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
+            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">🛍️</div>
+            <div>
+              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Novo Pedido</div>
+              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Registrar um pedido e<br>entrar no pipeline</div>
+            </div>
+            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
+          </button>
+          <!-- Nova Receita -->
+          <button onclick="openModal('modal-receita')" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
+            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">👁️</div>
+            <div>
+              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Nova Receita</div>
+              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Lançar prescrição óptica<br>do paciente</div>
+            </div>
+            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
+          </button>
+          <!-- Nova OS -->
+          <button onclick="novaOrdemServico()" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
+            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">📋</div>
+            <div>
+              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Nova OS</div>
+              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Gerar ordem de serviço<br>com PDF automático</div>
+            </div>
+            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
+          </button>
+        </div>
+        <div style="margin-top:24px;font-size:10px;color:#2a3a5e;letter-spacing:.08em;text-transform:uppercase">HAW Vision · Sistema de Gestão Óptica</div>
+      </div>
     </div>
 
     <!-- ══════════════════ CLIENTES ══════════════════ -->
@@ -1281,8 +1332,8 @@ let chartFat = null, chartFunil = null, chartVendedor = null, chartFatMensal = n
 
 // ── ACCESS CONTROL ──
 const PAGE_ACCESS = {
-  vendedor:   ['dashboard','pipeline','clientes','pedidos','receitas','catalogo','crediario'],
-  gestor:     ['dashboard','pipeline','clientes','pedidos','receitas','catalogo','financeiro','relatorios','crediario'],
+  vendedor:   ['dashboard','pipeline','vendas','clientes','pedidos','receitas','catalogo','crediario'],
+  gestor:     ['dashboard','pipeline','vendas','clientes','pedidos','receitas','catalogo','financeiro','relatorios','crediario'],
   financeiro: ['dashboard','financeiro','relatorios','crediario'],
   dono:       null, // acesso total
 };
@@ -1557,6 +1608,7 @@ function loadFromStorage(){
 const navConfig = {
   dashboard:{title:'Dashboard',sub:'Visão geral do negócio',btn:'+ Novo Pedido',action:'openModal("modal-pedido")'},
   pipeline:{title:'Pipeline',sub:'Jornada de atendimento',btn:'+ Novo Pedido',action:'openModal("modal-pedido")'},
+  vendas:{title:'Portal de Vendas',sub:'Acesso rápido às operações do dia a dia',btn:''},
   clientes:{title:'Clientes',sub:'Cadastro e gestão de clientes',btn:'+ Novo Cliente',action:'openModal("modal-cliente")'},
   pedidos:{title:'Pedidos',sub:'Todos os pedidos',btn:'+ Novo Pedido',action:'openModal("modal-pedido")'},
   receitas:{title:'Receitas Ópticas',sub:'Prescrições dos clientes',btn:'+ Nova Receita',action:'openModal("modal-receita")'},
