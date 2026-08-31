@@ -5224,30 +5224,41 @@ function novaOrdemServico(){
   document.querySelectorAll('[name="os-arm-cond"]').forEach(r=>r.checked=false);
   const m=document.getElementById('os-montagem');if(m)m.value='';
   const idx=document.getElementById('os-indice');if(idx)idx.value='';
+  const bn=document.getElementById('os-import-banner');if(bn)bn.style.display='none';
 }
 
 function osImportarReceita(nomeOuId){
-  // Tenta encontrar cliente pelo nome
+  const banner=document.getElementById('os-import-banner');
+  const bannerInfo=document.getElementById('os-import-info');
+  if(banner){banner.style.display='none';}
   const cli=DB.clientes.find(c=>!c.deleted&&c.nome===nomeOuId);
   if(!cli)return;
-  // Auto-preenche telefone
   const telEl=document.getElementById('os-tel');
   if(telEl&&!telEl.value&&cli.telefone)telEl.value=cli.telefone;
-  // Busca receita mais recente
   const rec=(DB.receitas||[]).filter(r=>!r.deleted&&r.clienteId===cli.id)
     .sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''))[0];
   if(!rec)return;
-  const set=(id,val)=>{const el=document.getElementById(id);if(el&&val!=null)el.value=val;};
-  set('os-od-esf', rec.odEsf!=null?rec.odEsf:'');
-  set('os-od-cil', rec.odCil!=null?rec.odCil:'');
-  set('os-od-eix', rec.odEixo!=null?rec.odEixo:'');
-  set('os-oe-esf', rec.oeEsf!=null?rec.oeEsf:'');
-  set('os-oe-cil', rec.oeCil!=null?rec.oeCil:'');
-  set('os-oe-eix', rec.oeEixo!=null?rec.oeEixo:'');
-  if(rec.odAdi!=null){set('os-pp-od-esf',rec.odEsf!=null?rec.odEsf:'');set('os-pp-od-cil',rec.odCil!=null?rec.odCil:'');set('os-pp-od-eix',rec.odEixo!=null?rec.odEixo:'');set('os-pp-od-adc',rec.odAdi);}
-  if(rec.oeAdi!=null){set('os-pp-oe-esf',rec.oeEsf!=null?rec.oeEsf:'');set('os-pp-oe-cil',rec.oeCil!=null?rec.oeCil:'');set('os-pp-oe-eix',rec.oeEixo!=null?rec.oeEixo:'');set('os-pp-oe-adc',rec.oeAdi);}
-  if(rec.dnp){set('os-od-dnp',rec.dnp);set('os-oe-dnp',rec.dnp);}
-  toast('Receita importada automaticamente!');
+  const setHL=(id,val)=>{
+    const el=document.getElementById(id);
+    if(!el||val==null)return;
+    el.value=val;
+    el.style.background='#fffbe6';
+    el.addEventListener('input',()=>{el.style.background='';},{once:true});
+  };
+  setHL('os-od-esf', rec.odEsf!=null?rec.odEsf:'');
+  setHL('os-od-cil', rec.odCil!=null?rec.odCil:'');
+  setHL('os-od-eix', rec.odEixo!=null?rec.odEixo:'');
+  setHL('os-oe-esf', rec.oeEsf!=null?rec.oeEsf:'');
+  setHL('os-oe-cil', rec.oeCil!=null?rec.oeCil:'');
+  setHL('os-oe-eix', rec.oeEixo!=null?rec.oeEixo:'');
+  if(rec.odAdi!=null){setHL('os-pp-od-esf',rec.odEsf!=null?rec.odEsf:'');setHL('os-pp-od-cil',rec.odCil!=null?rec.odCil:'');setHL('os-pp-od-eix',rec.odEixo!=null?rec.odEixo:'');setHL('os-pp-od-adc',rec.odAdi);}
+  if(rec.oeAdi!=null){setHL('os-pp-oe-esf',rec.oeEsf!=null?rec.oeEsf:'');setHL('os-pp-oe-cil',rec.oeCil!=null?rec.oeCil:'');setHL('os-pp-oe-eix',rec.oeEixo!=null?rec.oeEixo:'');setHL('os-pp-oe-adc',rec.oeAdi);}
+  if(rec.dnp){setHL('os-od-dnp',rec.dnp);setHL('os-oe-dnp',rec.dnp);}
+  if(banner&&bannerInfo){
+    const dtStr=rec.dataReceita?rec.dataReceita.split('-').reverse().join('/'):'';
+    bannerInfo.textContent='Receita'+(dtStr?' de '+dtStr:'')+ ' importada automaticamente';
+    banner.style.display='flex';
+  }
 }
 
 function _coletarDadosOS(){
@@ -5525,6 +5536,13 @@ window.gerarOsPDF=gerarOsPDF;
           <label class="fl">Data</label>
           <input type="date" id="os-data">
         </div>
+      </div>
+
+      <!-- Banner de receita importada -->
+      <div id="os-import-banner" style="display:none;background:#fffbe6;border:1.5px solid var(--gold,#F7CF13);border-radius:6px;padding:8px 14px;margin-bottom:8px;font-size:12px;color:var(--navy,#13182C);display:none;align-items:center;gap:10px">
+        <span>📋</span>
+        <span id="os-import-info" style="flex:1;font-weight:600"></span>
+        <span style="font-size:11px;opacity:.75">— edite os campos abaixo se necessário</span>
       </div>
 
       <!-- Para Longe -->
