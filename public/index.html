@@ -5246,7 +5246,7 @@ function osImportarReceita(nomeOuId){
   set('os-oe-eix', rec.oeEixo!=null?rec.oeEixo:'');
   if(rec.odAdi!=null){set('os-pp-od-esf',rec.odEsf!=null?rec.odEsf:'');set('os-pp-od-cil',rec.odCil!=null?rec.odCil:'');set('os-pp-od-eix',rec.odEixo!=null?rec.odEixo:'');set('os-pp-od-adc',rec.odAdi);}
   if(rec.oeAdi!=null){set('os-pp-oe-esf',rec.oeEsf!=null?rec.oeEsf:'');set('os-pp-oe-cil',rec.oeCil!=null?rec.oeCil:'');set('os-pp-oe-eix',rec.oeEixo!=null?rec.oeEixo:'');set('os-pp-oe-adc',rec.oeAdi);}
-  if(rec.dnp)set('os-dnp',rec.dnp);
+  if(rec.dnp){set('os-od-dnp',rec.dnp);set('os-oe-dnp',rec.dnp);}
   toast('Receita importada automaticamente!');
 }
 
@@ -5260,9 +5260,9 @@ function _coletarDadosOS(){
   return {
     id:'os-'+Date.now(),
     num:v('os-num'),paciente:v('os-paciente'),tel:v('os-tel'),data:v('os-data'),
-    longe_od:{esf:v('os-od-esf'),cil:v('os-od-cil'),eix:v('os-od-eix'),aco:v('os-od-aco')},
-    longe_oe:{esf:v('os-oe-esf'),cil:v('os-oe-cil'),eix:v('os-oe-eix'),aco:v('os-oe-aco')},
-    dnp:v('os-dnp'),ponte:v('os-ponte'),
+    longe_od:{esf:v('os-od-esf'),cil:v('os-od-cil'),eix:v('os-od-eix'),dnp:v('os-od-dnp'),aco:v('os-od-aco')},
+    longe_oe:{esf:v('os-oe-esf'),cil:v('os-oe-cil'),eix:v('os-oe-eix'),dnp:v('os-oe-dnp'),aco:v('os-oe-aco')},
+    ponte:v('os-ponte'),
     perto_od:{esf:v('os-pp-od-esf'),cil:v('os-pp-od-cil'),eix:v('os-pp-od-eix'),adc:v('os-pp-od-adc'),arm:v('os-pp-od-arm')},
     perto_oe:{esf:v('os-pp-oe-esf'),cil:v('os-pp-oe-cil'),eix:v('os-pp-oe-eix'),adc:v('os-pp-oe-adc'),arm:v('os-pp-oe-arm')},
     horz:v('os-horz'),vert:v('os-vert'),diag:v('os-diag'),
@@ -5371,19 +5371,16 @@ function _abrirPDFdaOS(os){
       </table></div>`;
   }
 
-  const sharedLonge=`<div style="display:flex;gap:24px;margin-bottom:8px;font-size:11px">
-    <span><b>DNP:</b> ${os.dnp||'—'} mm</span>
-    <span><b>Ponte:</b> ${os.ponte||'—'} mm</span>
-  </div>`;
-  const sharedPerto=`<div style="display:flex;gap:24px;margin-bottom:8px;font-size:11px">
+  const sharedArmacao=`<div style="display:flex;gap:24px;margin-bottom:8px;font-size:11px">
+    <span><b>Ponte:</b> ${os.ponte||'—'}</span>
     <span><b>Horz.:</b> ${os.horz||'—'}</span>
     <span><b>Vert.:</b> ${os.vert||'—'}</span>
     <span><b>Diag.+:</b> ${os.diag||'—'}</span>
   </div>`;
 
-  const longe=rxTable('PARA LONGE',['ESFÉRICO','CILÍND.','EIXO','ACO'],[
-    [os.longe_od?.esf,os.longe_od?.cil,os.longe_od?.eix,os.longe_od?.aco],
-    [os.longe_oe?.esf,os.longe_oe?.cil,os.longe_oe?.eix,os.longe_oe?.aco]
+  const longe=rxTable('PARA LONGE',['ESFÉRICO','CILÍND.','EIXO','DNP','ACO'],[
+    [os.longe_od?.esf,os.longe_od?.cil,os.longe_od?.eix,os.longe_od?.dnp,os.longe_od?.aco],
+    [os.longe_oe?.esf,os.longe_oe?.cil,os.longe_oe?.eix,os.longe_oe?.dnp,os.longe_oe?.aco]
   ]);
   const perto=rxTable('PARA PERTO / ADIÇÃO',['ESFÉRICO','CILÍND.','EIXO','ADIÇÃO','ARM.'],[
     [os.perto_od?.esf,os.perto_od?.cil,os.perto_od?.eix,os.perto_od?.adc,os.perto_od?.arm],
@@ -5439,7 +5436,7 @@ function _abrirPDFdaOS(os){
       <div class="field-item"><label>Data</label><div class="fval">${fmtData(os.data)}</div></div>
     </div>
 
-    ${longe}${sharedLonge}${perto}${sharedPerto}
+    ${longe}${perto}${sharedArmacao}
 
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;font-size:11px">
       <div><b>Armação:</b> ${os.armCond||'—'}</div>
@@ -5532,22 +5529,20 @@ window.gerarOsPDF=gerarOsPDF;
 
       <!-- Para Longe -->
       <div class="os-sec-title">Para Longe</div>
-      <div class="os-rx-grid" id="os-longe-grid" style="grid-template-columns:60px repeat(4,1fr)">
+      <div class="os-rx-grid" id="os-longe-grid" style="grid-template-columns:60px repeat(5,1fr)">
         <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
         <div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
-        <div class="rh">ACO</div>
+        <div class="rh">DNP</div><div class="rh">ACO</div>
         <div class="rl">O.D.</div>
         <input type="text" id="os-od-esf" placeholder="+/-0.00"><input type="text" id="os-od-cil" placeholder="-0.00">
         <input type="text" id="os-od-eix" placeholder="0°">
+        <input type="text" id="os-od-dnp" placeholder="0.0">
         <input type="text" id="os-od-aco" placeholder="—">
         <div class="rl">O.E.</div>
         <input type="text" id="os-oe-esf" placeholder="+/-0.00"><input type="text" id="os-oe-cil" placeholder="-0.00">
         <input type="text" id="os-oe-eix" placeholder="0°">
+        <input type="text" id="os-oe-dnp" placeholder="0.0">
         <input type="text" id="os-oe-aco" placeholder="—">
-      </div>
-      <div style="display:flex;align-items:center;gap:18px;margin-top:6px;margin-bottom:2px">
-        <label style="font-size:11px;font-weight:700;color:var(--navy,#13182C);display:flex;align-items:center;gap:6px">DNP (mm): <input type="text" id="os-dnp" placeholder="62.0" style="width:72px;border:1px solid var(--border-light);border-radius:4px;padding:4px 8px;font-size:12px"></label>
-        <label style="font-size:11px;font-weight:700;color:var(--navy,#13182C);display:flex;align-items:center;gap:6px">Ponte (mm): <input type="text" id="os-ponte" placeholder="—" style="width:72px;border:1px solid var(--border-light);border-radius:4px;padding:4px 8px;font-size:12px"></label>
       </div>
 
       <!-- Para Perto -->
@@ -5565,15 +5560,16 @@ window.gerarOsPDF=gerarOsPDF;
         <input type="text" id="os-pp-oe-eix" placeholder="0°"><input type="text" id="os-pp-oe-adc" placeholder="+0.00">
         <input type="text" id="os-pp-oe-arm" placeholder="—">
       </div>
-      <div style="display:flex;align-items:center;gap:16px;margin-top:6px;margin-bottom:2px">
-        <span style="font-size:11px;font-weight:700;color:var(--navy,#13182C);white-space:nowrap">Compartilhado OD/OE:</span>
-        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Horz. <input type="text" id="os-horz" placeholder="0.0" style="width:64px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
-        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Vert. <input type="text" id="os-vert" placeholder="0.0" style="width:64px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
-        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Diag.+ <input type="text" id="os-diag" placeholder="—" style="width:64px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+      <div class="os-sec-title">Dados da Armação</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Ponte <input type="text" id="os-ponte" placeholder="—" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Horz. <input type="text" id="os-horz" placeholder="0.0" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Vert. <input type="text" id="os-vert" placeholder="0.0" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Diag.+ <input type="text" id="os-diag" placeholder="—" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
       </div>
 
       <!-- Condição da Armação / Montagem / Índice -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px;margin-bottom:4px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:4px">
         <div class="fg">
           <label class="fl">Armação</label>
           <div style="display:flex;gap:16px;margin-top:5px">
