@@ -5202,16 +5202,19 @@ window.salvarMeuPin=salvarMeuPin;
 
 // ── ORDEM DE SERVIÇO ────────────────────────────────────────────
 function _nextOsNum(){
-  const s=DB.settings||{};
   const ano=new Date().getFullYear();
-  const lastAno=s.osAno||0;
-  let seq=(lastAno===ano?(s.osSeq||0):0)+1;
-  DB.settings={...s,osAno:ano,osSeq:seq};
-  save();
-  return `OS-${ano}-${String(seq).padStart(3,'0')}`;
+  const prefix=`OS-${ano}-`;
+  const maxSeq=(DB.ordens||[])
+    .filter(o=>!o.deleted&&(o.num||'').startsWith(prefix))
+    .map(o=>parseInt((o.num||'').slice(prefix.length))||0)
+    .reduce((a,b)=>Math.max(a,b),0);
+  return `OS-${ano}-${String(maxSeq+1).padStart(3,'0')}`;
 }
 
+let _editingOsId=null;
+
 function novaOrdemServico(){
+  _editingOsId=null;
   openModal('modal-os');
   document.getElementById('os-num').value=_nextOsNum();
   document.getElementById('os-data').value=new Date().toISOString().slice(0,10);
@@ -5291,7 +5294,13 @@ function salvarOS(fechar=true){
   const os=_coletarDadosOS();
   if(!os.paciente){toast('Informe o nome do paciente.');return null;}
   if(!DB.ordens)DB.ordens=[];
-  DB.ordens.push(os);
+  if(_editingOsId){
+    const idx=DB.ordens.findIndex(o=>o.id===_editingOsId);
+    if(idx>=0){os.id=_editingOsId;os.created_at=DB.ordens[idx].created_at;DB.ordens[idx]=os;}
+    _editingOsId=null;
+  } else {
+    DB.ordens.push(os);
+  }
   save();
   _atualizarCntOS();
   if(fechar){closeModal('modal-os');renderOS();}
@@ -5324,6 +5333,7 @@ function renderOS(){
     <td>${o.montagem||'—'}</td>
     <td style="font-size:11px">${o.armCond||'—'}</td>
     <td style="white-space:nowrap">
+      <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" onclick="editarOS('${o.id}')">✏️</button>
       <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" onclick="reimprimirOS('${o.id}')">🖨️</button>
       <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;color:var(--danger,#e53)" onclick="excluirOS('${o.id}')">✕</button>
     </td>
@@ -5342,11 +5352,38 @@ function reimprimirOS(id){
   _abrirPDFdaOS(os);
 }
 
+function editarOS(id){
+  const os=(DB.ordens||[]).find(o=>o.id===id);
+  if(!os){toast('OS não encontrada.');return;}
+  _editingOsId=id;
+  openModal('modal-os');
+  const set=(eid,val)=>{const el=document.getElementById(eid);if(el&&val!=null)el.value=val;};
+  const dl=document.getElementById('os-cli-list');
+  if(dl)dl.innerHTML=DB.clientes.filter(c=>!c.deleted).map(c=>`<option value="${c.nome}">`).join('');
+  set('os-num',os.num);set('os-paciente',os.paciente);set('os-tel',os.tel);set('os-data',os.data);
+  set('os-od-esf',os.longe_od?.esf);set('os-od-cil',os.longe_od?.cil);set('os-od-eix',os.longe_od?.eix);set('os-od-dnp',os.longe_od?.dnp);set('os-od-aco',os.longe_od?.aco);
+  set('os-oe-esf',os.longe_oe?.esf);set('os-oe-cil',os.longe_oe?.cil);set('os-oe-eix',os.longe_oe?.eix);set('os-oe-dnp',os.longe_oe?.dnp);set('os-oe-aco',os.longe_oe?.aco);
+  set('os-pp-od-esf',os.perto_od?.esf);set('os-pp-od-cil',os.perto_od?.cil);set('os-pp-od-eix',os.perto_od?.eix);set('os-pp-od-adc',os.perto_od?.adc);set('os-pp-od-arm',os.perto_od?.arm);
+  set('os-pp-oe-esf',os.perto_oe?.esf);set('os-pp-oe-cil',os.perto_oe?.cil);set('os-pp-oe-eix',os.perto_oe?.eix);set('os-pp-oe-adc',os.perto_oe?.adc);set('os-pp-oe-arm',os.perto_oe?.arm);
+  set('os-ponte',os.ponte);set('os-horz',os.horz);set('os-vert',os.vert);set('os-diag',os.diag);
+  document.querySelectorAll('[name="os-arm-cond"]').forEach(r=>{r.checked=(r.value===os.armCond);});
+  set('os-montagem',os.montagem);set('os-indice',os.indice);
+  const armCbs=['os-arm-acetato','os-arm-metal','os-arm-tr90','os-arm-titanio','os-arm-nylon','os-arm-parafusada'];
+  const armLabels=['Acetato','Metal / Aço','TR-90 / Grilamid','Titânio','Nylon (Fio)','Parafusada'];
+  armCbs.forEach((cbid,i)=>{const el=document.getElementById(cbid);if(el)el.checked=(os.armacao||[]).includes(armLabels[i]);});
+  const tratCbs=['os-tr-ar','os-tr-azul','os-tr-foto','os-tr-hidro','os-tr-risco','os-tr-uv'];
+  const tratLabels=['Antirreflexo','Filtro Luz Azul','Fotossensível','Hidrofóbico','Anti-risco','Proteção UV 400'];
+  tratCbs.forEach((cbid,i)=>{const el=document.getElementById(cbid);if(el)el.checked=(os.tratamentos||[]).includes(tratLabels[i]);});
+  set('os-obs',os.obs);set('os-entrega',os.entrega);set('os-valor',os.valor||'');set('os-pagamento',os.pagamento);
+  const bn=document.getElementById('os-import-banner');if(bn)bn.style.display='none';
+}
+
 window.osImportarReceita=osImportarReceita;
 window.salvarOS=salvarOS;
 window.renderOS=renderOS;
 window.excluirOS=excluirOS;
 window.reimprimirOS=reimprimirOS;
+window.editarOS=editarOS;
 
 function gerarOsPDF(){
   // Salva antes de imprimir (sem fechar modal)
@@ -5435,7 +5472,7 @@ function _abrirPDFdaOS(os){
       </div>
       <div style="text-align:right">
         <div class="hdr-title">ORDEM DE SERVIÇO</div>
-        <div class="hdr-sub">Nº ${v('os-num')}</div>
+        <div class="hdr-sub">Nº ${os.num}</div>
       </div>
     </div>
     <div class="gold-bar"></div>
