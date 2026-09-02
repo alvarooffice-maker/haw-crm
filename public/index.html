@@ -5201,22 +5201,30 @@ window.abrirAlterarPin=abrirAlterarPin;
 window.salvarMeuPin=salvarMeuPin;
 
 // ── ORDEM DE SERVIÇO ────────────────────────────────────────────
-function _nextOsNum(){
+async function _nextOsNum(){
   const ano=new Date().getFullYear();
   const prefix=`OS-${ano}-`;
-  const maxSeq=(DB.ordens||[])
+  const localMax=(DB.ordens||[])
     .filter(o=>!o.deleted&&(o.num||'').startsWith(prefix))
     .map(o=>parseInt((o.num||'').slice(prefix.length))||0)
     .reduce((a,b)=>Math.max(a,b),0);
-  return `OS-${ano}-${String(maxSeq+1).padStart(3,'0')}`;
+  let sbMax=0;
+  const sb=window._hawSB;
+  if(sb){
+    try{
+      const{data}=await sb.from('ordens').select('num').like('num',`OS-${ano}-%`).is('deleted_at',null);
+      if(data)sbMax=data.map(r=>parseInt((r.num||'').slice(prefix.length))||0).reduce((a,b)=>Math.max(a,b),0);
+    }catch(e){}
+  }
+  return `OS-${ano}-${String(Math.max(localMax,sbMax)+1).padStart(3,'0')}`;
 }
 
 let _editingOsId=null;
 
-function novaOrdemServico(){
+async function novaOrdemServico(){
   _editingOsId=null;
   openModal('modal-os');
-  document.getElementById('os-num').value=_nextOsNum();
+  document.getElementById('os-num').value='…';
   document.getElementById('os-data').value=new Date().toISOString().slice(0,10);
   const dl=document.getElementById('os-cli-list');
   if(dl)dl.innerHTML=DB.clientes.filter(c=>!c.deleted).map(c=>`<option value="${c.nome}">`).join('');
@@ -5228,6 +5236,7 @@ function novaOrdemServico(){
   const m=document.getElementById('os-montagem');if(m)m.value='';
   const idx=document.getElementById('os-indice');if(idx)idx.value='';
   const bn=document.getElementById('os-import-banner');if(bn)bn.style.display='none';
+  _nextOsNum().then(num=>{const el=document.getElementById('os-num');if(el)el.value=num;});
 }
 
 function osImportarReceita(nomeOuId){
@@ -5347,9 +5356,9 @@ function renderOS(){
     <td style="font-size:11px">${o.armCond||'—'}</td>
     ${podeVerTodos?`<td style="font-size:11px;color:var(--muted)">${o.usuarioNome||'—'}</td>`:''}
     <td style="white-space:nowrap">
-      <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" onclick="editarOS('${o.id}')">✏️</button>
-      <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" onclick="reimprimirOS('${o.id}')">🖨️</button>
-      <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;color:var(--danger,#e53)" onclick="excluirOS('${o.id}')">✕</button>
+      <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" title="Editar" onclick="editarOS('${o.id}')">✏️</button>
+      <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" title="Visualizar PDF" onclick="reimprimirOS('${o.id}')">👁️</button>
+      <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;color:var(--danger,#e53)" title="Excluir" onclick="excluirOS('${o.id}')">✕</button>
     </td>
   </tr>`).join('')}</tbody></table>`;
 }
