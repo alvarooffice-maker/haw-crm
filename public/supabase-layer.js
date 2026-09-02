@@ -86,6 +86,7 @@
         syncPedidoItens(),
         syncTabela('usuarios').catch(() => {}), // falha silenciosa se RLS bloquear
         syncTabela('crediarios').catch(() => {}), // tabela pode não existir ainda
+        syncOrdens().catch(() => {}),             // tabela pode não existir ainda
       ]);
       setSyncStatus('online');
       if (typeof toast === 'function') toast('✅ Dados sincronizados com Supabase!');
@@ -125,6 +126,25 @@
       const { error: insErr } = await sb.from('pedido_itens').insert(itens);
       if (insErr) console.warn('[HAW] Falha ao inserir itens do pedido', p.id, insErr.message);
     }
+  }
+
+  async function syncOrdens() {
+    const rows = (window.DB.ordens || []).filter(r => !r.deleted);
+    if (!rows.length) return;
+    const mapped = rows.map(o => ({
+      id: o.id,
+      num: o.num || '',
+      paciente: o.paciente || '',
+      tel: o.tel || '',
+      data: o.data || null,
+      usuario_id: o.usuarioId || null,
+      usuario_nome: o.usuarioNome || null,
+      dados: o,
+      created_at: o.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+    const { error } = await sb.from('ordens').upsert(mapped, { onConflict: 'id' });
+    if (error) throw error;
   }
 
   // ── LOAD: Supabase → localStorage ────────────────────────
@@ -258,6 +278,20 @@
         window.DB.pedidos = [...sbPedidos, ...localOnlyPeds2];
       }
 
+      // Merge ordens de serviço (tabela opcional — falha silenciosa se não existir)
+      try {
+        const ords = await sb.from('ordens').select('*').is('deleted_at', null).order('created_at', { ascending: false });
+        if (ords.data && ords.data.length > 0) {
+          const sbItems = ords.data.map(r => r.dados || { id: r.id, num: r.num, paciente: r.paciente, data: r.data, usuarioId: r.usuario_id, usuarioNome: r.usuario_nome, created_at: r.created_at });
+          const sbIds = new Set(sbItems.map(r => r.id));
+          const localOnly = (window.DB.ordens || []).filter(o => !sbIds.has(o.id) && !o.deleted);
+          window.DB.ordens = [...sbItems, ...localOnly];
+          if (localOnly.length) {
+            Promise.resolve(syncOrdens()).catch(e => console.warn('[HAW] Falha ao sincronizar ordens locais:', e));
+          }
+        }
+      } catch (e) { /* tabela ordens ainda não criada no Supabase */ }
+
       // Merge crediarios (tabela opcional — falha silenciosa se não existir)
       try {
         const creds = await sb.from('crediarios').select('*').order('created_at', { ascending: false });
@@ -302,6 +336,12 @@
           if (typeof renderClientes === 'function') renderClientes();
           if (typeof updateNavCounts === 'function') updateNavCounts();
           if (typeof populateSelects === 'function') populateSelects();
+        });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ordens' }, () => {
+        loadFromSupabase().then(() => {
+          if (typeof renderOS === 'function') renderOS();
+          if (typeof updateNavCounts === 'function') updateNavCounts();
         });
       })
       .subscribe();
@@ -384,7 +424,7 @@
     setTimeout(() => {
       [renderDashboard, renderPipeline, renderClientes, renderPedidos,
        renderReceitas, renderFinanceiro, renderCatalogo, renderRelatorios,
-       renderConfig, updateNavCounts, populateSelects, populateLoginUsers]
+       renderConfig, renderOS, updateNavCounts, populateSelects, populateLoginUsers]
       .forEach(fn => { try { if (typeof fn === 'function') fn(); } catch(e){} });
     }, 200);
   }
