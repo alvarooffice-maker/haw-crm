@@ -78,18 +78,21 @@
     if (!sb) return;
     setSyncStatus('syncing');
     try {
+      // Tabelas principais — falha aqui é crítica
       await Promise.all([
         syncTabela('clientes'),
         syncTabela('receitas'),
         syncTabela('produtos'),
-        syncTabela('pedidos').catch(() => {}), // falha silenciosa se coluna motivo_perda não existir ainda
+      ]);
+      // Tabelas opcionais — falha silenciosa
+      await Promise.allSettled([
+        syncTabela('pedidos'),
         syncPedidoItens(),
-        syncTabela('usuarios').catch(() => {}), // falha silenciosa se RLS bloquear
-        syncTabela('crediarios').catch(() => {}), // tabela pode não existir ainda
-        syncOrdens().catch(() => {}),             // tabela pode não existir ainda
+        syncTabela('usuarios'),
+        syncTabela('crediarios'),
+        syncOrdens(),
       ]);
       setSyncStatus('online');
-      if (typeof toast === 'function') toast('✅ Dados sincronizados com Supabase!');
     } catch (e) {
       console.error('[HAW] Erro sync:', e);
       setSyncStatus('offline');
@@ -502,18 +505,28 @@
         setupRealtime();
         _reRenderAll();
       } else {
-        _showOfflineBanner(true);
-        _startRetry();
+        // Tenta uma segunda vez antes de mostrar o banner
+        setTimeout(async () => {
+          const ok2 = await loadFromSupabase();
+          if (ok2) { setupRealtime(); _reRenderAll(); }
+          else { _showOfflineBanner(true); _startRetry(); }
+        }, 5000);
       }
     } else {
       setSyncStatus('offline');
     }
 
-    // Reconecta imediatamente quando a rede voltar (ex: WiFi reconectado)
+    // Reconecta quando a rede voltar
     window.addEventListener('online', async () => {
-      if (syncStatus === 'offline') {
-        console.log('[HAW] Rede voltou — reconectando ao Supabase...');
-        await _tentarReconectar();
+      if (syncStatus === 'offline') await _tentarReconectar();
+    });
+
+    // Re-sincroniza ao voltar para a aba (pega dados novos de outros usuários)
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && sb) {
+        const ok = await loadFromSupabase();
+        if (ok) { _reRenderAll(); setSyncStatus('online'); }
+        else if (syncStatus !== 'online') _tentarReconectar();
       }
     });
 
