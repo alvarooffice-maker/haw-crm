@@ -617,12 +617,13 @@ tr:hover td{background:#FAFAF5}
         <div style="overflow-x:auto">
           <table>
             <thead><tr>
-              <th style="width:25%">Cliente</th>
-              <th style="width:12%">Data</th>
-              <th style="width:20%">OD (Esfér / Cilin / Eixo)</th>
-              <th style="width:20%">OE (Esfér / Cilin / Eixo)</th>
-              <th style="width:13%">Adição</th>
+              <th style="width:22%">Cliente</th>
+              <th style="width:11%">Data</th>
+              <th style="width:19%">OD (Esfér / Cilin / Eixo)</th>
+              <th style="width:19%">OE (Esfér / Cilin / Eixo)</th>
+              <th style="width:11%">Adição</th>
               <th style="width:10%">Status</th>
+              <th style="width:8%"></th>
             </tr></thead>
             <tbody id="receitas-tbody"></tbody>
           </table>
@@ -1085,7 +1086,7 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
 <div class="modal-overlay" id="modal-receita">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">Nova Receita Óptica</span>
+      <span class="modal-title" id="modal-rec-title">Nova Receita Óptica</span>
       <button class="modal-close" onclick="closeModal('modal-receita')">×</button>
     </div>
     <div class="modal-body">
@@ -1771,7 +1772,10 @@ function openModal(id,data={}){
     populateSelects();
   }
   if(id==='modal-receita'){
+    _editingRecId = null;
     document.getElementById('rec-data').value=new Date().toISOString().slice(0,10);
+    const titleEl=document.getElementById('modal-rec-title');if(titleEl)titleEl.textContent='Nova Receita';
+    document.querySelector('[name="rec-corrige"][value="ambos"]') && (document.querySelector('[name="rec-corrige"][value="ambos"]').checked=true);
     populateSelects();
     if(data.clienteId){document.getElementById('rec-cliente').value=data.clienteId}
   }
@@ -1981,7 +1985,7 @@ function verPerfil(id){
     <div id="perfil-tab-receitas-${id}" style="display:none">
       ${recs.length?recs.map(r=>`
         <div class="card" style="margin-bottom:12px">
-          <div class="ch"><span class="ct">Receita de ${fmtDate(r.dataReceita)}${r.medico?' — '+r.medico:''}</span>${r.isAtual?'<span class="badge badge-green">Atual</span>':''}</div>
+          <div class="ch"><span class="ct">Receita de ${fmtDate(r.dataReceita)}${r.medico?' — '+r.medico:''}</span><div style="display:flex;align-items:center;gap:8px">${r.isAtual?'<span class="badge badge-green">Atual</span>':''}<button class="btn btn-ghost btn-sm" onclick="editarReceita('${r.id}');closeModal('modal-perfil')" title="Editar receita">✏️</button><button class="btn btn-ghost btn-sm" onclick="excluirReceita('${r.id}');verPerfil('${id}')" title="Excluir receita" style="color:var(--red)">🗑</button></div></div>
           <div style="padding:12px 16px">
             <div class="receita-grid">
               <div><div class="rg-label">Olho</div><div></div></div>
@@ -2050,16 +2054,55 @@ function abrirPedidoParaCliente(cliId){
 }
 
 // ── RECEITA ──
+let _editingRecId = null;
+
+function editarReceita(id) {
+  const r = (DB.receitas||[]).find(x => x.id === id);
+  if (!r) return;
+  _editingRecId = id;
+  openModal('modal-receita');
+  document.getElementById('rec-cliente').value = r.clienteId || '';
+  document.getElementById('rec-data').value = r.dataReceita || '';
+  document.getElementById('rec-medico').value = r.medico || '';
+  const corrige = r.corrige || 'ambos';
+  const corEl = document.querySelector(`[name="rec-corrige"][value="${corrige}"]`);
+  if (corEl) corEl.checked = true;
+  const sf = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+  sf('rec-od-esf', r.odEsf); sf('rec-od-cil', r.odCil); sf('rec-od-eixo', r.odEixo);
+  sf('rec-od-adi', r.odAdi); sf('rec-od-esf-perto', r.odEsfPerto);
+  sf('rec-od-dnp', r.odDnp); sf('rec-od-alt', r.odAlt); sf('rec-od-base', r.odBase); sf('rec-od-desc', r.odDesc);
+  const odPEl = document.getElementById('rec-od-prisma'); if (odPEl) odPEl.checked = !!r.odPrisma;
+  sf('rec-oe-esf', r.oeEsf); sf('rec-oe-cil', r.oeCil); sf('rec-oe-eixo', r.oeEixo);
+  sf('rec-oe-adi', r.oeAdi); sf('rec-oe-esf-perto', r.oeEsfPerto);
+  sf('rec-oe-dnp', r.oeDnp); sf('rec-oe-alt', r.oeAlt); sf('rec-oe-base', r.oeBase); sf('rec-oe-desc', r.oeDesc);
+  const oePEl = document.getElementById('rec-oe-prisma'); if (oePEl) oePEl.checked = !!r.oePrisma;
+  sf('rec-obs', r.obs);
+  document.getElementById('modal-rec-title') && (document.getElementById('modal-rec-title').textContent = 'Editar Receita');
+}
+
+function excluirReceita(id) {
+  if (!confirm('Excluir esta receita?')) return;
+  const r = (DB.receitas||[]).find(x => x.id === id);
+  if (!r) return;
+  r.deleted = true;
+  // Se era a atual, promove a mais recente restante
+  if (r.isAtual) {
+    const proxima = (DB.receitas||[])
+      .filter(x => !x.deleted && x.clienteId === r.clienteId)
+      .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))[0];
+    if (proxima) proxima.isAtual = true;
+  }
+  save(); renderReceitas(); toast('Receita excluída.');
+}
+
 function salvarReceita(){
   const cliId=document.getElementById('rec-cliente').value;
   if(!cliId){alert('Selecione o cliente');return;}
   const data=document.getElementById('rec-data').value;
   if(!data){alert('Data é obrigatória');return;}
-  // set isAtual=false em receitas anteriores
-  DB.receitas.forEach(r=>{if(r.clienteId===cliId)r.isAtual=false;});
   const rv=id=>document.getElementById(id)?.value?.trim()||null;
-  const obj={
-    id:uid(),clienteId:cliId,dataReceita:data,
+  const campos = {
+    clienteId:cliId, dataReceita:data,
     medico:document.getElementById('rec-medico').value,
     corrige:document.querySelector('[name="rec-corrige"]:checked')?.value||'ambos',
     odEsf:rv('rec-od-esf'),odCil:rv('rec-od-cil'),odEixo:rv('rec-od-eixo'),
@@ -2071,9 +2114,17 @@ function salvarReceita(){
     oeDnp:rv('rec-oe-dnp'),oeAlt:rv('rec-oe-alt'),oeBase:rv('rec-oe-base'),oeDesc:rv('rec-oe-desc'),
     oePrisma:document.getElementById('rec-oe-prisma')?.checked||false,
     obs:document.getElementById('rec-obs').value,
-    isAtual:true,createdAt:new Date().toISOString()
   };
-  DB.receitas.push(obj);
+  if (_editingRecId) {
+    // Atualiza receita existente sem criar nova
+    const existing = (DB.receitas||[]).find(x => x.id === _editingRecId);
+    if (existing) Object.assign(existing, campos);
+    _editingRecId = null;
+  } else {
+    // Nova receita: desmarca isAtual das anteriores
+    DB.receitas.forEach(r=>{if(r.clienteId===cliId)r.isAtual=false;});
+    DB.receitas.push({id:uid(), ...campos, isAtual:true, createdAt:new Date().toISOString()});
+  }
   save();closeModal('modal-receita');renderReceitas();toast('Receita salva!');
   populateSelects();
 }
@@ -3347,6 +3398,10 @@ function renderReceitas(){
       <td>${fmtGrau(r.oeEsf,r.oeCil,r.oeEixo)}</td>
       <td>${r.odAdi!=null?fmt(r.odAdi):'—'}</td>
       <td>${r.isAtual?'<span class="badge badge-green">Atual</span>':'<span class="badge badge-gray">Anterior</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="editarReceita('${r.id}')" title="Editar">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="excluirReceita('${r.id}')" title="Excluir" style="color:var(--red)">🗑</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -4317,6 +4372,8 @@ window.tbAction=tbAction;
 window.salvarCliente=salvarCliente;
 window.salvarPedido=salvarPedido;
 window.salvarReceita=salvarReceita;
+window.editarReceita=editarReceita;
+window.excluirReceita=excluirReceita;
 window.salvarProduto=salvarProduto;
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -5340,8 +5397,8 @@ function osImportarReceita(nomeOuId){
   if(!cli)return;
   const telEl=document.getElementById('os-tel');
   if(telEl&&!telEl.value&&cli.telefone)telEl.value=cli.telefone;
-  const rec=(DB.receitas||[]).filter(r=>!r.deleted&&r.clienteId===cli.id)
-    .sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''))[0];
+  const recsClient=(DB.receitas||[]).filter(r=>!r.deleted&&r.clienteId===cli.id);
+  const rec=recsClient.find(r=>r.isAtual)||recsClient.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
   if(!rec)return;
   const setHL=(id,val)=>{
     const el=document.getElementById(id);
