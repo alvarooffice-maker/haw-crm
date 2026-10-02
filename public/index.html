@@ -1092,22 +1092,52 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
       <input type="hidden" id="rec-cli-id">
       <div class="form-row"><div class="form-group"><label class="form-label">Cliente *</label><select class="form-input form-select" id="rec-cliente"></select></div>
       <div class="form-group"><label class="form-label">Data da receita *</label><input class="form-input" id="rec-data" type="date"></div></div>
-      <div class="form-row"><div class="form-group"><label class="form-label">Médico / Clínica</label><input class="form-input" id="rec-medico" placeholder="Dr. João Silva"></div>
-      <div class="form-group"><label class="form-label">DNP (mm)</label><input class="form-input" id="rec-dnp" type="number" step="0.5" placeholder="62.0"></div></div>
-      <div class="form-divider">👁️ Olho Direito (OD)</div>
-      <div class="form-row c3">
-        <div class="form-group"><label class="form-label">Esférico</label><input class="form-input" id="rec-od-esf" type="number" step="0.25" placeholder="-2.00"></div>
-        <div class="form-group"><label class="form-label">Cilíndrico</label><input class="form-input" id="rec-od-cil" type="number" step="0.25" placeholder="-0.50"></div>
-        <div class="form-group"><label class="form-label">Eixo (°)</label><input class="form-input" id="rec-od-eixo" type="number" min="0" max="180" placeholder="90"></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Médico / Clínica</label><input class="form-input" id="rec-medico" placeholder="Dr. João Silva"></div></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;color:var(--navy,#13182C)">Corrige:</span>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="ambos" checked> Ambos os olhos</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="od"> Olho Direito</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="oe"> Olho Esquerdo</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="sem"> Sem Receita</label>
       </div>
-      <div class="form-row c1"><div class="form-group"><label class="form-label">Adição OD</label><input class="form-input" id="rec-od-adi" type="number" step="0.25" placeholder="2.00 (opcional)"></div></div>
-      <div class="form-divider">👁️ Olho Esquerdo (OE)</div>
-      <div class="form-row c3">
-        <div class="form-group"><label class="form-label">Esférico</label><input class="form-input" id="rec-oe-esf" type="number" step="0.25" placeholder="-1.75"></div>
-        <div class="form-group"><label class="form-label">Cilíndrico</label><input class="form-input" id="rec-oe-cil" type="number" step="0.25" placeholder="-0.25"></div>
-        <div class="form-group"><label class="form-label">Eixo (°)</label><input class="form-input" id="rec-oe-eixo" type="number" min="0" max="180" placeholder="85"></div>
+      <div class="os-sec-title">Para Longe</div>
+      <div class="os-rx-grid" style="grid-template-columns:48px repeat(3,1fr)">
+        <div class="rh"></div><div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="rec-od-esf" placeholder="+/-0.00">
+        <input type="text" id="rec-od-cil" placeholder="-0.00">
+        <input type="text" id="rec-od-eixo" placeholder="0°">
+        <div class="rl">O.E.</div>
+        <input type="text" id="rec-oe-esf" placeholder="+/-0.00">
+        <input type="text" id="rec-oe-cil" placeholder="-0.00">
+        <input type="text" id="rec-oe-eixo" placeholder="0°">
       </div>
-      <div class="form-row c1"><div class="form-group"><label class="form-label">Adição OE</label><input class="form-input" id="rec-oe-adi" type="number" step="0.25" placeholder="2.00 (opcional)"></div></div>
+      <div class="os-sec-title" style="margin-top:10px">Para Perto / Adição</div>
+      <div class="os-rx-grid" style="grid-template-columns:48px 1fr 1fr">
+        <div class="rh"></div><div class="rh">Adição</div><div class="rh">Esf. Perto</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="rec-od-adi" placeholder="+0.00">
+        <input type="text" id="rec-od-esf-perto" placeholder="+/-0.00">
+        <div class="rl">O.E.</div>
+        <input type="text" id="rec-oe-adi" placeholder="+0.00">
+        <input type="text" id="rec-oe-esf-perto" placeholder="+/-0.00">
+      </div>
+      <div class="os-sec-title" style="margin-top:10px">Outros Dados</div>
+      <div class="os-rx-grid" style="grid-template-columns:48px repeat(4,1fr) 60px">
+        <div class="rh"></div><div class="rh">DNP</div><div class="rh">Altura</div><div class="rh">Base</div><div class="rh">Desc.</div><div class="rh">Prisma</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="rec-od-dnp" placeholder="0.0">
+        <input type="text" id="rec-od-alt" placeholder="0.0">
+        <input type="text" id="rec-od-base" placeholder="—">
+        <input type="text" id="rec-od-desc" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="rec-od-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
+        <div class="rl">O.E.</div>
+        <input type="text" id="rec-oe-dnp" placeholder="0.0">
+        <input type="text" id="rec-oe-alt" placeholder="0.0">
+        <input type="text" id="rec-oe-base" placeholder="—">
+        <input type="text" id="rec-oe-desc" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="rec-oe-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
+      </div>
       <div class="form-row c1"><div class="form-group"><label class="form-label">Observações clínicas</label><input class="form-input" id="rec-obs" placeholder="Ex: Astigmatismo moderado, usar óculos de leitura"></div></div>
     </div>
     <div class="modal-footer">
@@ -2027,18 +2057,19 @@ function salvarReceita(){
   if(!data){alert('Data é obrigatória');return;}
   // set isAtual=false em receitas anteriores
   DB.receitas.forEach(r=>{if(r.clienteId===cliId)r.isAtual=false;});
+  const rv=id=>document.getElementById(id)?.value?.trim()||null;
   const obj={
     id:uid(),clienteId:cliId,dataReceita:data,
     medico:document.getElementById('rec-medico').value,
-    dnp:document.getElementById('rec-dnp').value||null,
-    odEsf:parseFloat(document.getElementById('rec-od-esf').value)||null,
-    odCil:parseFloat(document.getElementById('rec-od-cil').value)||null,
-    odEixo:parseInt(document.getElementById('rec-od-eixo').value)||null,
-    odAdi:parseFloat(document.getElementById('rec-od-adi').value)||null,
-    oeEsf:parseFloat(document.getElementById('rec-oe-esf').value)||null,
-    oeCil:parseFloat(document.getElementById('rec-oe-cil').value)||null,
-    oeEixo:parseInt(document.getElementById('rec-oe-eixo').value)||null,
-    oeAdi:parseFloat(document.getElementById('rec-oe-adi').value)||null,
+    corrige:document.querySelector('[name="rec-corrige"]:checked')?.value||'ambos',
+    odEsf:rv('rec-od-esf'),odCil:rv('rec-od-cil'),odEixo:rv('rec-od-eixo'),
+    odAdi:rv('rec-od-adi'),odEsfPerto:rv('rec-od-esf-perto'),
+    odDnp:rv('rec-od-dnp'),odAlt:rv('rec-od-alt'),odBase:rv('rec-od-base'),odDesc:rv('rec-od-desc'),
+    odPrisma:document.getElementById('rec-od-prisma')?.checked||false,
+    oeEsf:rv('rec-oe-esf'),oeCil:rv('rec-oe-cil'),oeEixo:rv('rec-oe-eixo'),
+    oeAdi:rv('rec-oe-adi'),oeEsfPerto:rv('rec-oe-esf-perto'),
+    oeDnp:rv('rec-oe-dnp'),oeAlt:rv('rec-oe-alt'),oeBase:rv('rec-oe-base'),oeDesc:rv('rec-oe-desc'),
+    oePrisma:document.getElementById('rec-oe-prisma')?.checked||false,
     obs:document.getElementById('rec-obs').value,
     isAtual:true,createdAt:new Date().toISOString()
   };
@@ -4503,16 +4534,22 @@ function _renderParcelasInline(c) {
     const saldo = p.valorOriginal - (p.valorPago||0);
     const juros = calcJurosMora(p, c.taxaMora||1, c.multaMora||2);
     const totalPagar = Math.max(0, saldo) + juros;
-    const rowBg = p.pago ? 'var(--green-l)' : atrasado ? 'var(--red-l)' : 'var(--white)';
-    const badge = p.pago
+    const efetivamentePago = saldo <= 0.02 && p.pago;
+    const rowBg = efetivamentePago ? 'var(--green-l)' : atrasado ? 'var(--red-l)' : 'var(--white)';
+    const badge = efetivamentePago
       ? `<span class="badge badge-green">Pago</span>`
-      : atrasado ? `<span class="badge badge-red">Atrasado</span>`
-      : `<span class="badge badge-blue">Pendente</span>`;
-    const pagoMeta = p.pago && p.formaPagamento && !(p.pagamentos&&p.pagamentos.length)
+      : saldo > 0.02 && (p.valorPago||0) > 0.01
+        ? `<span class="badge badge-amber">Parcial</span>`
+        : atrasado ? `<span class="badge badge-red">Atrasado</span>`
+        : `<span class="badge badge-blue">Pendente</span>`;
+    const pagoMeta = efetivamentePago && p.formaPagamento && !(p.pagamentos&&p.pagamentos.length)
       ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">${p.formaPagamento} · ${fmtDate(p.dataPagamento)}</div>` : '';
-    const btnPagar = !p.pago
+    const temHistorico = (p.pagamentos && p.pagamentos.length > 0) || (p.pago && p.dataPagamento);
+    const btnPagar = saldo > 0.02
       ? `<button class="btn btn-gold btn-sm" onclick="abrirPagarParcela('${c.id}',${idx})" style="font-size:11px;padding:3px 10px;white-space:nowrap">Receber</button>`
-      : '';
+      : efetivamentePago && !temHistorico
+        ? `<button onclick="resetarParcelaLegacy('${c.id}',${idx})" style="background:none;border:1px solid var(--border-light);border-radius:4px;cursor:pointer;color:var(--muted);font-size:10px;padding:3px 8px;white-space:nowrap" title="Estornar pagamento sem histórico">↩ Estornar</button>`
+        : '';
     return `<tr style="background:${rowBg}">
       <td style="padding:7px 12px;font-weight:700">${p.numero}ª</td>
       <td style="padding:7px 12px">${fmtDate(p.vencimento)}</td>
@@ -4526,11 +4563,11 @@ function _renderParcelasInline(c) {
   }).join('');
   // Histórico consolidado de todos os recebimentos
   const todosPagamentos = [];
-  (c.parcelas||[]).forEach(p => {
+  (c.parcelas||[]).forEach((p, pi) => {
     if (p.pagamentos && p.pagamentos.length) {
-      p.pagamentos.forEach(pg => todosPagamentos.push({ ...pg, parcela: p.numero }));
+      p.pagamentos.forEach((pg, pgi) => todosPagamentos.push({ ...pg, parcela: p.numero, _pi: pi, _pgi: pgi, _legacy: false }));
     } else if (p.pago && p.dataPagamento) {
-      todosPagamentos.push({ valor: p.valorPago||p.valorOriginal, forma: p.formaPagamento||'—', data: p.dataPagamento, obs: p.observacao||'', parcela: p.numero });
+      todosPagamentos.push({ valor: p.valorPago||p.valorOriginal, forma: p.formaPagamento||'—', data: p.dataPagamento, obs: p.observacao||'', parcela: p.numero, _pi: pi, _pgi: -1, _legacy: true });
     }
   });
   todosPagamentos.sort((a,b) => (a.data||'').localeCompare(b.data||''));
@@ -4548,6 +4585,7 @@ function _renderParcelasInline(c) {
           <th style="padding:5px 12px;text-align:left;font-weight:500;color:var(--muted)">Forma</th>
           <th style="padding:5px 12px;text-align:right;font-weight:500;color:var(--muted)">Valor Recebido</th>
           <th style="padding:5px 12px;font-weight:500;color:var(--muted)">Obs.</th>
+          <th style="padding:5px 4px"></th>
         </tr></thead>
         <tbody>${todosPagamentos.map(pg => `<tr style="border-top:1px solid var(--border-light)">
           <td style="padding:5px 12px">${fmtDate(pg.data)}</td>
@@ -4555,6 +4593,10 @@ function _renderParcelasInline(c) {
           <td style="padding:5px 12px">${FORMA_LABEL[pg.forma]||pg.forma||'—'}</td>
           <td style="padding:5px 12px;text-align:right;font-weight:600;color:var(--green)">${fmtMoney(pg.valor)}</td>
           <td style="padding:5px 12px;color:var(--muted);font-size:11px">${pg.obs||'—'}</td>
+          <td style="padding:5px 4px;text-align:center">${!pg._legacy
+            ? `<button onclick="removerPagamento('${c.id}',${pg._pi},${pg._pgi})" title="Remover este pagamento" style="background:none;border:none;cursor:pointer;color:var(--danger,#e53);font-size:13px;padding:0 4px;opacity:.7" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">×</button>`
+            : `<button onclick="resetarParcelaLegacy('${c.id}',${pg._pi})" title="Estornar pagamento e reabrir parcela" style="background:none;border:none;cursor:pointer;color:var(--danger,#e53);font-size:13px;padding:0 4px;opacity:.7" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">×</button>`
+          }</td>
         </tr>`).join('')}
         </tbody>
       </table>
@@ -4949,8 +4991,8 @@ function registrarPagamento() {
   p.formaPagamento = forma;
   p.dataPagamento = data;
   if (obs) p.observacao = obs;
-  const totalPagar = parseFloat(document.getElementById('pp-valor').dataset.totalPagar)||p.valorOriginal;
-  if (p.valorPago >= totalPagar - 0.02) p.pago = true;
+  const saldoRestante = Math.max(0, p.valorOriginal - p.valorPago);
+  p.pago = saldoRestante <= 0.02;
   c.status = computeStatusCrediario(c);
   save();
   closeModal('modal-pagar-parcela');
@@ -4960,6 +5002,55 @@ function registrarPagamento() {
   toast(p.pago ? `${p.numero}ª parcela quitada ✅` : `Pagamento parcial registrado. Falta ${fmtMoney(Math.max(0,p.valorOriginal-p.valorPago))}`);
 }
 
+function removerPagamento(credId, parcelaIdx, pgIdx) {
+  if (!confirm('Remover este pagamento do histórico?')) return;
+  const c = (DB.crediarios||[]).find(x => x.id === credId);
+  if (!c) return;
+  const p = c.parcelas[parcelaIdx];
+  if (!p || !p.pagamentos || !p.pagamentos[pgIdx]) return;
+  p.pagamentos.splice(pgIdx, 1);
+  p.valorPago = Math.round(p.pagamentos.reduce((s, pg) => s + Number(pg.valor||0), 0) * 100) / 100;
+  if (p.pagamentos.length > 0) {
+    const last = p.pagamentos[p.pagamentos.length - 1];
+    p.dataPagamento = last.data;
+    p.formaPagamento = last.forma;
+  } else {
+    p.pago = false;
+    p.dataPagamento = null;
+    p.formaPagamento = null;
+    p.valorPago = 0;
+  }
+  const totalPagar = p.valorOriginal;
+  p.pago = p.valorPago >= totalPagar - 0.02;
+  c.status = computeStatusCrediario(c);
+  save();
+  renderCrediario();
+  if (typeof renderFinanceiro === 'function') renderFinanceiro();
+  setTimeout(() => toggleCrediarioDetalhe(credId), 80);
+  toast('Pagamento removido.');
+}
+window.removerPagamento = removerPagamento;
+
+function resetarParcelaLegacy(credId, parcelaIdx) {
+  if (!confirm('Estornar este pagamento e reabrir a parcela?')) return;
+  const c = (DB.crediarios||[]).find(x => x.id === credId);
+  if (!c) return;
+  const p = c.parcelas[parcelaIdx];
+  if (!p) return;
+  p.pago = false;
+  p.valorPago = 0;
+  p.dataPagamento = null;
+  p.formaPagamento = null;
+  p.observacao = null;
+  p.pagamentos = [];
+  c.status = computeStatusCrediario(c);
+  save();
+  renderCrediario();
+  if (typeof renderFinanceiro === 'function') renderFinanceiro();
+  setTimeout(() => toggleCrediarioDetalhe(credId), 80);
+  toast('Parcela reaberta. Registre o pagamento correto.');
+}
+window.resetarParcelaLegacy = resetarParcelaLegacy;
 window.renderCrediario=renderCrediario;
 window.setCreditFilter=setCreditFilter;
 window.abrirNovoCrediario=abrirNovoCrediario;
@@ -5233,6 +5324,8 @@ async function novaOrdemServico(){
     const el=document.getElementById(id);if(el)el.checked=false;
   });
   document.querySelectorAll('[name="os-arm-cond"]').forEach(r=>r.checked=false);
+  document.querySelectorAll('[name="os-clipon"]').forEach(r=>r.checked=(r.value==='nao'));
+  ['os-od-prisma','os-oe-prisma','os-env-montagem'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
   const m=document.getElementById('os-montagem');if(m)m.value='';
   const idx=document.getElementById('os-indice');if(idx)idx.value='';
   const bn=document.getElementById('os-import-banner');if(bn)bn.style.display='none';
@@ -5257,15 +5350,20 @@ function osImportarReceita(nomeOuId){
     el.style.background='#fffbe6';
     el.addEventListener('input',()=>{el.style.background='';},{once:true});
   };
-  setHL('os-od-esf', rec.odEsf!=null?rec.odEsf:'');
-  setHL('os-od-cil', rec.odCil!=null?rec.odCil:'');
-  setHL('os-od-eix', rec.odEixo!=null?rec.odEixo:'');
-  setHL('os-oe-esf', rec.oeEsf!=null?rec.oeEsf:'');
-  setHL('os-oe-cil', rec.oeCil!=null?rec.oeCil:'');
-  setHL('os-oe-eix', rec.oeEixo!=null?rec.oeEixo:'');
-  if(rec.odAdi!=null){setHL('os-pp-od-esf',rec.odEsf!=null?rec.odEsf:'');setHL('os-pp-od-cil',rec.odCil!=null?rec.odCil:'');setHL('os-pp-od-eix',rec.odEixo!=null?rec.odEixo:'');setHL('os-pp-od-adc',rec.odAdi);}
-  if(rec.oeAdi!=null){setHL('os-pp-oe-esf',rec.oeEsf!=null?rec.oeEsf:'');setHL('os-pp-oe-cil',rec.oeCil!=null?rec.oeCil:'');setHL('os-pp-oe-eix',rec.oeEixo!=null?rec.oeEixo:'');setHL('os-pp-oe-adc',rec.oeAdi);}
-  if(rec.dnp){setHL('os-od-dnp',rec.dnp);setHL('os-oe-dnp',rec.dnp);}
+  setHL('os-od-esf', rec.odEsf??'');
+  setHL('os-od-cil', rec.odCil??'');
+  setHL('os-od-eix', rec.odEixo??'');
+  setHL('os-od-dnp', rec.odDnp??rec.dnp??'');
+  setHL('os-od-alt', rec.odAlt??'');
+  setHL('os-oe-esf', rec.oeEsf??'');
+  setHL('os-oe-cil', rec.oeCil??'');
+  setHL('os-oe-eix', rec.oeEixo??'');
+  setHL('os-oe-dnp', rec.oeDnp??rec.dnp??'');
+  setHL('os-oe-alt', rec.oeAlt??'');
+  if(rec.odAdi!=null){setHL('os-pp-od-adc',rec.odAdi);setHL('os-pp-od-esf',rec.odEsfPerto??'');}
+  if(rec.oeAdi!=null){setHL('os-pp-oe-adc',rec.oeAdi);setHL('os-pp-oe-esf',rec.oeEsfPerto??'');}
+  setHL('os-od-base', rec.odBase??''); setHL('os-oe-base', rec.oeBase??'');
+  setHL('os-od-desc', rec.odDesc??''); setHL('os-oe-desc', rec.oeDesc??'');
   if(banner&&bannerInfo){
     const dtStr=rec.dataReceita?rec.dataReceita.split('-').reverse().join('/'):'';
     bannerInfo.textContent='Receita'+(dtStr?' de '+dtStr:'')+ ' importada automaticamente';
@@ -5284,12 +5382,15 @@ function _coletarDadosOS(){
     id:'os-'+Date.now(),
     usuarioId:window.currentUser?.id||'',usuarioNome:window.currentUser?.nome||'',
     num:v('os-num'),paciente:v('os-paciente'),tel:v('os-tel'),data:v('os-data'),
-    longe_od:{esf:v('os-od-esf'),cil:v('os-od-cil'),eix:v('os-od-eix'),dnp:v('os-od-dnp'),aco:v('os-od-aco')},
-    longe_oe:{esf:v('os-oe-esf'),cil:v('os-oe-cil'),eix:v('os-oe-eix'),dnp:v('os-oe-dnp'),aco:v('os-oe-aco')},
+    longe_od:{esf:v('os-od-esf'),cil:v('os-od-cil'),eix:v('os-od-eix'),dnp:v('os-od-dnp'),alt:v('os-od-alt'),base:v('os-od-base'),desc:v('os-od-desc'),descanso:v('os-od-descanso'),prisma:document.getElementById('os-od-prisma')?.checked||false},
+    longe_oe:{esf:v('os-oe-esf'),cil:v('os-oe-cil'),eix:v('os-oe-eix'),dnp:v('os-oe-dnp'),alt:v('os-oe-alt'),base:v('os-oe-base'),desc:v('os-oe-desc'),descanso:v('os-oe-descanso'),prisma:document.getElementById('os-oe-prisma')?.checked||false},
     ponte:v('os-ponte'),
-    perto_od:{esf:v('os-pp-od-esf'),cil:v('os-pp-od-cil'),eix:v('os-pp-od-eix'),adc:v('os-pp-od-adc'),arm:v('os-pp-od-arm')},
-    perto_oe:{esf:v('os-pp-oe-esf'),cil:v('os-pp-oe-cil'),eix:v('os-pp-oe-eix'),adc:v('os-pp-oe-adc'),arm:v('os-pp-oe-arm')},
-    horz:v('os-horz'),vert:v('os-vert'),diag:v('os-diag'),
+    perto_od:{adc:v('os-pp-od-adc'),esf:v('os-pp-od-esf')},
+    perto_oe:{adc:v('os-pp-oe-adc'),esf:v('os-pp-oe-esf')},
+    horz:v('os-horz'),vert:v('os-vert'),diag:v('os-diag'),dpa:v('os-dpa'),
+    diamOd:v('os-diam-od'),diamOe:v('os-diam-oe'),
+    clipon:document.querySelector('[name="os-clipon"]:checked')?.value||'nao',
+    envMontagem:document.getElementById('os-env-montagem')?.checked||false,
     armCond:document.querySelector('[name="os-arm-cond"]:checked')?.value||'',
     montagem:v('os-montagem'),indice:v('os-indice'),
     armacao:armCbs.map((id,i)=>ck(id)?armLabels[i]:null).filter(Boolean),
@@ -5384,11 +5485,20 @@ function editarOS(id){
   const dl=document.getElementById('os-cli-list');
   if(dl)dl.innerHTML=DB.clientes.filter(c=>!c.deleted).map(c=>`<option value="${c.nome}">`).join('');
   set('os-num',os.num);set('os-paciente',os.paciente);set('os-tel',os.tel);set('os-data',os.data);
-  set('os-od-esf',os.longe_od?.esf);set('os-od-cil',os.longe_od?.cil);set('os-od-eix',os.longe_od?.eix);set('os-od-dnp',os.longe_od?.dnp);set('os-od-aco',os.longe_od?.aco);
-  set('os-oe-esf',os.longe_oe?.esf);set('os-oe-cil',os.longe_oe?.cil);set('os-oe-eix',os.longe_oe?.eix);set('os-oe-dnp',os.longe_oe?.dnp);set('os-oe-aco',os.longe_oe?.aco);
-  set('os-pp-od-esf',os.perto_od?.esf);set('os-pp-od-cil',os.perto_od?.cil);set('os-pp-od-eix',os.perto_od?.eix);set('os-pp-od-adc',os.perto_od?.adc);set('os-pp-od-arm',os.perto_od?.arm);
-  set('os-pp-oe-esf',os.perto_oe?.esf);set('os-pp-oe-cil',os.perto_oe?.cil);set('os-pp-oe-eix',os.perto_oe?.eix);set('os-pp-oe-adc',os.perto_oe?.adc);set('os-pp-oe-arm',os.perto_oe?.arm);
+  set('os-od-esf',os.longe_od?.esf);set('os-od-cil',os.longe_od?.cil);set('os-od-eix',os.longe_od?.eix);
+  set('os-od-dnp',os.longe_od?.dnp);set('os-od-alt',os.longe_od?.alt);
+  set('os-od-base',os.longe_od?.base);set('os-od-desc',os.longe_od?.desc);set('os-od-descanso',os.longe_od?.descanso);
+  if(document.getElementById('os-od-prisma'))document.getElementById('os-od-prisma').checked=!!os.longe_od?.prisma;
+  set('os-oe-esf',os.longe_oe?.esf);set('os-oe-cil',os.longe_oe?.cil);set('os-oe-eix',os.longe_oe?.eix);
+  set('os-oe-dnp',os.longe_oe?.dnp);set('os-oe-alt',os.longe_oe?.alt);
+  set('os-oe-base',os.longe_oe?.base);set('os-oe-desc',os.longe_oe?.desc);set('os-oe-descanso',os.longe_oe?.descanso);
+  if(document.getElementById('os-oe-prisma'))document.getElementById('os-oe-prisma').checked=!!os.longe_oe?.prisma;
+  set('os-pp-od-adc',os.perto_od?.adc);set('os-pp-od-esf',os.perto_od?.esf);
+  set('os-pp-oe-adc',os.perto_oe?.adc);set('os-pp-oe-esf',os.perto_oe?.esf);
   set('os-ponte',os.ponte);set('os-horz',os.horz);set('os-vert',os.vert);set('os-diag',os.diag);
+  set('os-dpa',os.dpa);set('os-diam-od',os.diamOd);set('os-diam-oe',os.diamOe);
+  document.querySelectorAll('[name="os-clipon"]').forEach(r=>{r.checked=(r.value===(os.clipon||'nao'));});
+  if(document.getElementById('os-env-montagem'))document.getElementById('os-env-montagem').checked=!!os.envMontagem;
   document.querySelectorAll('[name="os-arm-cond"]').forEach(r=>{r.checked=(r.value===os.armCond);});
   set('os-montagem',os.montagem);set('os-indice',os.indice);
   const armCbs=['os-arm-acetato','os-arm-metal','os-arm-tr90','os-arm-titanio','os-arm-nylon','os-arm-parafusada'];
@@ -5442,21 +5552,31 @@ function _abrirPDFdaOS(os){
       </table></div>`;
   }
 
-  const sharedArmacao=`<div style="display:flex;gap:24px;margin-bottom:8px;font-size:11px">
+  const sharedArmacao=`<div style="display:flex;gap:18px;margin-bottom:6px;font-size:11px;flex-wrap:wrap">
+    <span><b>MHA:</b> ${os.horz||'—'}</span>
+    <span><b>MVA:</b> ${os.vert||'—'}</span>
+    <span><b>DMA:</b> ${os.diag||'—'}</span>
     <span><b>Ponte:</b> ${os.ponte||'—'}</span>
-    <span><b>Horz.:</b> ${os.horz||'—'}</span>
-    <span><b>Vert.:</b> ${os.vert||'—'}</span>
-    <span><b>Diag.+:</b> ${os.diag||'—'}</span>
+    <span><b>DPA:</b> ${os.dpa||'—'}</span>
+    <span><b>Diâm. O.D.:</b> ${os.diamOd||'—'}</span>
+    <span><b>Diâm. O.E.:</b> ${os.diamOe||'—'}</span>
+    ${os.clipon&&os.clipon!=='nao'?`<span><b>Clipon:</b> ${os.clipon==='sim'?'Sim':'Não Informado'}</span>`:''}
+    ${os.envMontagem?`<span style="color:#13182C;font-weight:700">✔ Enviada para montagem</span>`:''}
   </div>`;
 
-  const longe=rxTable('PARA LONGE',['ESFÉRICO','CILÍND.','EIXO','DNP','ACO'],[
-    [os.longe_od?.esf,os.longe_od?.cil,os.longe_od?.eix,os.longe_od?.dnp,os.longe_od?.aco],
-    [os.longe_oe?.esf,os.longe_oe?.cil,os.longe_oe?.eix,os.longe_oe?.dnp,os.longe_oe?.aco]
+  const longe=rxTable('PARA LONGE',['ESFÉRICO','CILÍND.','EIXO','DNP','ALTURA'],[
+    [os.longe_od?.esf,os.longe_od?.cil,os.longe_od?.eix,os.longe_od?.dnp,os.longe_od?.alt],
+    [os.longe_oe?.esf,os.longe_oe?.cil,os.longe_oe?.eix,os.longe_oe?.dnp,os.longe_oe?.alt]
   ]);
-  const perto=rxTable('PARA PERTO / ADIÇÃO',['ESFÉRICO','CILÍND.','EIXO','ADIÇÃO','ARM.'],[
-    [os.perto_od?.esf,os.perto_od?.cil,os.perto_od?.eix,os.perto_od?.adc,os.perto_od?.arm],
-    [os.perto_oe?.esf,os.perto_oe?.cil,os.perto_oe?.eix,os.perto_oe?.adc,os.perto_oe?.arm]
+  const perto=rxTable('PARA PERTO / ADIÇÃO',['ADIÇÃO','ESF. PERTO'],[
+    [os.perto_od?.adc,os.perto_od?.esf],
+    [os.perto_oe?.adc,os.perto_oe?.esf]
   ]);
+  const temOutros=(f)=>f.base||f.desc||f.descanso||f.prisma;
+  const outrosPdf=(temOutros(os.longe_od||{})||temOutros(os.longe_oe||{}))?rxTable('OUTROS DADOS',['BASE','DESC.','DESCANSO','PRISMA'],[
+    [os.longe_od?.base,os.longe_od?.desc,os.longe_od?.descanso,os.longe_od?.prisma?'Sim':''],
+    [os.longe_oe?.base,os.longe_oe?.desc,os.longe_oe?.descanso,os.longe_oe?.prisma?'Sim':'']
+  ]):'';
 
   const cbRow=(items)=>items.map(lbl=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="display:inline-block;width:12px;height:12px;border:1px solid #555;text-align:center;line-height:12px;font-size:9px"></span>${lbl}</div>`).join('');
   const ckRow=(items,checked)=>items.map(lbl=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="display:inline-block;width:12px;height:12px;border:1px solid #555;text-align:center;line-height:12px;font-size:9px;background:${checked.includes(lbl)?'#13182C':''};color:#F7CF13">${checked.includes(lbl)?'✓':''}</span>${lbl}</div>`).join('');
@@ -5507,7 +5627,7 @@ function _abrirPDFdaOS(os){
       <div class="field-item"><label>Data</label><div class="fval">${fmtData(os.data)}</div></div>
     </div>
 
-    ${longe}${perto}${sharedArmacao}
+    ${longe}${perto}${outrosPdf}${sharedArmacao}
 
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;font-size:11px">
       <div><b>Armação:</b> ${os.armCond||'—'}</div>
@@ -5564,6 +5684,22 @@ function _abrirPDFdaOS(os){
   w.document.close();
 }
 
+function calcularDiametroOS(){
+  const dma=parseFloat(document.getElementById('os-diag')?.value)||0;
+  const dnpOd=parseFloat(document.getElementById('os-od-dnp')?.value)||0;
+  const dnpOe=parseFloat(document.getElementById('os-oe-dnp')?.value)||0;
+  const dpa=parseFloat(document.getElementById('os-dpa')?.value)||0;
+  const mva=parseFloat(document.getElementById('os-vert')?.value)||0;
+  const calc=(dnp)=>{
+    if(dma>0)return dma;
+    if(dnp>0&&mva>0)return Math.ceil(Math.sqrt(Math.pow(dnp,2)+Math.pow(mva,2)));
+    return '';
+  };
+  const od=document.getElementById('os-diam-od');const oe=document.getElementById('os-diam-oe');
+  if(od)od.value=calc(dpa?Math.abs(dnpOd-dpa/2):dnpOd)||dma||'';
+  if(oe)oe.value=calc(dpa?Math.abs(dnpOe-dpa/2):dnpOe)||dma||'';
+}
+window.calcularDiametroOS=calcularDiametroOS;
 window.novaOrdemServico=novaOrdemServico;
 window.gerarOsPDF=gerarOsPDF;
 </script>
@@ -5610,40 +5746,70 @@ window.gerarOsPDF=gerarOsPDF;
       <div class="os-rx-grid" id="os-longe-grid" style="grid-template-columns:60px repeat(5,1fr)">
         <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
         <div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
-        <div class="rh">DNP</div><div class="rh">ACO</div>
+        <div class="rh">DNP</div><div class="rh">Altura</div>
         <div class="rl">O.D.</div>
         <input type="text" id="os-od-esf" placeholder="+/-0.00"><input type="text" id="os-od-cil" placeholder="-0.00">
         <input type="text" id="os-od-eix" placeholder="0°">
         <input type="text" id="os-od-dnp" placeholder="0.0">
-        <input type="text" id="os-od-aco" placeholder="—">
+        <input type="text" id="os-od-alt" placeholder="0.0">
         <div class="rl">O.E.</div>
         <input type="text" id="os-oe-esf" placeholder="+/-0.00"><input type="text" id="os-oe-cil" placeholder="-0.00">
         <input type="text" id="os-oe-eix" placeholder="0°">
         <input type="text" id="os-oe-dnp" placeholder="0.0">
-        <input type="text" id="os-oe-aco" placeholder="—">
+        <input type="text" id="os-oe-alt" placeholder="0.0">
       </div>
 
       <!-- Para Perto -->
       <div class="os-sec-title">Para Perto / Adição</div>
-      <div class="os-rx-grid" style="grid-template-columns:60px repeat(5,1fr)">
+      <div class="os-rx-grid" style="grid-template-columns:60px 1fr 1fr">
         <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
-        <div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
-        <div class="rh">Adição</div><div class="rh">Arm.</div>
+        <div class="rh">Adição</div><div class="rh">Esf. Perto</div>
         <div class="rl">O.D.</div>
-        <input type="text" id="os-pp-od-esf" placeholder="+/-0.00"><input type="text" id="os-pp-od-cil" placeholder="-0.00">
-        <input type="text" id="os-pp-od-eix" placeholder="0°"><input type="text" id="os-pp-od-adc" placeholder="+0.00">
-        <input type="text" id="os-pp-od-arm" placeholder="—">
+        <input type="text" id="os-pp-od-adc" placeholder="+0.00">
+        <input type="text" id="os-pp-od-esf" placeholder="+/-0.00">
         <div class="rl">O.E.</div>
-        <input type="text" id="os-pp-oe-esf" placeholder="+/-0.00"><input type="text" id="os-pp-oe-cil" placeholder="-0.00">
-        <input type="text" id="os-pp-oe-eix" placeholder="0°"><input type="text" id="os-pp-oe-adc" placeholder="+0.00">
-        <input type="text" id="os-pp-oe-arm" placeholder="—">
+        <input type="text" id="os-pp-oe-adc" placeholder="+0.00">
+        <input type="text" id="os-pp-oe-esf" placeholder="+/-0.00">
+      </div>
+      <!-- Outros Dados por Olho -->
+      <div class="os-sec-title">Outros Dados por Olho</div>
+      <div class="os-rx-grid" style="grid-template-columns:60px repeat(3,1fr) 72px">
+        <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
+        <div class="rh">Base</div><div class="rh">Descanso</div><div class="rh">Desc.</div><div class="rh">Prisma</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="os-od-base" placeholder="—">
+        <input type="text" id="os-od-desc" placeholder="—">
+        <input type="text" id="os-od-descanso" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="os-od-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
+        <div class="rl">O.E.</div>
+        <input type="text" id="os-oe-base" placeholder="—">
+        <input type="text" id="os-oe-desc" placeholder="—">
+        <input type="text" id="os-oe-descanso" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="os-oe-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
       </div>
       <div class="os-sec-title">Dados da Armação</div>
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
-        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Ponte <input type="text" id="os-ponte" placeholder="—" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
-        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Horz. <input type="text" id="os-horz" placeholder="0.0" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
-        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Vert. <input type="text" id="os-vert" placeholder="0.0" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
-        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Diag.+ <input type="text" id="os-diag" placeholder="—" style="width:58px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;flex-wrap:wrap">
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">MHA <input type="text" id="os-horz" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Medida Horizontal da Armação"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">MVA <input type="text" id="os-vert" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Medida Vertical da Armação"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">DMA <input type="text" id="os-diag" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Diâmetro Mínimo da Armação"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Ponte <input type="text" id="os-ponte" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">DPA <input type="text" id="os-dpa" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Distância Pupilar da Armação"></label>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:600;color:var(--navy,#13182C)">Diâmetro:</span>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">O.D. <input type="text" id="os-diam-od" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">O.E. <input type="text" id="os-diam-oe" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <button type="button" onclick="calcularDiametroOS()" style="padding:3px 12px;font-size:11px;font-weight:700;background:var(--navy,#13182C);color:var(--gold,#F7CF13);border:none;border-radius:4px;cursor:pointer">CALCULAR</button>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;margin-left:8px">
+          <input type="checkbox" id="os-env-montagem" style="accent-color:var(--navy,#13182C)">
+          <span style="font-weight:600;color:var(--navy,#13182C)">Enviada para montagem</span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:700;color:var(--navy,#13182C)">Armação é Clipon?</span>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="os-clipon" value="nao" checked> Não</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="os-clipon" value="sim"> Sim</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="os-clipon" value="ni"> Não Informado</label>
       </div>
 
       <!-- Condição da Armação / Montagem / Índice -->
