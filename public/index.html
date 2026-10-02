@@ -676,7 +676,14 @@ tr:hover td{background:#FAFAF5}
       <div class="card">
         <div class="ch" style="flex-wrap:wrap;gap:8px">
           <span class="ct">🗂️ Ordens de Serviço</span>
-          <input type="text" id="os-list-search" placeholder="Buscar por paciente ou Nº OS…" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;width:260px" oninput="renderOS()">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto">
+            <button class="btn btn-sm os-filtro active" data-sf="todos" onclick="setOsFiltro('todos',this)">Todos</button>
+            <button class="btn btn-sm os-filtro" data-sf="em_producao" onclick="setOsFiltro('em_producao',this)" style="color:var(--amber)">Em Produção</button>
+            <button class="btn btn-sm os-filtro" data-sf="pronto" onclick="setOsFiltro('pronto',this)" style="color:var(--blue)">Pronto</button>
+            <button class="btn btn-sm os-filtro" data-sf="entregue" onclick="setOsFiltro('entregue',this)" style="color:var(--green)">Entregue</button>
+            <input type="month" id="os-list-mes" style="border:1px solid var(--border-light);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--white);color:var(--black)" oninput="renderOS()" title="Filtrar por mês">
+            <input type="text" id="os-list-search" placeholder="Buscar paciente / Nº OS…" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;width:220px" oninput="renderOS()">
+          </div>
         </div>
         <div style="overflow-x:auto" id="os-list-wrap">
           <div style="text-align:center;padding:40px;color:var(--muted)">Nenhuma OS salva ainda.</div>
@@ -686,12 +693,16 @@ tr:hover td{background:#FAFAF5}
 
     <!-- ══════════════════ FINANCEIRO ══════════════════ -->
     <div class="tab-panel" id="tab-financeiro">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:var(--muted)">Período:</span>
+        <input type="month" id="fin-mes" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="renderFinanceiro()">
+      </div>
       <div class="metrics c3" style="margin-bottom:20px">
-        <div class="metric ma"><div class="ml">Recebido no mês</div><div class="mv" id="fin-recebido">R$ 0</div><div class="ms">Pedidos entregues e pagos</div></div>
+        <div class="metric ma"><div class="ml">Recebido no período</div><div class="mv" id="fin-recebido">R$ 0</div><div class="ms">Pedidos + crediário</div></div>
         <div class="metric mb"><div class="ml">A receber</div><div class="mv" id="fin-areceber">R$ 0</div><div class="ms">Pedidos em aberto</div></div>
         <div class="metric mg"><div class="ml">Ticket médio</div><div class="mv" id="fin-ticket">R$ 0</div><div class="ms">Média do período</div></div>
       </div>
-      <div class="card">
+      <div class="card" style="margin-bottom:16px">
         <div class="ch"><span class="ct">Pedidos — Controle financeiro</span></div>
         <div style="overflow-x:auto">
           <table>
@@ -707,6 +718,22 @@ tr:hover td{background:#FAFAF5}
           </table>
         </div>
       </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Crediário — Recebimentos do período</span></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th style="width:25%">Cliente</th>
+              <th style="width:20%">Descrição</th>
+              <th style="width:10%;text-align:center">Parcela</th>
+              <th style="width:12%">Data</th>
+              <th style="width:12%">Forma</th>
+              <th style="width:12%;text-align:right">Valor</th>
+            </tr></thead>
+            <tbody id="fin-cred-tbody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ══════════════════ CATÁLOGO ══════════════════ -->
@@ -719,7 +746,7 @@ tr:hover td{background:#FAFAF5}
       <div id="cat-panel-armacoes">
         <div class="card">
           <div class="ch"><span class="ct">Armações</span><button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'armacao'})">+ Adicionar</button></div>
-          <table><thead><tr><th>Nome / Código</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead>
+          <table><thead><tr><th>Nome / Código</th><th>Preço</th><th style="text-align:center">Estoque</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody id="cat-armacoes-tbody"></tbody></table>
         </div>
       </div>
@@ -749,6 +776,11 @@ tr:hover td{background:#FAFAF5}
 
     <!-- ══════════════════ RELATÓRIOS ══════════════════ -->
     <div class="tab-panel" id="tab-relatorios">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:var(--muted)">Período:</span>
+        <input type="month" id="rel-mes" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="renderRelatorios()">
+        <button class="btn btn-ghost btn-sm" onclick="exportarRelatorioCSV()" style="margin-left:auto">⬇️ Exportar CSV</button>
+      </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px" id="rel-kpis"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
         <div class="card">
@@ -1247,6 +1279,9 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
       <div class="form-row c1"><div class="form-group"><label class="form-label">Nome / Descrição *</label><input class="form-input" id="prod-nome" placeholder="Ex: Armação Ray-Ban RB3025"></div></div>
       <div class="form-row"><div class="form-group"><label class="form-label">Código</label><input class="form-input" id="prod-codigo" placeholder="RB3025"></div>
       <div class="form-group"><label class="form-label">Preço de venda (R$) *</label><input class="form-input" id="prod-preco" type="number" step="0.01" min="0" placeholder="350.00"></div></div>
+      <div id="prod-extra-armacao" style="display:none">
+        <div class="form-row c1"><div class="form-group"><label class="form-label">Estoque (unidades)</label><input class="form-input" id="prod-estoque" type="number" min="0" step="1" placeholder="Ex: 3"></div></div>
+      </div>
       <div id="prod-extra-lente" style="display:none">
         <div class="form-divider">Especificações da lente</div>
         <div class="form-row c3">
@@ -1337,6 +1372,7 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
           </select>
         </div>
         <div class="form-group"><label class="form-label">Meta mensal (R$)</label><input class="form-input" id="usr-meta" type="number" placeholder="8000"></div>
+        <div class="form-group"><label class="form-label">Comissão (%)</label><input class="form-input" id="usr-comissao" type="number" min="0" max="100" step="0.5" placeholder="Ex: 5"></div>
       </div>
       <div class="form-row c2">
         <div class="form-group"><label class="form-label" id="usr-pin-label">PIN (4 dígitos) *</label><input class="form-input" id="usr-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
@@ -1785,6 +1821,8 @@ function openModal(id,data={}){
     document.getElementById('prod-id').value='';
     document.getElementById('modal-prod-title').textContent={armacao:'Nova Armação',lente:'Nova Lente',acessorio:'Novo Acessório'}[cat]||'Novo Produto';
     document.getElementById('prod-extra-lente').style.display=cat==='lente'?'block':'none';
+    const extraArm=document.getElementById('prod-extra-armacao');
+    if(extraArm)extraArm.style.display=cat==='armacao'?'block':'none';
   }
   el.classList.add('open');
 }
@@ -1838,12 +1876,14 @@ function globalSearch(q){
   }
   const term=q.toLowerCase();
   const clis=DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))).slice(0,5);
-  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term))).slice(0,5);
-  const creds=(DB.crediarios||[]).filter(c=>!c.deleted&&((c.clienteNome||'').toLowerCase().includes(term)||(c.descricao||'').toLowerCase().includes(term))).slice(0,4);
+  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term))).slice(0,4);
+  const creds=(DB.crediarios||[]).filter(c=>!c.deleted&&((c.clienteNome||'').toLowerCase().includes(term)||(c.descricao||'').toLowerCase().includes(term))).slice(0,3);
+  const oss=(DB.ordens||[]).filter(o=>!o.deleted&&((o.paciente||'').toLowerCase().includes(term)||(o.num||'').toLowerCase().includes(term))).slice(0,3);
+  const recs=(DB.receitas||[]).filter(r=>!r.deleted&&((DB.clientes.find(c=>c.id===r.clienteId)||{}).nome||'').toLowerCase().includes(term)).slice(0,3);
   renderClientesData(DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))));
   renderPedidosData(DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term))));
   if(!drop)return;
-  if(!clis.length&&!peds.length&&!creds.length){
+  if(!clis.length&&!peds.length&&!creds.length&&!oss.length&&!recs.length){
     drop.innerHTML='<div class="search-drop-empty">Nenhum resultado para "<strong>'+q+'</strong>"</div>';
     drop.style.display='block';return;
   }
@@ -1878,6 +1918,25 @@ function globalSearch(q){
         <span class="sdrop-icon">📋</span>
         <div style="min-width:0"><div class="sdrop-label">${cr.clienteNome}</div><div class="sdrop-sub">${cr.descricao||''} · ${fmtMoney(cr.total||0)}</div></div>
         ${venc?`<span class="sdrop-badge" style="color:var(--red);border-color:var(--red)">${venc} venc.</span>`:''}
+      </div>`;
+    });
+  }
+  if(oss.length){
+    html+='<div class="search-drop-section">OS (Ordem de Serviço)</div>';
+    oss.forEach(o=>{
+      html+=`<div class="search-drop-item" onclick="nav('os');closeSearchDrop();document.getElementById('global-search').value=''">
+        <span class="sdrop-icon">🔬</span>
+        <div style="min-width:0"><div class="sdrop-label">${o.num||'—'} — ${o.paciente}</div><div class="sdrop-sub">${o.data?.split('-').reverse().join('/')||'—'}${o.valor?' · R$'+Number(o.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):''}</div></div>
+      </div>`;
+    });
+  }
+  if(recs.length){
+    html+='<div class="search-drop-section">Receitas</div>';
+    recs.forEach(r=>{
+      const cli=DB.clientes.find(c=>c.id===r.clienteId)||{nome:'?'};
+      html+=`<div class="search-drop-item" onclick="verPerfil('${r.clienteId}');closeSearchDrop();document.getElementById('global-search').value=''">
+        <span class="sdrop-icon">👁️</span>
+        <div style="min-width:0"><div class="sdrop-label">${cli.nome}</div><div class="sdrop-sub">Receita de ${fmtDate(r.dataReceita)}${r.isAtual?' · atual':''}</div></div>
       </div>`;
     });
   }
@@ -1952,6 +2011,7 @@ function verPerfil(id){
   const peds=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===id);
   const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===id).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
   const creds=(DB.crediarios||[]).filter(cr=>!cr.deleted&&cr.clienteId===id);
+  const ordens=(DB.ordens||[]).filter(o=>!o.deleted&&o.paciente&&DB.clientes.find(cl=>cl.id===id)&&(o.paciente.toLowerCase()===c.nome.toLowerCase()||o.clienteId===id)).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
   const ult=peds.filter(p=>p.status==='entregue').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
   const totalGasto=peds.filter(p=>p.status==='entregue'||p.status==='pos_venda').reduce((s,p)=>s+Number(p.total||0),0);
   document.getElementById('perfil-nome-header').textContent=c.nome;
@@ -1976,6 +2036,7 @@ function verPerfil(id){
       <button class="inner-tab active" onclick="perfilTab('pedidos-${id}',this)">Pedidos (${peds.length})</button>
       <button class="inner-tab" onclick="perfilTab('receitas-${id}',this)">Receitas (${recs.length})</button>
       <button class="inner-tab" onclick="perfilTab('crediario-${id}',this)">Crediário (${creds.length})</button>
+      <button class="inner-tab" onclick="perfilTab('os-${id}',this)">OS (${ordens.length})</button>
     </div>
     <div id="perfil-tab-pedidos-${id}">
       ${peds.length?`<table><thead><tr><th>#</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody>
@@ -2012,6 +2073,17 @@ function verPerfil(id){
           </div>
         </div>`).join(''):`<div class="empty"><div class="empty-icon">👁️</div><div class="empty-title">Nenhuma receita cadastrada</div><button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="openModal('modal-receita',{clienteId:'${id}'})">+ Nova Receita</button></div>`}
     </div>
+    <div id="perfil-tab-os-${id}" style="display:none">
+      ${ordens.length?`<table><thead><tr><th>Nº OS</th><th>Data</th><th>Entrega</th><th>Valor</th><th></th></tr></thead><tbody>
+        ${ordens.map(o=>`<tr>
+          <td style="font-weight:700;color:var(--navy)">${o.num||'—'}</td>
+          <td>${o.data?.split('-').reverse().join('/')||'—'}</td>
+          <td>${o.entrega?.split('-').reverse().join('/')||'—'}</td>
+          <td>${o.valor?'R$ '+Number(o.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-perfil');editarOS('${o.id}')">✏️</button></td>
+        </tr>`).join('')}
+      </tbody></table>`:`<div class="empty"><div class="empty-icon">🔬</div><div class="empty-title">Nenhuma OS cadastrada</div></div>`}
+    </div>
     <div id="perfil-tab-crediario-${id}" style="display:none">
       ${creds.length?creds.map(cr=>{
         const venc=(cr.parcelas||[]).filter(p=>!p.pago&&p.dataVenc&&new Date(p.dataVenc)<new Date()).length;
@@ -2037,8 +2109,8 @@ function verPerfil(id){
   openModal('modal-perfil');
 }
 function perfilTab(tabId,btn){
-  const base=tabId.replace(/^(pedidos|receitas|crediario)-/,'');
-  ['pedidos','receitas','crediario'].forEach(t=>{
+  const base=tabId.replace(/^(pedidos|receitas|crediario|os)-/,'');
+  ['pedidos','receitas','crediario','os'].forEach(t=>{
     const el=document.getElementById(`perfil-tab-${t}-${base}`);
     if(el)el.style.display='none';
   });
@@ -2661,6 +2733,7 @@ function confirmarStatus(){
   }
   const i=DB.pedidos.findIndex(p=>p.id===id);
   if(i>=0){
+    const statusAnterior=DB.pedidos[i].status;
     DB.pedidos[i].status=novoStatus;
     DB.pedidos[i].updatedAt=new Date().toISOString();
     if(novoStatus==='entregue')DB.pedidos[i].dataEntrega=new Date().toISOString();
@@ -2669,6 +2742,14 @@ function confirmarStatus(){
       DB.pedidos[i].motivoPerda=motivo==='Outro'?document.getElementById('st-motivo-outro').value.trim():motivo;
     } else {
       DB.pedidos[i].motivoPerda=null;
+    }
+    if(novoStatus!==statusAnterior){
+      if(!DB.pedidos[i].statusHistory)DB.pedidos[i].statusHistory=[];
+      DB.pedidos[i].statusHistory.push({
+        status:novoStatus,data:new Date().toISOString().slice(0,10),
+        usuarioNome:window.currentUser?.nome||'—',
+        obs:document.getElementById('st-obs')?.value||''
+      });
     }
   }
   save();closeModal('modal-status');
@@ -2698,6 +2779,10 @@ function salvarProduto(){
     obj.material=document.getElementById('prod-material').value;
     obj.tratamento=document.getElementById('prod-trat').value;
   }
+  if(cat==='armacao'){
+    const estoqueEl=document.getElementById('prod-estoque');
+    if(estoqueEl)obj.estoque=parseInt(estoqueEl.value)||0;
+  }
   if(existId){const i=DB.produtos.findIndex(p=>p.id===existId);if(i>=0)DB.produtos[i]=Object.assign(DB.produtos[i],obj)}
   else{obj.createdAt=new Date().toISOString();DB.produtos.push(obj)}
   save();closeModal('modal-produto');renderCatalogo();populateSelects();toast('Produto salvo!');
@@ -2713,6 +2798,10 @@ function editarProduto(id){
     document.getElementById('prod-sub').value=p.subcategoria||'';
     document.getElementById('prod-material').value=p.material||'';
     document.getElementById('prod-trat').value=p.tratamento||'';
+  }
+  if(p.categoria==='armacao'){
+    const estoqueEl=document.getElementById('prod-estoque');
+    if(estoqueEl)estoqueEl.value=p.estoque!=null?p.estoque:0;
   }
 }
 function toggleProduto(id){
@@ -2755,6 +2844,7 @@ function editarUsuario(id){
   document.getElementById('usr-email').value=u.email||'';
   document.getElementById('usr-perfil').value=u.perfil||'vendedor';
   document.getElementById('usr-meta').value=u.meta||'';
+  const comissaoEl=document.getElementById('usr-comissao');if(comissaoEl)comissaoEl.value=u.comissao!=null?u.comissao:3;
   document.getElementById('usr-pin').value='';
   document.getElementById('usr-pin2').value='';
   _abrirModalUsuario();
@@ -2835,6 +2925,7 @@ function salvarUsuario(){
       DB.usuarios[i].email=email;
       DB.usuarios[i].perfil=document.getElementById('usr-perfil').value;
       DB.usuarios[i].meta=parseFloat(document.getElementById('usr-meta').value)||0;
+      const comEl=document.getElementById('usr-comissao');if(comEl)DB.usuarios[i].comissao=parseFloat(comEl.value)||0;
       if(pin){DB.usuarios[i].senha=pin;try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[existId]=pin;p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}}
     }
     save();closeModal('modal-usuario');renderConfig();populateSelects();toast('Usuário atualizado! ✅');
@@ -2845,8 +2936,9 @@ function salvarUsuario(){
     const novoId=(typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():uid();
     const novoPerf=document.getElementById('usr-perfil').value;
     const novoMeta=parseFloat(document.getElementById('usr-meta').value)||0;
+    const novaComissao=parseFloat(document.getElementById('usr-comissao')?.value)||3;
     const novoTs=new Date().toISOString();
-    DB.usuarios.push({id:novoId,nome,email,perfil:novoPerf,meta:novoMeta,ativo:true,senha:pin,createdAt:novoTs});
+    DB.usuarios.push({id:novoId,nome,email,perfil:novoPerf,meta:novoMeta,comissao:novaComissao,ativo:true,senha:pin,createdAt:novoTs});
     // Grava PIN em haw_pins para que doLogin() funcione mesmo sem sync Supabase
     try{const p=JSON.parse(localStorage.getItem('haw_pins')||'{}');p[novoId]=pin;p[nome]=pin;localStorage.setItem('haw_pins',JSON.stringify(p));}catch(e){}
     save();
@@ -3139,6 +3231,14 @@ function renderDashboard(){
       alertas.push({dot:'red',text:`Crediário — ${c.clienteNome}`,sub:`${venc.length} parcela${venc.length>1?'s':''} vencida${venc.length>1?'s':''}`,time:`${dias}d`});
     }
   });
+  // Receitas vencidas (>12 meses)
+  DB.clientes.filter(c=>!c.deleted).forEach(c=>{
+    const recAtual=(DB.receitas||[]).filter(r=>!r.deleted&&r.clienteId===c.id&&r.isAtual)[0];
+    if(recAtual&&recAtual.dataReceita){
+      const mesesRec=Math.floor((now-new Date(recAtual.dataReceita))/2592000000);
+      if(mesesRec>=12)alertas.push({dot:'amber',text:`Receita vencida — ${c.nome}`,sub:`${mesesRec} meses desde a última receita`,time:`${mesesRec}m`});
+    }
+  });
   DB.clientes.filter(c=>!c.deleted).forEach(c=>{
     const ultPed=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===c.id&&p.status==='entregue').sort((a,b)=>b.createdAt?.localeCompare(a.createdAt))[0];
     if(ultPed){
@@ -3156,7 +3256,9 @@ function renderDashboard(){
   const vendedores=DB.usuarios.filter(u=>['vendedor','gestor','dono'].includes(u.perfil));
   const vendRank=vendedores.map(v=>{
     const vPeds=entregues.filter(p=>p.vendedorId===v.id);
-    return{nome:v.nome,total:vPeds.reduce((s,p)=>s+Number(p.total||0),0),qtd:vPeds.length};
+    const totalVend=vPeds.reduce((s,p)=>s+Number(p.total||0),0);
+    const com=v.comissao!=null?v.comissao:3;
+    return{nome:v.nome,total:totalVend,qtd:vPeds.length,comissao:totalVend*com/100};
   }).sort((a,b)=>b.total-a.total);
   const maxV=vendRank[0]?.total||1;
   const posClass=['p1','p2','p3'];
@@ -3167,7 +3269,10 @@ function renderDashboard(){
         <div class="rank-name">${v.nome}</div>
         <div class="rank-bar"><div class="rank-fill" style="width:${Math.round(v.total/maxV*100)}%"></div></div>
       </div>
-      <div class="rank-val">${fmtMoney(v.total)}</div>
+      <div style="text-align:right">
+        <div class="rank-val">${fmtMoney(v.total)}</div>
+        ${v.comissao>0?`<div style="font-size:10px;color:var(--muted)">Com.: ${fmtMoney(v.comissao)}</div>`:''}
+      </div>
     </div>`).join(''):'<div class="empty" style="padding:24px"><div class="empty-text">Sem vendas registradas</div></div>';
 
   // CHART FATURAMENTO
@@ -3412,33 +3517,39 @@ function fmtGrau(esf,cil,eixo){
 
 // ── FINANCEIRO ──
 function renderFinanceiro(){
-  const mes=new Date().toISOString().slice(0,7);
+  const mesEl=document.getElementById('fin-mes');
+  if(mesEl&&!mesEl.value) mesEl.value=new Date().toISOString().slice(0,7);
+  const mes=mesEl?.value||new Date().toISOString().slice(0,7);
   const peds=DB.pedidos.filter(p=>!p.deleted);
-  // Pedidos com crediário próprio têm seu fluxo de caixa real controlado pelas parcelas,
-  // não pelo status do pedido — por isso são excluídos do cálculo binário abaixo (evita contar 2x).
   const credPedidoIds=new Set((DB.crediarios||[]).filter(c=>c.status!=='cancelado'&&c.pedidoId).map(c=>c.pedidoId));
   const pedsSemCred=peds.filter(p=>!credPedidoIds.has(p.id));
   const entregues=pedsSemCred.filter(p=>['entregue','pos_venda'].includes(p.status));
-  // Usa a data de entrega/pagamento real (dataEntrega) — não a data de criação do pedido.
-  // Pedidos antigos sem dataEntrega caem no fallback createdAt.
   const recMes=entregues.filter(p=>(p.dataEntrega||p.createdAt)?.startsWith(mes));
   let rec=recMes.reduce((s,p)=>s+Number(p.total||0),0);
   let arec=pedsSemCred.filter(p=>!['entregue','pos_venda','perdido'].includes(p.status)).reduce((s,p)=>s+Number(p.total||0),0);
-  const ticketBase=peds.filter(p=>['entregue','pos_venda'].includes(p.status));
+  const ticketBase=peds.filter(p=>['entregue','pos_venda'].includes(p.status)&&(p.dataEntrega||p.createdAt||'').startsWith(mes));
   const ticket=ticketBase.length?ticketBase.reduce((s,p)=>s+Number(p.total||0),0)/ticketBase.length:0;
 
-  // Crediário próprio: entrada + pagamentos de parcelas recebidos no mês entram como "Recebido";
-  // saldo devedor de todas as parcelas em aberto entra como "A receber".
   let credRecMes=0, credAReceber=0;
+  const credLinhas=[];
+  const FORMA_L={pix:'PIX',dinheiro:'Dinheiro',cartao_debito:'Débito',cartao_credito:'Crédito',transferencia:'Transf.',cheque:'Cheque'};
   (DB.crediarios||[]).forEach(c=>{
     if(c.status==='cancelado') return;
-    if(c.entrada>0 && (c.createdAt||'').startsWith(mes)) credRecMes+=Number(c.entrada);
+    if(c.entrada>0 && (c.createdAt||'').startsWith(mes)){
+      credRecMes+=Number(c.entrada);
+      credLinhas.push({cliente:c.clienteNome,desc:c.descricao||'—',parcela:'Entrada',data:(c.createdAt||'').slice(0,10),forma:'—',valor:Number(c.entrada)});
+    }
     (c.parcelas||[]).forEach(p=>{
       if(p.pagamentos&&p.pagamentos.length){
-        p.pagamentos.forEach(pg=>{ if((pg.data||'').startsWith(mes)) credRecMes+=Number(pg.valor||0); });
+        p.pagamentos.forEach(pg=>{
+          if((pg.data||'').startsWith(mes)){
+            credRecMes+=Number(pg.valor||0);
+            credLinhas.push({cliente:c.clienteNome,desc:c.descricao||'—',parcela:p.numero+'ª',data:pg.data,forma:FORMA_L[pg.forma]||pg.forma||'—',valor:Number(pg.valor||0)});
+          }
+        });
       } else if((p.valorPago||0)>0 && (p.dataPagamento||'').startsWith(mes)){
-        // Pagamento registrado antes do histórico de parcelas existir — usa o registro legado.
         credRecMes+=Number(p.valorPago);
+        credLinhas.push({cliente:c.clienteNome,desc:c.descricao||'—',parcela:p.numero+'ª',data:p.dataPagamento,forma:p.formaPagamento||'—',valor:Number(p.valorPago)});
       }
       credAReceber+=Math.max(0,p.valorOriginal-(p.valorPago||0));
     });
@@ -3448,13 +3559,24 @@ function renderFinanceiro(){
   document.getElementById('fin-recebido').textContent=fmtMoney(rec);
   document.getElementById('fin-areceber').textContent=fmtMoney(arec);
   document.getElementById('fin-ticket').textContent=fmtMoney(ticket);
+
   const tbody=document.getElementById('fin-tbody');
-  const todos=peds.sort((a,b)=>b.createdAt?.localeCompare(a.createdAt));
-  tbody.innerHTML=todos.map(p=>{
+  const pedsMes=peds.filter(p=>(p.dataEntrega||p.createdAt||'').startsWith(mes)).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  tbody.innerHTML=pedsMes.length?pedsMes.map(p=>{
     const cli=DB.clientes.find(c=>c.id===p.clienteId)||{nome:'?'};
     const sb=STATUS_BADGE[p.status]||{cls:'badge-gray',label:p.status};
     return`<tr><td style="font-weight:700;color:var(--gold-deep)">#${p.numero}</td><td>${cli.nome}</td><td>${fmtDate(p.createdAt)}</td><td style="font-weight:700">${fmtMoney(p.total)}</td><td>${p.pagamento||'—'}</td><td><span class="badge ${sb.cls}">${sb.label}</span></td></tr>`;
-  }).join('');
+  }).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum pedido no período</td></tr>';
+
+  const credTbody=document.getElementById('fin-cred-tbody');
+  if(credTbody){
+    credLinhas.sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+    credTbody.innerHTML=credLinhas.length?credLinhas.map(l=>`<tr>
+      <td style="font-weight:500">${l.cliente}</td><td style="color:var(--muted);font-size:11px">${l.desc}</td>
+      <td style="text-align:center">${l.parcela}</td><td>${fmtDate(l.data)}</td>
+      <td>${l.forma}</td><td style="text-align:right;font-weight:600;color:var(--green)">${fmtMoney(l.valor)}</td>
+    </tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum recebimento de crediário no período</td></tr>';
+  }
 }
 
 // ── CATÁLOGO ──
@@ -3462,12 +3584,14 @@ function renderCatalogo(){
   ['armacao','acessorio'].forEach(cat=>{
     const id=cat==='armacao'?'cat-armacoes-tbody':'cat-acess-tbody';
     const prods=DB.produtos.filter(p=>!p.deleted&&p.categoria===cat);
+    const cols=cat==='armacao'?5:4;
     document.getElementById(id).innerHTML=prods.length?prods.map(p=>`<tr>
       <td><span style="font-weight:500">${p.nome}</span>${p.codigo?`<span style="margin-left:6px;font-size:10px;color:var(--muted)">${p.codigo}</span>`:''}</td>
       <td style="font-weight:700;color:var(--gold-deep)">${fmtMoney(p.preco)}</td>
+      ${cat==='armacao'?`<td style="text-align:center;font-weight:600;color:${p.estoque>0?'var(--green)':'var(--red)'}">${p.estoque!=null?p.estoque:'—'}</td>`:''}
       <td><span class="badge ${p.ativo?'badge-green':'badge-gray'}">${p.ativo?'Ativo':'Inativo'}</span></td>
       <td><button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="toggleProduto('${p.id}')">${p.ativo?'❌':'✅'}</button></td>
-    </tr>`).join(''):`<tr><td colspan="4"><div class="empty" style="padding:20px"><div class="empty-text">Nenhum cadastrado</div></div></td></tr>`;
+    </tr>`).join(''):`<tr><td colspan="${cols}"><div class="empty" style="padding:20px"><div class="empty-text">Nenhum cadastrado</div></div></td></tr>`;
   });
   // Popula filtro de laboratório
   const labFiltroEl = document.getElementById('cat-lentes-lab-filter');
@@ -3493,9 +3617,11 @@ function renderCatalogo(){
 // ── RELATÓRIOS ──
 function renderRelatorios(){
   const now=new Date();
-  const mes=now.toISOString().slice(0,7);
+  const relMesEl=document.getElementById('rel-mes');
+  if(relMesEl&&!relMesEl.value)relMesEl.value=now.toISOString().slice(0,7);
+  const mes=relMesEl?.value||now.toISOString().slice(0,7);
   const peds=DB.pedidos.filter(p=>!p.deleted);
-  const mesPeds=peds.filter(p=>p.createdAt&&p.createdAt.startsWith(mes)&&['entregue','pos_venda'].includes(p.status));
+  const mesPeds=peds.filter(p=>(p.dataEntrega||p.createdAt||'').startsWith(mes)&&['entregue','pos_venda'].includes(p.status));
   const fatMes=mesPeds.reduce((s,p)=>s+Number(p.total||0),0);
   const ticket=mesPeds.length?fatMes/mesPeds.length:0;
   const cliAtivos=DB.clientes.filter(c=>!c.deleted).length;
@@ -3545,6 +3671,40 @@ function renderRelatorios(){
     <td><a href="https://wa.me/55${(c.telefone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+c.nome.split(' ')[0]+'! É a HAW Vision. Sua revisão anual está próxima! 👓')}" target="_blank" class="btn btn-ghost btn-sm">📱 WhatsApp</a></td>
   </tr>`).join(''):`<tr><td colspan="5"><div class="empty" style="padding:20px"><div class="empty-icon">✅</div><div class="empty-title">Nenhum cliente para contatar</div></div></td></tr>`;
 }
+function exportarRelatorioCSV(){
+  const relMesEl=document.getElementById('rel-mes');
+  const mes=relMesEl?.value||new Date().toISOString().slice(0,7);
+  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.dataEntrega||p.createdAt||'').startsWith(mes)&&['entregue','pos_venda'].includes(p.status));
+  const rows=[['#Pedido','Cliente','Data','Forma Pgto','Total','Vendedor','Status']];
+  peds.forEach(p=>{
+    const cli=DB.clientes.find(c=>c.id===p.clienteId)||{nome:'?'};
+    const vend=DB.usuarios.find(u=>u.id===p.vendedorId)||{nome:'—'};
+    const sb=(STATUS_BADGE[p.status]||{label:p.status}).label;
+    rows.push([`#${p.numero}`,cli.nome,(p.dataEntrega||p.createdAt||'').slice(0,10),p.pagamento||'—',Number(p.total||0).toFixed(2).replace('.',','),vend.nome,sb]);
+  });
+  // Crediários
+  rows.push([]);rows.push(['--- CREDIÁRIOS ---']);
+  rows.push(['Cliente','Descrição','Parcela','Data Pagamento','Forma','Valor']);
+  (DB.crediarios||[]).forEach(c=>{
+    if(c.status==='cancelado')return;
+    (c.parcelas||[]).forEach(p=>{
+      if(p.pagamentos&&p.pagamentos.length){
+        p.pagamentos.filter(pg=>(pg.data||'').startsWith(mes)).forEach(pg=>{
+          rows.push([c.clienteNome,c.descricao||'—',p.numero+'ª',pg.data,pg.forma||'—',Number(pg.valor||0).toFixed(2).replace('.',',')]);
+        });
+      } else if((p.valorPago||0)>0&&(p.dataPagamento||'').startsWith(mes)){
+        rows.push([c.clienteNome,c.descricao||'—',p.numero+'ª',p.dataPagamento,p.formaPagamento||'—',Number(p.valorPago).toFixed(2).replace('.',',')]);
+      }
+    });
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`relatorio-${mes}.csv`;a.click();
+  URL.revokeObjectURL(url);
+}
+window.exportarRelatorioCSV=exportarRelatorioCSV;
+
 function renderRelatorioCharts(){
   const peds=DB.pedidos.filter(p=>!p.deleted);
   // Faturamento últimos 6 meses
@@ -4447,6 +4607,14 @@ window.renderBackups=renderBackups;
 // ── CREDIÁRIO ─────────────────────────────────────────────────────────────────
 
 let _credFiltro = 'todos';
+let _osFiltro = 'todos';
+function setOsFiltro(f, btn) {
+  _osFiltro = f;
+  document.querySelectorAll('.os-filtro').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderOS();
+}
+window.setOsFiltro = setOsFiltro;
 
 function setCreditFilter(f, btn) {
   _credFiltro = f;
@@ -5454,6 +5622,7 @@ function _coletarDadosOS(){
     tratamentos:tratCbs.map((id,i)=>ck(id)?tratLabels[i]:null).filter(Boolean),
     obs:v('os-obs'),entrega:v('os-entrega'),
     valor:parseFloat(v('os-valor'))||0,pagamento:v('os-pagamento'),
+    status:v('os-status')||'em_producao',
     created_at:new Date().toISOString()
   };
 }
@@ -5487,38 +5656,45 @@ function _atualizarCntOS(){
   if(cnt)cnt.textContent=(DB.ordens||[]).filter(o=>!o.deleted).length||0;
 }
 
+const OS_STATUS_BADGE={em_producao:{cls:'badge-amber',label:'Em Produção'},pronto:{cls:'badge-green',label:'Pronto'},entregue:{cls:'badge-gray',label:'Entregue'}};
 function renderOS(){
   const q=(document.getElementById('os-list-search')?.value||'').toLowerCase();
+  const mesFiltroEl=document.getElementById('os-list-mes');
+  const mesFiltro=mesFiltroEl?.value||'';
   const perfil=window.currentUser?.perfil||'';
   const podeVerTodos=['dono','gestor'].includes(perfil);
-  const list=(DB.ordens||[])
+  let list=(DB.ordens||[])
     .filter(o=>!o.deleted)
     .filter(o=>podeVerTodos||!o.usuarioId||o.usuarioId===window.currentUser?.id)
-    .filter(o=>(o.paciente||'').toLowerCase().includes(q)||(o.num||'').toLowerCase().includes(q))
-    .sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+    .filter(o=>(o.paciente||'').toLowerCase().includes(q)||(o.num||'').toLowerCase().includes(q));
+  if(_osFiltro&&_osFiltro!=='todos')list=list.filter(o=>(o.status||'em_producao')===_osFiltro);
+  if(mesFiltro)list=list.filter(o=>(o.created_at||o.data||'').startsWith(mesFiltro));
+  list=list.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
   const el=document.getElementById('os-list-wrap');
   if(!el)return;
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">Nenhuma OS encontrada.</div>';return;}
   el.innerHTML=`<table><thead><tr>
-    <th>Nº OS</th><th>Paciente</th><th>Data</th><th>Entrega</th><th>Valor</th><th>Índice</th><th>Montagem</th><th>Armação</th>
+    <th>Nº OS</th><th>Paciente</th><th>Data</th><th>Entrega</th><th>Valor</th><th>Status</th><th>Índice</th><th>Montagem</th>
     ${podeVerTodos?'<th>Criado por</th>':''}
     <th></th>
-  </tr></thead><tbody>${list.map(o=>`<tr>
+  </tr></thead><tbody>${list.map(o=>{
+    const sb=OS_STATUS_BADGE[o.status||'em_producao']||{cls:'badge-amber',label:o.status||'Em Produção'};
+    return`<tr>
     <td style="font-weight:700;color:var(--navy)">${o.num}</td>
     <td>${o.paciente}</td>
     <td>${o.data?.split('-').reverse().join('/')||'—'}</td>
     <td>${o.entrega?.split('-').reverse().join('/')||'—'}</td>
     <td>${o.valor?'R$ '+Number(o.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+    <td><span class="badge ${sb.cls}">${sb.label}</span></td>
     <td>${o.indice||'—'}</td>
     <td>${o.montagem||'—'}</td>
-    <td style="font-size:11px">${o.armCond||'—'}</td>
     ${podeVerTodos?`<td style="font-size:11px;color:var(--muted)">${o.usuarioNome||'—'}</td>`:''}
     <td style="white-space:nowrap">
       <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" title="Editar" onclick="editarOS('${o.id}')">✏️</button>
       <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" title="Visualizar PDF" onclick="reimprimirOS('${o.id}')">👁️</button>
       <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px;color:var(--danger,#e53)" title="Excluir" onclick="excluirOS('${o.id}')">✕</button>
     </td>
-  </tr>`).join('')}</tbody></table>`;
+  </tr>`;}).join('')}</tbody></table>`;
 }
 
 function excluirOS(id){
@@ -5565,6 +5741,7 @@ function editarOS(id){
   const tratLabels=['Antirreflexo','Filtro Luz Azul','Fotossensível','Hidrofóbico','Anti-risco','Proteção UV 400'];
   tratCbs.forEach((cbid,i)=>{const el=document.getElementById(cbid);if(el)el.checked=(os.tratamentos||[]).includes(tratLabels[i]);});
   set('os-obs',os.obs);set('os-entrega',os.entrega);set('os-valor',os.valor||'');set('os-pagamento',os.pagamento);
+  const osStatusEl=document.getElementById('os-status');if(osStatusEl)osStatusEl.value=os.status||'em_producao';
   const bn=document.getElementById('os-import-banner');if(bn)bn.style.display='none';
 }
 
@@ -5925,8 +6102,16 @@ window.gerarOsPDF=gerarOsPDF;
       <div class="os-sec-title">Observações Técnicas</div>
       <textarea id="os-obs" rows="3" placeholder="Recomendações de lentes, cuidados especiais, detalhes do pedido..." style="width:100%;resize:vertical"></textarea>
 
-      <!-- Entrega / Valor / Pagamento -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:10px;margin-top:8px">
+      <!-- Status / Entrega / Valor / Pagamento -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1.5fr;gap:10px;margin-top:8px">
+        <div class="fg">
+          <label class="fl">Status</label>
+          <select id="os-status" style="width:100%;border:1px solid var(--border-light);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--white);color:var(--black)">
+            <option value="em_producao">Em Produção</option>
+            <option value="pronto">Pronto p/ Retirada</option>
+            <option value="entregue">Entregue</option>
+          </select>
+        </div>
         <div class="fg">
           <label class="fl">Data de Entrega</label>
           <input type="date" id="os-entrega">
