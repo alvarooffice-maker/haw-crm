@@ -4783,7 +4783,7 @@ function _renderParcelasInline(c) {
       <td style="padding:7px 12px;text-align:right;color:var(--red)">${juros>0.01?fmtMoney(juros):'—'}</td>
       <td style="padding:7px 12px;text-align:right;font-weight:700">${p.pago?'<span style="color:var(--green)">—</span>':fmtMoney(totalPagar)}</td>
       <td style="padding:7px 12px">${badge}${pagoMeta}</td>
-      <td style="padding:7px 12px">${btnPagar}</td>
+      <td style="padding:7px 12px;white-space:nowrap;display:flex;gap:4px;align-items:center">${btnPagar}<button onclick="editarParcela('${c.id}',${idx})" title="Editar parcela" style="background:none;border:1px solid var(--border-light);border-radius:4px;cursor:pointer;color:var(--muted);font-size:11px;padding:3px 7px;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold-deep)'" onmouseout="this.style.borderColor='var(--border-light)';this.style.color='var(--muted)'">✏️</button></td>
     </tr>`;
   }).join('');
   // Histórico consolidado de todos os recebimentos
@@ -5286,6 +5286,63 @@ window.salvarCrediario=salvarCrediario;
 window.excluirCrediario=excluirCrediario;
 window.abrirEditarCrediario=abrirEditarCrediario;
 window.abrirPagarParcela=abrirPagarParcela;
+
+function editarParcela(credId, parcelaIdx) {
+  const c = (DB.crediarios||[]).find(x => x.id === credId);
+  if (!c) return;
+  const p = (c.parcelas||[])[parcelaIdx];
+  if (!p) return;
+  document.getElementById('ep-cred-id').value = credId;
+  document.getElementById('ep-parcela-idx').value = parcelaIdx;
+  document.getElementById('modal-ep-title').textContent = `Editar ${p.numero}ª Parcela — ${c.clienteNome}`;
+  document.getElementById('ep-numero').value = p.numero || (parcelaIdx + 1);
+  document.getElementById('ep-vencimento').value = p.vencimento || '';
+  document.getElementById('ep-valor-original').value = p.valorOriginal != null ? p.valorOriginal : '';
+  // Seção de pagamento: só mostra se há dado de pagamento legado (pago=true sem array pagamentos)
+  const temLegacy = p.pago && !(p.pagamentos && p.pagamentos.length);
+  const secPago = document.getElementById('ep-pago-section');
+  if (secPago) secPago.style.display = temLegacy ? 'block' : 'none';
+  if (temLegacy) {
+    document.getElementById('ep-valor-pago').value = p.valorPago != null ? p.valorPago : '';
+    document.getElementById('ep-data-pgto').value = p.dataPagamento || '';
+    document.getElementById('ep-forma-pgto').value = p.formaPagamento || '';
+  }
+  openModal('modal-editar-parcela');
+}
+window.editarParcela = editarParcela;
+
+function salvarEdicaoParcela() {
+  const credId = document.getElementById('ep-cred-id').value;
+  const idx = parseInt(document.getElementById('ep-parcela-idx').value);
+  const c = (DB.crediarios||[]).find(x => x.id === credId);
+  if (!c || !c.parcelas[idx]) return;
+  const p = c.parcelas[idx];
+  const novoValorOrig = parseFloat(document.getElementById('ep-valor-original').value);
+  if (isNaN(novoValorOrig) || novoValorOrig <= 0) { alert('Informe o valor original da parcela.'); return; }
+  p.numero = parseInt(document.getElementById('ep-numero').value) || p.numero;
+  p.vencimento = document.getElementById('ep-vencimento').value || p.vencimento;
+  p.valorOriginal = Math.round(novoValorOrig * 100) / 100;
+  // Dados de pagamento legado
+  const secPago = document.getElementById('ep-pago-section');
+  if (secPago && secPago.style.display !== 'none') {
+    const vPago = parseFloat(document.getElementById('ep-valor-pago').value);
+    if (!isNaN(vPago)) p.valorPago = Math.round(vPago * 100) / 100;
+    const dataPgto = document.getElementById('ep-data-pgto').value;
+    if (dataPgto) p.dataPagamento = dataPgto;
+    const formaPgto = document.getElementById('ep-forma-pgto').value;
+    if (formaPgto) p.formaPagamento = formaPgto;
+    // Reavalia flag pago
+    p.pago = p.valorPago >= p.valorOriginal - 0.02;
+  }
+  c.status = computeStatusCrediario(c);
+  save();
+  closeModal('modal-editar-parcela');
+  renderCrediario();
+  if (typeof renderFinanceiro === 'function') renderFinanceiro();
+  setTimeout(() => toggleCrediarioDetalhe(credId), 80);
+  toast('Parcela atualizada com sucesso!');
+}
+window.salvarEdicaoParcela = salvarEdicaoParcela;
 window.ppCalcTroco=ppCalcTroco;
 window.registrarPagamento=registrarPagamento;
 window.toggleCrediarioDetalhe=toggleCrediarioDetalhe;
@@ -5472,6 +5529,63 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-pagar-parcela')">Cancelar</button>
       <button class="btn btn-gold" onclick="registrarPagamento()">✅ Confirmar Recebimento</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-editar-parcela">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-ep-title">Editar Parcela</span>
+      <button class="modal-close" onclick="closeModal('modal-editar-parcela')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ep-cred-id">
+      <input type="hidden" id="ep-parcela-idx">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Nº da parcela</label>
+          <input class="form-input" id="ep-numero" type="number" min="1" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vencimento</label>
+          <input class="form-input" id="ep-vencimento" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor original (R$) *</label>
+        <input class="form-input" id="ep-valor-original" type="number" min="0" step="0.01" placeholder="0,00" style="font-size:16px;font-weight:700">
+      </div>
+      <div id="ep-pago-section" style="display:none">
+        <hr style="border:none;border-top:1px solid var(--border-light);margin:4px 0 16px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Dados do Pagamento Registrado</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Valor pago (R$)</label>
+            <input class="form-input" id="ep-valor-pago" type="number" min="0" step="0.01" placeholder="0,00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data do pagamento</label>
+            <input class="form-input" id="ep-data-pgto" type="date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Forma de pagamento</label>
+          <select class="form-input" id="ep-forma-pgto">
+            <option value="">— Não informado —</option>
+            <option value="pix">Pix</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cartao_debito">Cartão Débito</option>
+            <option value="cartao_credito">Cartão Crédito</option>
+            <option value="transferencia">Transferência</option>
+            <option value="cheque">Cheque</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-editar-parcela')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEdicaoParcela()">💾 Salvar alterações</button>
     </div>
   </div>
 </div>
