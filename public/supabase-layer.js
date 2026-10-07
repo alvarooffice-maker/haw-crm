@@ -298,10 +298,10 @@
       // Merge crediarios (tabela opcional — falha silenciosa se não existir)
       try {
         const creds = await sb.from('crediarios').select('*').order('created_at', { ascending: false });
-        if (creds.data && creds.data.length > 0) {
+        if (creds.data) {
           const sbIds = new Set(creds.data.map(r => r.id));
           const sbItems = creds.data.map(r => toCamel('crediarios', r));
-          const localOnly = (window.DB.crediarios || []).filter(c => !sbIds.has(c.id) && c.status !== 'cancelado');
+          const localOnly = (window.DB.crediarios || []).filter(c => !sbIds.has(c.id) && !c.deleted && c.status !== 'cancelado');
           window.DB.crediarios = [...sbItems, ...localOnly];
           if (localOnly.length) {
             Promise.resolve(sb.from('crediarios').upsert(localOnly.map(r => toSnake('crediarios', r)), { onConflict: 'id' }))
