@@ -336,6 +336,25 @@ tr:hover td{background:#FAFAF5}
 .os-cb-item input{width:14px;height:14px;cursor:pointer;accent-color:var(--navy,#13182C)}
 .os-sec-title{font-size:11px;font-weight:700;color:var(--navy,#13182C);letter-spacing:.05em;text-transform:uppercase;margin:14px 0 2px;padding-bottom:3px;border-bottom:2px solid var(--gold,#F7CF13)}
 
+/* ── CALENDÁRIO MÊS ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--border-light);border-radius:var(--rad);overflow:hidden;margin-top:12px}
+.cal-head{background:var(--black);color:var(--gold);font-size:10px;font-weight:700;text-align:center;padding:7px 2px;letter-spacing:.05em}
+.cal-cell{min-height:78px;padding:4px;border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);font-size:11px;cursor:pointer;transition:background .15s;vertical-align:top}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell:hover{background:var(--off)}
+.cal-cell.cal-today{background:rgba(247,207,19,.07);border-top:2px solid var(--gold)}
+.cal-cell.cal-other{opacity:.4}
+.cal-num{font-weight:700;font-size:12px;margin-bottom:2px}
+.cal-ev{font-size:10px;padding:1px 5px;border-radius:3px;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(46,92,139,.15);color:var(--blue)}
+.cal-ev:hover{background:rgba(46,92,139,.28)}
+/* ── CONSIGNADO ── */
+.csg-row{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border-light)}
+.csg-row:last-child{border-bottom:none}
+/* ── GARANTIA ── */
+.gar-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600}
+.gar-ok{background:var(--green-l);color:var(--green)}
+.gar-warn{background:var(--amber-l);color:var(--amber)}
+.gar-exp{background:var(--red-l);color:var(--red)}
 /* ── DARK MODE ── */
 [data-theme="dark"] body{background:#0c1121;color:#c8d8f0}
 [data-theme="dark"] .main{background:#0c1121}
@@ -886,6 +905,7 @@ tr:hover td{background:#FAFAF5}
         <button class="inner-tab active" onclick="setCatTab('armacoes',this)">Armações</button>
         <button class="inner-tab" onclick="setCatTab('lentes',this)">Lentes</button>
         <button class="inner-tab" onclick="setCatTab('acessorios',this)">Acessórios</button>
+        <button class="inner-tab" onclick="setCatTab('consignado',this)">📋 Consignado</button>
       </div>
       <div id="cat-panel-armacoes">
         <div class="card">
@@ -915,6 +935,24 @@ tr:hover td{background:#FAFAF5}
           <div class="ch"><span class="ct">Acessórios</span><button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'acessorio'})">+ Adicionar</button></div>
           <table><thead><tr><th>Nome</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody id="cat-acess-tbody"></tbody>
+        </div>
+      </div>
+      <!-- CONSIGNADO -->
+      <div id="cat-panel-consignado" style="display:none">
+        <div class="card">
+          <div class="ch">
+            <span class="ct">Armações em Consignação</span>
+            <div style="display:flex;gap:6px">
+              <select class="form-input form-select" id="csg-filtro" style="width:150px;padding:5px 10px;font-size:12px" onchange="renderConsignados()">
+                <option value="">Todos</option><option value="ativo">Ativo</option>
+                <option value="devolvido">Devolvido</option><option value="comprado">Comprado</option>
+              </select>
+              <button class="btn btn-gold btn-sm" onclick="openModal('modal-consignado')">+ Novo Consignado</button>
+            </div>
+          </div>
+          <div class="metrics c3" style="padding:12px 16px" id="csg-metrics"></div>
+          <table><thead><tr><th>Fornecedor</th><th>Produto</th><th>Recebido</th><th>Devolvido</th><th>Comprado</th><th>Saldo</th><th>Prazo dev.</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="csg-tbody"></tbody></table>
         </div>
       </div>
     </div>
@@ -955,6 +993,14 @@ tr:hover td{background:#FAFAF5}
         <div class="ch"><span class="ct">Clientes para Contatar (11+ meses sem compra)</span></div>
         <table><thead><tr><th>Cliente</th><th>Último pedido</th><th>Meses sem compra</th><th>Telefone</th><th>Ação</th></tr></thead>
         <tbody id="rel-retorno-tbody"></tbody></table>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="ch">
+          <span class="ct">Comissões por Vendedor</span>
+          <select class="form-input form-select" id="comis-mes" style="width:160px;padding:5px 10px;font-size:12px" oninput="renderComissoesTabela()"></select>
+        </div>
+        <table><thead><tr><th>Vendedor</th><th style="text-align:right">Pedidos</th><th style="text-align:right">Faturado</th><th style="text-align:right">% Comissão</th><th style="text-align:right">Comissão (R$)</th></tr></thead>
+        <tbody id="comis-tbody"></tbody></table>
       </div>
     </div>
 
@@ -1106,6 +1152,7 @@ tr:hover td{background:#FAFAF5}
             <span class="ct">Backups do Sistema</span>
             <div style="display:flex;gap:8px">
               <label class="btn btn-ghost btn-sm" style="cursor:pointer">📥 Restaurar Backup<input type="file" accept=".json" style="display:none" onchange="restaurarBackup(this.files[0]);this.value=''"></label>
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importar clientes de CSV">📤 Importar CSV<input type="file" accept=".csv" style="display:none" onchange="importarClientesCSV(this.files[0]);this.value=''"></label>
               <button class="btn btn-gold btn-sm" id="btn-backup-manual" onclick="fazerBackupManual()">💾 Fazer Backup Agora</button>
             </div>
           </div>
@@ -1152,26 +1199,42 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
     <!-- ══════════════════ AGENDA ══════════════════ -->
     <div class="tab-panel" id="tab-agenda">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        <input type="date" id="agenda-data" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="renderAgenda()">
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('agenda-data').value=new Date().toISOString().slice(0,10);renderAgenda()">Hoje</button>
-        <button class="btn btn-ghost btn-sm" onclick="agendaNavDia(-1)">← Anterior</button>
-        <button class="btn btn-ghost btn-sm" onclick="agendaNavDia(1)">Próximo →</button>
-        <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="openModal('modal-evento')">+ Novo Evento</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div class="card">
-          <div class="ch"><span class="ct" id="agenda-dia-label">Hoje</span><span class="badge badge-blue" id="cnt-agenda-dia">0</span></div>
-          <div id="agenda-dia-lista" style="min-height:80px"></div>
-        </div>
-        <div class="card">
-          <div class="ch"><span class="ct">📅 Próximos 7 dias</span></div>
-          <div id="agenda-semana-lista" style="min-height:80px"></div>
+        <input type="date" id="agenda-data" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="if(_agendaView==='list')renderAgenda();else renderCalendarioMes()">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('agenda-data').value=new Date().toISOString().slice(0,10);if(_agendaView==='list')renderAgenda();else renderCalendarioMes()">Hoje</button>
+        <button class="btn btn-ghost btn-sm" id="btn-ag-prev" onclick="agendaNavDia(-1)">← Anterior</button>
+        <button class="btn btn-ghost btn-sm" id="btn-ag-next" onclick="agendaNavDia(1)">Próximo →</button>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" id="btn-ag-lista" onclick="toggleAgendaView('list')" style="border-color:var(--gold);color:var(--gold-deep)">☰ Lista</button>
+          <button class="btn btn-ghost btn-sm" id="btn-ag-cal" onclick="toggleAgendaView('cal')">📅 Mês</button>
+          <button class="btn btn-gold btn-sm" onclick="openModal('modal-evento')">+ Novo Evento</button>
         </div>
       </div>
-      <div class="card" style="margin-top:16px">
-        <div class="ch"><span class="ct">📋 Todos os eventos</span></div>
-        <table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Título</th><th>Cliente</th><th>Status</th><th>Ações</th></tr></thead>
-        <tbody id="agenda-all-tbody"></tbody></table>
+      <!-- VISTA LISTA -->
+      <div id="agenda-view-list">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="ch"><span class="ct" id="agenda-dia-label">Hoje</span><span class="badge badge-blue" id="cnt-agenda-dia">0</span></div>
+            <div id="agenda-dia-lista" style="min-height:80px"></div>
+          </div>
+          <div class="card">
+            <div class="ch"><span class="ct">📅 Próximos 7 dias</span></div>
+            <div id="agenda-semana-lista" style="min-height:80px"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="ch"><span class="ct">📋 Todos os eventos</span></div>
+          <table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Título</th><th>Cliente</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="agenda-all-tbody"></tbody></table>
+        </div>
+      </div>
+      <!-- VISTA CALENDÁRIO -->
+      <div id="agenda-view-cal" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <button class="btn btn-ghost btn-sm" onclick="calNavMes(-1)">← Mês anterior</button>
+          <span id="cal-mes-label" style="font-weight:700;font-size:14px;flex:1;text-align:center"></span>
+          <button class="btn btn-ghost btn-sm" onclick="calNavMes(1)">Próximo mês →</button>
+        </div>
+        <div id="cal-grid-wrap"></div>
       </div>
     </div>
 
@@ -1626,7 +1689,7 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
 // ── STATE ──
 let DB = {
   clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],tabelas_lab:[],crediarios:[],caixa:[],despesas:[],
-  eventos:[],orcamentos:[],
+  eventos:[],orcamentos:[],consignados:[],
   settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7),
     empresa:{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15}}
 };
@@ -2074,11 +2137,12 @@ document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click
 
 // ── CATÁLOGO TABS ──
 function setCatTab(tab,btn){
-  ['armacoes','lentes','acessorios'].forEach(t=>{
+  ['armacoes','lentes','acessorios','consignado'].forEach(t=>{
     document.getElementById(`cat-panel-${t}`).style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('#tab-catalogo .inner-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  if(tab==='consignado') renderConsignados();
 }
 function setCfgTab(tab,btn){
   ['usuarios','metas','empresa','supabase','tabelas','backups'].forEach(t=>{
@@ -2255,6 +2319,9 @@ function verPerfil(id){
   const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===id).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
   const creds=(DB.crediarios||[]).filter(cr=>!cr.deleted&&cr.clienteId===id);
   const ordens=(DB.ordens||[]).filter(o=>!o.deleted&&o.paciente&&DB.clientes.find(cl=>cl.id===id)&&(o.paciente.toLowerCase()===c.nome.toLowerCase()||o.clienteId===id)).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+  const evts=(DB.eventos||[]).filter(e=>!e.deleted&&e.clienteId===id).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const orcs=(DB.orcamentos||[]).filter(o=>!o.deleted&&o.clienteId===id).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const pedsComGar=peds.filter(p=>p.garantiaMeses&&p.garantiaMeses>0);
   const ult=peds.filter(p=>p.status==='entregue').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
   const totalGasto=peds.filter(p=>p.status==='entregue'||p.status==='pos_venda').reduce((s,p)=>s+Number(p.total||0),0);
   document.getElementById('perfil-nome-header').textContent=c.nome;
@@ -2281,6 +2348,9 @@ function verPerfil(id){
       <button class="inner-tab" onclick="perfilTab('receitas-${id}',this)">Receitas (${recs.length})</button>
       <button class="inner-tab" onclick="perfilTab('crediario-${id}',this)">Crediário (${creds.length})</button>
       <button class="inner-tab" onclick="perfilTab('os-${id}',this)">OS (${ordens.length})</button>
+      <button class="inner-tab" onclick="perfilTab('eventos-${id}',this)">Eventos (${evts.length})</button>
+      <button class="inner-tab" onclick="perfilTab('orcamentos-${id}',this)">Orçamentos (${orcs.length})</button>
+      ${pedsComGar.length?`<button class="inner-tab" onclick="perfilTab('garantias-${id}',this)">Garantias (${pedsComGar.length})</button>`:''}
     </div>
     <div id="perfil-tab-pedidos-${id}">
       ${peds.length?`<table><thead><tr><th>#</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody>
@@ -2349,12 +2419,27 @@ function verPerfil(id){
           </div>
         </div>`;
       }).join(''):`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Nenhum crediário</div></div>`}
+    <div id="perfil-tab-eventos-${id}" style="display:none">
+      ${evts.length?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Título</th><th>Status</th></tr></thead><tbody>
+        ${evts.map(e=>`<tr><td>${fmtDate(e.data)}</td><td>${e.tipo||'—'}</td><td>${e.titulo||'—'}</td><td><span class="badge badge-blue">${e.status||'agendado'}</span></td></tr>`).join('')}
+      </tbody></table>`:`<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">Nenhum evento</div></div>`}
+    </div>
+    <div id="perfil-tab-orcamentos-${id}" style="display:none">
+      ${orcs.length?`<table><thead><tr><th>#</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody>
+        ${orcs.map(o=>`<tr><td>#${o.numero||'—'}</td><td>${fmtDate(o.createdAt)}</td><td>${fmtMoney(o.total||0)}</td><td><span class="badge badge-gray">${o.status||'rascunho'}</span></td></tr>`).join('')}
+      </tbody></table>`:`<div class="empty"><div class="empty-icon">📝</div><div class="empty-title">Nenhum orçamento</div></div>`}
+    </div>
+    ${pedsComGar.length?`<div id="perfil-tab-garantias-${id}" style="display:none">
+      <table><thead><tr><th>Pedido</th><th>Data</th><th>Garantia</th><th>Vencimento</th><th>Status</th></tr></thead><tbody>
+        ${pedsComGar.map(p=>{const badge=_garantiaBadge(p);return`<tr><td>#${p.numero}</td><td>${fmtDate(p.createdAt)}</td><td>${p.garantiaMeses} meses</td><td>${p.createdAt?fmtDate(new Date(new Date(p.createdAt).setMonth(new Date(p.createdAt).getMonth()+p.garantiaMeses)).toISOString().slice(0,10)):'—'}</td><td>${badge}</td></tr>`;}).join('')}
+      </tbody></table>
+    </div>`:''}
     </div>`;
   openModal('modal-perfil');
 }
 function perfilTab(tabId,btn){
-  const base=tabId.replace(/^(pedidos|receitas|crediario|os)-/,'');
-  ['pedidos','receitas','crediario','os'].forEach(t=>{
+  const base=tabId.replace(/^(pedidos|receitas|crediario|os|eventos|orcamentos|garantias)-/,'');
+  ['pedidos','receitas','crediario','os','eventos','orcamentos','garantias'].forEach(t=>{
     const el=document.getElementById(`perfil-tab-${t}-${base}`);
     if(el)el.style.display='none';
   });
@@ -6081,6 +6166,36 @@ document.addEventListener('DOMContentLoaded',()=>{
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-consignado">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">📋 Novo Consignado</span>
+      <button class="modal-close" onclick="closeModal('modal-consignado')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="csg-id">
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Fornecedor *</label><input class="form-input" id="csg-fornecedor" placeholder="Nome do fornecedor"></div>
+        <div class="form-group"><label class="form-label">Produto / Referência *</label><input class="form-input" id="csg-produto" placeholder="Modelo, ref…"></div>
+      </div>
+      <div class="form-row c3">
+        <div class="form-group"><label class="form-label">Qtd recebida *</label><input class="form-input" id="csg-recebido" type="number" min="1" value="1"></div>
+        <div class="form-group"><label class="form-label">Data recebimento *</label><input class="form-input" id="csg-data-receb" type="date"></div>
+        <div class="form-group"><label class="form-label">Prazo devolução</label><input class="form-input" id="csg-prazo-dev" type="date"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Qtd devolvida</label><input class="form-input" id="csg-devolvido" type="number" min="0" value="0"></div>
+        <div class="form-group"><label class="form-label">Qtd comprada</label><input class="form-input" id="csg-comprado" type="number" min="0" value="0"></div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="csg-obs" placeholder="Notas adicionais"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-consignado')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarConsignado()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-caixa">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
@@ -7631,6 +7746,261 @@ function renderMetaDashboard(){
   if(nums)nums.innerHTML=`<span>${fmtMoney(fat)} realizado</span><span>Meta: ${fmtMoney(meta)}</span>`;
 }
 window.renderMetaDashboard=renderMetaDashboard;
+
+// ── AGENDA: VISTA CALENDÁRIO ──
+let _agendaView='list';
+let _calMes=new Date().toISOString().slice(0,7);
+
+function toggleAgendaView(v){
+  _agendaView=v;
+  document.getElementById('agenda-view-list').style.display=v==='list'?'block':'none';
+  document.getElementById('agenda-view-cal').style.display=v==='cal'?'block':'none';
+  document.getElementById('btn-ag-lista').style.borderColor=v==='list'?'var(--gold)':'';
+  document.getElementById('btn-ag-lista').style.color=v==='list'?'var(--gold-deep)':'';
+  document.getElementById('btn-ag-cal').style.borderColor=v==='cal'?'var(--gold)':'';
+  document.getElementById('btn-ag-cal').style.color=v==='cal'?'var(--gold-deep)':'';
+  if(v==='cal') renderCalendarioMes();
+}
+
+function calNavMes(d){
+  const [y,m]=_calMes.split('-').map(Number);
+  const nd=new Date(y,m-1+d,1);
+  _calMes=nd.toISOString().slice(0,7);
+  renderCalendarioMes();
+}
+
+function renderCalendarioMes(){
+  const wrap=document.getElementById('cal-grid-wrap');if(!wrap)return;
+  const label=document.getElementById('cal-mes-label');
+  const [y,m]=_calMes.split('-').map(Number);
+  const first=new Date(y,m-1,1);
+  const last=new Date(y,m,0);
+  if(label)label.textContent=first.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+  const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html='<div class="cal-grid">';
+  dias.forEach(d=>{html+=`<div class="cal-head">${d}</div>`;});
+  const startWd=first.getDay();
+  const today=new Date().toISOString().slice(0,10);
+  for(let i=0;i<startWd;i++){
+    const prev=new Date(y,m-1,-startWd+i+1);
+    html+=`<div class="cal-cell cal-other"><div class="cal-num">${prev.getDate()}</div></div>`;
+  }
+  for(let d=1;d<=last.getDate();d++){
+    const iso=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const evts=(DB.eventos||[]).filter(e=>!e.deleted&&e.data===iso);
+    const isToday=iso===today;
+    html+=`<div class="cal-cell${isToday?' cal-today':''}" onclick="document.getElementById('agenda-data').value='${iso}';toggleAgendaView('list');renderAgenda()">
+      <div class="cal-num">${d}</div>
+      ${evts.slice(0,3).map(e=>`<div class="cal-ev" title="${e.titulo||''}">${e.titulo||'evento'}</div>`).join('')}
+      ${evts.length>3?`<div style="font-size:9px;color:var(--muted)">+${evts.length-3} mais</div>`:''}
+    </div>`;
+  }
+  const endWd=last.getDay();
+  for(let i=1;i<7-endWd;i++){
+    html+=`<div class="cal-cell cal-other"><div class="cal-num">${i}</div></div>`;
+  }
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+
+function agendaNavDia(d){
+  const el=document.getElementById('agenda-data');
+  const base=el.value||new Date().toISOString().slice(0,10);
+  const nd=new Date(base+'T12:00:00');
+  nd.setDate(nd.getDate()+d);
+  el.value=nd.toISOString().slice(0,10);
+  if(_agendaView==='list') renderAgenda(); else renderCalendarioMes();
+}
+
+// ── CONSIGNADO ──
+function renderConsignados(){
+  const filtro=(document.getElementById('csg-filtro')||{}).value||'';
+  let items=(DB.consignados||[]).filter(c=>!c.deleted&&(!filtro||c.status===filtro));
+  // métricas
+  const all=(DB.consignados||[]).filter(c=>!c.deleted);
+  const ativos=all.filter(c=>c.status==='ativo');
+  const totalRec=all.reduce((s,c)=>s+(+c.recebido||0),0);
+  const totalComp=all.reduce((s,c)=>s+(+c.comprado||0),0);
+  const el=document.getElementById('csg-metrics');
+  if(el)el.innerHTML=`
+    <div class="metric-card"><div class="mc-val">${ativos.length}</div><div class="mc-label">Em aberto</div></div>
+    <div class="metric-card"><div class="mc-val">${totalRec}</div><div class="mc-label">Total recebido</div></div>
+    <div class="metric-card"><div class="mc-val">${totalComp}</div><div class="mc-label">Total comprado</div></div>`;
+  const tbody=document.getElementById('csg-tbody');
+  if(!tbody)return;
+  if(!items.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">Nenhum registro</td></tr>`;return;}
+  tbody.innerHTML=items.map(c=>{
+    const saldo=(+c.recebido||0)-(+c.devolvido||0)-(+c.comprado||0);
+    const venc=c.prazoDevol&&new Date(c.prazoDevol)<new Date();
+    const statusCls=c.status==='devolvido'?'badge-green':c.status==='comprado'?'badge-blue':venc?'badge-red':'badge-gray';
+    return`<tr>
+      <td>${c.fornecedor||'—'}</td><td>${c.produto||'—'}</td>
+      <td style="text-align:center">${c.recebido||0}</td>
+      <td style="text-align:center">${c.devolvido||0}</td>
+      <td style="text-align:center">${c.comprado||0}</td>
+      <td style="text-align:center;font-weight:700;color:${saldo>0?'var(--amber)':'var(--green)'}">${saldo}</td>
+      <td>${c.prazoDevol?fmtDate(c.prazoDevol):'—'}</td>
+      <td><span class="badge ${statusCls}">${c.status||'ativo'}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="editarConsignado('${c.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="excluirConsignado('${c.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function editarConsignado(id){
+  const c=(DB.consignados||[]).find(x=>x.id===id);if(!c)return;
+  openModal('modal-consignado');
+  setTimeout(()=>{
+    document.getElementById('csg-id').value=c.id;
+    document.getElementById('csg-fornecedor').value=c.fornecedor||'';
+    document.getElementById('csg-produto').value=c.produto||'';
+    document.getElementById('csg-recebido').value=c.recebido||1;
+    document.getElementById('csg-data-receb').value=c.dataReceb||'';
+    document.getElementById('csg-prazo-dev').value=c.prazoDevol||'';
+    document.getElementById('csg-devolvido').value=c.devolvido||0;
+    document.getElementById('csg-comprado').value=c.comprado||0;
+    document.getElementById('csg-obs').value=c.obs||'';
+  },50);
+}
+
+function salvarConsignado(){
+  const forn=document.getElementById('csg-fornecedor').value.trim();
+  const prod=document.getElementById('csg-produto').value.trim();
+  if(!forn||!prod){toast('Preencha fornecedor e produto','error');return;}
+  const rec=+document.getElementById('csg-recebido').value||1;
+  const dev=+document.getElementById('csg-devolvido').value||0;
+  const comp=+document.getElementById('csg-comprado').value||0;
+  const saldo=rec-dev-comp;
+  const existId=document.getElementById('csg-id').value;
+  if(existId){
+    const idx=(DB.consignados||[]).findIndex(c=>c.id===existId);
+    if(idx>=0){
+      Object.assign(DB.consignados[idx],{fornecedor:forn,produto:prod,recebido:rec,devolvido:dev,comprado:comp,
+        dataReceb:document.getElementById('csg-data-receb').value,
+        prazoDevol:document.getElementById('csg-prazo-dev').value,
+        obs:document.getElementById('csg-obs').value.trim(),
+        status:saldo<=0?(comp>0?'comprado':'devolvido'):'ativo',updatedAt:new Date().toISOString()});
+    }
+  } else {
+    if(!DB.consignados) DB.consignados=[];
+    DB.consignados.push({id:uid(),fornecedor:forn,produto:prod,recebido:rec,devolvido:dev,comprado:comp,
+      dataReceb:document.getElementById('csg-data-receb').value,
+      prazoDevol:document.getElementById('csg-prazo-dev').value,
+      obs:document.getElementById('csg-obs').value.trim(),
+      status:saldo<=0?(comp>0?'comprado':'devolvido'):'ativo',createdAt:new Date().toISOString()});
+  }
+  save();closeModal('modal-consignado');renderConsignados();toast('Consignado salvo!');
+}
+
+function excluirConsignado(id){
+  if(!confirm('Excluir este consignado?'))return;
+  const c=(DB.consignados||[]).find(x=>x.id===id);
+  if(c){c.deleted=true;save();renderConsignados();toast('Removido.');}
+}
+window.renderConsignados=renderConsignados;
+window.salvarConsignado=salvarConsignado;
+window.excluirConsignado=excluirConsignado;
+window.editarConsignado=editarConsignado;
+
+// ── IMPORTAÇÃO CSV DE CLIENTES ──
+function importarClientesCSV(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=function(e){
+    const lines=e.target.result.split(/\r?\n/).filter(l=>l.trim());
+    if(!lines.length){toast('CSV vazio','error');return;}
+    const header=lines[0].split(/[,;]/).map(h=>h.trim().toLowerCase().replace(/[^a-záàâãéêíóôõúç0-9]/gi,''));
+    const find=(headers,keys)=>{const i=headers.findIndex(h=>keys.some(k=>h.includes(k)));return i>=0?i:-1;};
+    const iNome=find(header,['nome','name','cliente']);
+    const iTel=find(header,['tel','fone','phone','celular','whats']);
+    const iEmail=find(header,['email','mail']);
+    const iCpf=find(header,['cpf']);
+    if(iNome<0){toast('Coluna "nome" não encontrada no CSV','error');return;}
+    let added=0,skipped=0;
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(/[,;]/);
+      const nome=(cols[iNome]||'').trim().replace(/^"|"$/g,'');
+      if(!nome){skipped++;continue;}
+      const jaExiste=DB.clientes.some(c=>!c.deleted&&c.nome.toLowerCase()===nome.toLowerCase());
+      if(jaExiste){skipped++;continue;}
+      DB.clientes.push({id:uid(),nome,
+        telefone:iTel>=0?(cols[iTel]||'').trim().replace(/^"|"$/g,''):'',
+        email:iEmail>=0?(cols[iEmail]||'').trim().replace(/^"|"$/g,''):'',
+        cpf:iCpf>=0?(cols[iCpf]||'').trim().replace(/^"|"$/g,''):'',
+        status:'ativo',createdAt:new Date().toISOString()});
+      added++;
+    }
+    save();renderClientes();
+    toast(`${added} cliente(s) importado(s)${skipped?' · '+skipped+' ignorado(s)':''}`);
+  };
+  r.readAsText(file,'utf-8');
+}
+window.importarClientesCSV=importarClientesCSV;
+
+// ── COMISSÕES EM TABELA ──
+function renderComissoesTabela(){
+  const sel=document.getElementById('comis-mes');
+  // popula opções se necessário
+  if(sel&&!sel.options.length){
+    const meses=[...new Set(DB.pedidos.filter(p=>!p.deleted&&p.createdAt).map(p=>p.createdAt.slice(0,7)))].sort().reverse();
+    const atual=new Date().toISOString().slice(0,7);
+    const lista=[...new Set([atual,...meses])];
+    lista.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=new Date(m+'-15').toLocaleString('pt-BR',{month:'long',year:'numeric'});sel.appendChild(o);});
+  }
+  const mes=sel?sel.value:new Date().toISOString().slice(0,7);
+  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.status==='entregue'||p.status==='pos_venda')&&p.createdAt&&p.createdAt.slice(0,7)===mes);
+  const tbody=document.getElementById('comis-tbody');if(!tbody)return;
+  const usByName={};
+  peds.forEach(p=>{
+    const nome=p.vendedorNome||(DB.usuarios.find(u=>u.id===p.vendedorId)||{nome:'Sem vendedor'}).nome||'Sem vendedor';
+    if(!usByName[nome])usByName[nome]={nome,pedidos:0,fat:0,pct:0};
+    usByName[nome].pedidos++;usByName[nome].fat+=Number(p.total||0);
+  });
+  // pega % de comissão do usuário (campo comissao)
+  Object.keys(usByName).forEach(nome=>{
+    const u=DB.usuarios.find(u=>u.nome===nome);
+    usByName[nome].pct=u&&u.comissao?Number(u.comissao):0;
+  });
+  const rows=Object.values(usByName).sort((a,b)=>b.fat-a.fat);
+  if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Sem pedidos entregues neste mês</td></tr>`;return;}
+  tbody.innerHTML=rows.map(r=>{
+    const com=r.fat*(r.pct/100);
+    return`<tr>
+      <td style="font-weight:600">${r.nome}</td>
+      <td style="text-align:right">${r.pedidos}</td>
+      <td style="text-align:right">${fmtMoney(r.fat)}</td>
+      <td style="text-align:right">${r.pct.toFixed(1)}%</td>
+      <td style="text-align:right;font-weight:700;color:var(--green)">${fmtMoney(com)}</td>
+    </tr>`;
+  }).join('');
+}
+window.renderComissoesTabela=renderComissoesTabela;
+
+// ── GARANTIA ──
+function _garantiaBadge(ped){
+  if(!ped.garantiaMeses||!ped.createdAt)return'—';
+  const venc=new Date(new Date(ped.createdAt).setMonth(new Date(ped.createdAt).getMonth()+ped.garantiaMeses));
+  const hoje=new Date();const diff=Math.round((venc-hoje)/(86400000));
+  if(diff<0)return'<span class="gar-badge gar-exp">Expirada</span>';
+  if(diff<=30)return`<span class="gar-badge gar-warn">Vence em ${diff}d</span>`;
+  return`<span class="gar-badge gar-ok">Válida (${diff}d)</span>`;
+}
+function setGarantia(pedidoId,meses){
+  const p=DB.pedidos.find(x=>x.id===pedidoId);if(!p)return;
+  p.garantiaMeses=meses;save();toast(`Garantia de ${meses} meses definida!`);
+}
+window._garantiaBadge=_garantiaBadge;
+window.setGarantia=setGarantia;
+
+// ── INIT EXTRAS ──
+(function(){
+  // popula comissões ao carregar a aba relatórios
+  const origNav=window.nav;
+  window.nav=function(tab){origNav&&origNav(tab);if(tab==='relatorios')setTimeout(renderComissoesTabela,100);};
+})();
+
 </script>
 
 <script src="supabase-layer.js?v=5" onerror="console.warn('[HAW] supabase-layer offline')"></script>
