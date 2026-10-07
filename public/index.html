@@ -2419,6 +2419,7 @@ function verPerfil(id){
           </div>
         </div>`;
       }).join(''):`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Nenhum crediário</div></div>`}
+    </div>
     <div id="perfil-tab-eventos-${id}" style="display:none">
       ${evts.length?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Título</th><th>Status</th></tr></thead><tbody>
         ${evts.map(e=>`<tr><td>${fmtDate(e.data)}</td><td>${e.tipo||'—'}</td><td>${e.titulo||'—'}</td><td><span class="badge badge-blue">${e.status||'agendado'}</span></td></tr>`).join('')}
@@ -2434,7 +2435,7 @@ function verPerfil(id){
         ${pedsComGar.map(p=>{const badge=_garantiaBadge(p);return`<tr><td>#${p.numero}</td><td>${fmtDate(p.createdAt)}</td><td>${p.garantiaMeses} meses</td><td>${p.createdAt?fmtDate(new Date(new Date(p.createdAt).setMonth(new Date(p.createdAt).getMonth()+p.garantiaMeses)).toISOString().slice(0,10)):'—'}</td><td>${badge}</td></tr>`;}).join('')}
       </tbody></table>
     </div>`:''}
-    </div>`;
+    `;
   openModal('modal-perfil');
 }
 function perfilTab(tabId,btn){
