@@ -335,6 +335,78 @@ tr:hover td{background:#FAFAF5}
 .os-cb-item{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}
 .os-cb-item input{width:14px;height:14px;cursor:pointer;accent-color:var(--navy,#13182C)}
 .os-sec-title{font-size:11px;font-weight:700;color:var(--navy,#13182C);letter-spacing:.05em;text-transform:uppercase;margin:14px 0 2px;padding-bottom:3px;border-bottom:2px solid var(--gold,#F7CF13)}
+
+/* ── DARK MODE ── */
+[data-theme="dark"] body{background:#0c1121;color:#c8d8f0}
+[data-theme="dark"] .main{background:#0c1121}
+[data-theme="dark"] .topbar{background:#13182C;border-color:#222A4A;color:#c8d8f0}
+[data-theme="dark"] .page-title{color:#e2e8f0}
+[data-theme="dark"] .page-sub{color:#7090B8}
+[data-theme="dark"] .card{background:#1a2035;border-color:#2d3a6e}
+[data-theme="dark"] .ch{background:#1a2035;border-color:#2d3a6e}
+[data-theme="dark"] .ct{color:#e2e8f0}
+[data-theme="dark"] .metric{background:#1a2035;border-color:#2d3a6e}
+[data-theme="dark"] .ml{color:#7090B8}
+[data-theme="dark"] .ms{color:#7090B8}
+[data-theme="dark"] .mv{color:#e2e8f0}
+[data-theme="dark"] table th{background:#13182C;color:#7090B8;border-color:#2d3a6e}
+[data-theme="dark"] table td{border-color:#222A4A;color:#c8d8f0}
+[data-theme="dark"] tr:hover td{background:#1e2a46}
+[data-theme="dark"] .form-input{background:#13182C;border-color:#2d3a6e;color:#e2e8f0}
+[data-theme="dark"] .form-input:focus{background:#1a2035;border-color:var(--gold)}
+[data-theme="dark"] .form-label{color:#7090B8}
+[data-theme="dark"] .btn-ghost{background:transparent;border-color:#2d3a6e;color:#7090B8}
+[data-theme="dark"] .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+[data-theme="dark"] .inner-tab{color:#7090B8}
+[data-theme="dark"] .inner-tab.active{color:var(--gold-deep)}
+[data-theme="dark"] .inner-tabs{border-color:#2d3a6e}
+[data-theme="dark"] .filters .fb{border-color:#2d3a6e;color:#7090B8;background:transparent}
+[data-theme="dark"] .filters .fb.active{background:var(--gold);color:var(--black)}
+[data-theme="dark"] .modal{background:#1a2035;color:#c8d8f0}
+[data-theme="dark"] .modal-header{background:#1a2035;border-color:#2d3a6e}
+[data-theme="dark"] .modal-title{color:#e2e8f0}
+[data-theme="dark"] .modal-footer{background:#13182C;border-color:#2d3a6e}
+[data-theme="dark"] .modal-body{background:#1a2035}
+[data-theme="dark"] .search-wrap input{background:#1a2035;border-color:#2d3a6e;color:#e2e8f0}
+[data-theme="dark"] .search-drop{background:#1a2035;border-color:#2d3a6e}
+[data-theme="dark"] .search-drop-item:hover{background:#13182C}
+[data-theme="dark"] .search-drop-section{background:#13182C;border-color:#2d3a6e;color:#7090B8}
+[data-theme="dark"] .sdrop-label{color:#e2e8f0}
+[data-theme="dark"] .pipeline-col-body{background:#13182C;border-color:#2d3a6e}
+[data-theme="dark"] .pipeline-card{background:#1a2035;border-color:#2d3a6e}
+[data-theme="dark"] .pc-name{color:#e2e8f0}
+[data-theme="dark"] .alert-item:hover{background:#1e2a46}
+[data-theme="dark"] .rank-item{border-color:#2d3a6e}
+[data-theme="dark"] .rank-bar{background:#2d3a6e}
+[data-theme="dark"] .rank-name{color:#e2e8f0}
+[data-theme="dark"] .empty{color:#7090B8}
+[data-theme="dark"] .empty-title{color:#c8d8f0}
+[data-theme="dark"] .badge-gray{background:#2d3a6e;color:#7090B8}
+[data-theme="dark"] .pipeline-col-header ~ .pipeline-col-body{background:#13182C}
+[data-theme="dark"] .ped-kcol{background:#13182C;border-color:#2d3a6e}
+[data-theme="dark"] .ped-kcol-hd{background:#1a2035;border-color:#2d3a6e}
+[data-theme="dark"] .ped-kcard{background:#1a2035;border-color:#2d3a6e;color:#c8d8f0}
+[data-theme="dark"] .off,.off{background:#0c1121}
+/* meta progress bar */
+.meta-bar-wrap{margin-top:8px}
+.meta-bar{height:6px;background:var(--border-light);border-radius:99px;overflow:hidden}
+.meta-bar-fill{height:100%;border-radius:99px;background:var(--gold);transition:width .5s}
+/* agenda event item */
+.ev-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border-light);transition:background .15s;cursor:pointer}
+.ev-item:hover{background:var(--off)}
+.ev-item:last-child{border-bottom:none}
+.ev-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ev-time{font-size:11px;color:var(--muted);width:60px;flex-shrink:0;font-weight:600}
+.ev-body{flex:1}
+.ev-title{font-size:13px;font-weight:600}
+.ev-sub{font-size:11px;color:var(--muted);margin-top:1px}
+/* etiqueta */
+@media print{.etiqueta-print-area{display:block!important}.no-print{display:none!important}}
+.etiqueta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}
+.etiqueta{border:1px solid #333;border-radius:4px;padding:8px 10px;text-align:center;font-size:11px;background:#fff;color:#000}
+.etiqueta .et-nome{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.etiqueta .et-cod{font-size:10px;color:#555;margin:2px 0}
+.etiqueta .et-preco{font-size:16px;font-weight:900;color:#000}
 </style>
 
 <!-- ══ LOGIN SCREEN ══ -->
@@ -368,17 +440,20 @@ tr:hover td{background:#FAFAF5}
   <div class="sb-section">Principal</div>
   <button class="sb-item active" onclick="nav('dashboard')"><span class="si">📊</span><span>Dashboard</span></button>
   <button class="sb-item" onclick="nav('pipeline')"><span class="si">🏷️</span><span>Pipeline</span><span class="sb-count" id="cnt-pipeline">0</span></button>
+  <button class="sb-item" onclick="nav('agenda')"><span class="si">📅</span><span>Agenda</span><span class="sb-count" id="cnt-agenda">0</span></button>
   <button class="sb-item" onclick="nav('vendas')"><span class="si">🚀</span><span>Portal de Vendas</span></button>
 
   <div class="sb-section">Vendas</div>
   <button class="sb-item" onclick="nav('clientes')"><span class="si">👥</span><span>Clientes</span><span class="sb-count" id="cnt-clientes">0</span></button>
   <button class="sb-item" onclick="nav('pedidos')"><span class="si">🛍️</span><span>Pedidos</span><span class="sb-count" id="cnt-pedidos">0</span></button>
+  <button class="sb-item" onclick="nav('orcamentos')"><span class="si">📝</span><span>Orçamentos</span><span class="sb-count" id="cnt-orcamentos">0</span></button>
   <button class="sb-item" onclick="nav('receitas')"><span class="si">👁️</span><span>Receitas</span></button>
   <button class="sb-item" onclick="nav('os')"><span class="si">🗂️</span><span>Ordens de Serviço</span><span class="sb-count" id="cnt-os">0</span></button>
 
   <div class="sb-section">Gestão</div>
   <button class="sb-item" onclick="nav('financeiro')"><span class="si">💰</span><span>Financeiro</span></button>
   <button class="sb-item" onclick="nav('crediario')"><span class="si">📋</span><span>Crediário</span><span class="sb-count" id="cnt-crediario">0</span></button>
+  <button class="sb-item" onclick="nav('lab')"><span class="si">🔬</span><span>Laboratório</span><span class="sb-count" id="cnt-lab">0</span></button>
   <button class="sb-item" onclick="nav('catalogo')"><span class="si">📦</span><span>Catálogo</span></button>
   <button class="sb-item" onclick="nav('relatorios')"><span class="si">📈</span><span>Relatórios</span></button>
 
@@ -408,6 +483,7 @@ tr:hover td{background:#FAFAF5}
     <div class="topbar-right">
       <div class="search-wrap"><input type="text" placeholder="Buscar… (Ctrl+K)" id="global-search" oninput="globalSearch(this.value)" onblur="setTimeout(closeSearchDrop,200)" onfocus="globalSearch(this.value)"><div id="search-drop" class="search-drop"></div></div>
       <button class="tb-btn tb-btn-gold" id="tb-action-btn" onclick="tbAction()">+ Novo Pedido</button>
+      <button onclick="toggleDarkMode()" id="btn-dark-mode" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:14px;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600" title="Modo escuro">🌙</button>
       <button onclick="abrirAlterarPin()" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600" title="Alterar meu PIN">🔐 PIN</button>
       <button onclick="doLogout()" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600" title="Sair">↩ Sair</button>
     </div>
@@ -456,6 +532,15 @@ tr:hover td{background:#FAFAF5}
           <div class="ml">Crediários Vencidos</div>
           <div class="mv" id="d-cred-vencidos">0</div>
           <div class="ms" id="d-cred-vencidos-sub">parcelas em atraso</div>
+        </div>
+      </div>
+
+      <!-- META DO MÊS -->
+      <div class="card" style="margin-bottom:16px" id="meta-dashboard-card">
+        <div class="ch"><span class="ct">🎯 Meta do Mês</span><span id="meta-dash-label" style="font-size:12px;color:var(--muted)"></span></div>
+        <div style="padding:14px 18px" id="meta-dash-body">
+          <div class="meta-bar-wrap"><div class="meta-bar"><div class="meta-bar-fill" id="meta-bar-fill" style="width:0%"></div></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)" id="meta-bar-nums"></div>
         </div>
       </div>
 
@@ -804,7 +889,7 @@ tr:hover td{background:#FAFAF5}
       </div>
       <div id="cat-panel-armacoes">
         <div class="card">
-          <div class="ch"><span class="ct">Armações</span><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="abrirEntradaEstoqueLista('armacao')" title="Registrar entrada de estoque">📦 Entrada</button><button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'armacao'})">+ Adicionar</button></div></div>
+          <div class="ch"><span class="ct">Armações</span><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="gerarEtiquetasArmacoes()" title="Imprimir etiquetas">🏷️ Etiquetas</button><button class="btn btn-ghost btn-sm" onclick="abrirEntradaEstoqueLista('armacao')" title="Registrar entrada de estoque">📦 Entrada</button><button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'armacao'})">+ Adicionar</button></div></div>
           <table><thead><tr><th>Nome / Código</th><th>Preço</th><th style="text-align:center">Estoque</th><th style="text-align:center">Mín.</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody id="cat-armacoes-tbody"></tbody></table>
         </div>
@@ -1019,7 +1104,10 @@ tr:hover td{background:#FAFAF5}
         <div class="card" style="margin-bottom:12px">
           <div class="ch">
             <span class="ct">Backups do Sistema</span>
-            <button class="btn btn-gold btn-sm" id="btn-backup-manual" onclick="fazerBackupManual()">💾 Fazer Backup Agora</button>
+            <div style="display:flex;gap:8px">
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer">📥 Restaurar Backup<input type="file" accept=".json" style="display:none" onchange="restaurarBackup(this.files[0]);this.value=''"></label>
+              <button class="btn btn-gold btn-sm" id="btn-backup-manual" onclick="fazerBackupManual()">💾 Fazer Backup Agora</button>
+            </div>
           </div>
           <div style="padding:12px 20px 16px">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
@@ -1060,6 +1148,76 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
       </div><!-- /cfg-backups -->
 
     </div>
+
+    <!-- ══════════════════ AGENDA ══════════════════ -->
+    <div class="tab-panel" id="tab-agenda">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <input type="date" id="agenda-data" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="renderAgenda()">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('agenda-data').value=new Date().toISOString().slice(0,10);renderAgenda()">Hoje</button>
+        <button class="btn btn-ghost btn-sm" onclick="agendaNavDia(-1)">← Anterior</button>
+        <button class="btn btn-ghost btn-sm" onclick="agendaNavDia(1)">Próximo →</button>
+        <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="openModal('modal-evento')">+ Novo Evento</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="ch"><span class="ct" id="agenda-dia-label">Hoje</span><span class="badge badge-blue" id="cnt-agenda-dia">0</span></div>
+          <div id="agenda-dia-lista" style="min-height:80px"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct">📅 Próximos 7 dias</span></div>
+          <div id="agenda-semana-lista" style="min-height:80px"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="ch"><span class="ct">📋 Todos os eventos</span></div>
+        <table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Título</th><th>Cliente</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="agenda-all-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ══════════════════ ORÇAMENTOS ══════════════════ -->
+    <div class="tab-panel" id="tab-orcamentos">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="search-wrap" style="max-width:280px"><input type="text" placeholder="Buscar orçamento…" id="orc-search" oninput="renderOrcamentos()"></div>
+        <select class="form-input form-select" id="orc-status-filter" style="width:160px;padding:6px 10px" onchange="renderOrcamentos()">
+          <option value="">Todos os status</option>
+          <option value="rascunho">Rascunho</option>
+          <option value="enviado">Enviado</option>
+          <option value="aprovado">Aprovado</option>
+          <option value="recusado">Recusado</option>
+          <option value="convertido">Convertido em OS</option>
+        </select>
+        <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="openModal('modal-orcamento')">+ Novo Orçamento</button>
+      </div>
+      <div class="metrics c3" style="margin-bottom:16px" id="orc-metrics"></div>
+      <div class="card">
+        <table><thead><tr><th>Nº</th><th>Cliente</th><th>Valor</th><th>Criado em</th><th>Validade</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="orc-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ══════════════════ LABORATÓRIO ══════════════════ -->
+    <div class="tab-panel" id="tab-lab">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="filters" id="lab-filters" style="margin-bottom:0">
+          <button class="fb active" onclick="setLabFiltro('todos',this)">Todos</button>
+          <button class="fb" onclick="setLabFiltro('aguardando',this)">⏳ Aguardando</button>
+          <button class="fb" onclick="setLabFiltro('enviado',this)">📤 Enviados</button>
+          <button class="fb" onclick="setLabFiltro('recebido',this)">✅ Recebidos</button>
+          <button class="fb" onclick="setLabFiltro('atrasado',this)">🔴 Atrasados</button>
+        </div>
+      </div>
+      <div class="metrics c3" style="margin-bottom:16px" id="lab-metrics"></div>
+      <div class="card">
+        <div class="ch"><span class="ct">🔬 Pedidos com Lentes no Laboratório</span></div>
+        <table style="table-layout:auto"><thead><tr>
+          <th>OS / Pedido</th><th>Cliente</th><th>Laboratório</th>
+          <th>Envio ao Lab</th><th>Previsão Retorno</th><th>Status Lab</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="lab-tbody"></tbody></table>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </main>
 </div><!-- /shell -->
@@ -1468,6 +1626,7 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
 // ── STATE ──
 let DB = {
   clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],tabelas_lab:[],crediarios:[],caixa:[],despesas:[],
+  eventos:[],orcamentos:[],
   settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7),
     empresa:{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15}}
 };
@@ -1767,6 +1926,9 @@ const navConfig = {
   catalogo:{title:'Catálogo de Produtos',sub:'Armações, lentes e acessórios',btn:''},
   relatorios:{title:'Relatórios',sub:'Análise de desempenho',btn:''},
   config:{title:'Configurações',sub:'Sistema e usuários',btn:''},
+  agenda:{title:'Agenda',sub:'Consultas, retornos e entregas',btn:'+ Novo Evento'},
+  orcamentos:{title:'Orçamentos',sub:'Propostas comerciais para clientes',btn:'+ Novo Orçamento'},
+  lab:{title:'Laboratório',sub:'Pedidos enviados ao laboratório',btn:''},
 };
 let _currentPage = 'dashboard';
 function nav(page){
@@ -1788,10 +1950,15 @@ function nav(page){
   if(page==='crediario')renderCrediario();
   if(page==='pedidos')setPedidosView(_pedidosView);
   if(page==='os')renderOS();
+  if(page==='agenda'){if(!document.getElementById('agenda-data').value)document.getElementById('agenda-data').value=new Date().toISOString().slice(0,10);renderAgenda();}
+  if(page==='orcamentos')renderOrcamentos();
+  if(page==='lab')renderLab();
 }
 function tbAction(){
   if(_currentPage==='crediario'){abrirNovoCrediario();return;}
   if(_currentPage==='os'){novaOrdemServico();return;}
+  if(_currentPage==='agenda'){openModal('modal-evento');return;}
+  if(_currentPage==='orcamentos'){openModal('modal-orcamento');return;}
   const modalMap={
     dashboard:'modal-pedido',pipeline:'modal-pedido',
     clientes:'modal-cliente',pedidos:'modal-pedido',receitas:'modal-receita'
@@ -1821,6 +1988,14 @@ function updateNavCounts(){
   const credAtivos=(DB.crediarios||[]).filter(c=>{const st=computeStatusCrediario(c);return st==='ativo'||st==='atrasado';}).length;
   const credEl=document.getElementById('cnt-crediario');
   if(credEl){credEl.textContent=credAtivos;credEl.style.display=credAtivos?'inline-block':'none';}
+  // Novos
+  const hoje=new Date().toISOString().slice(0,10);
+  const agEl=document.getElementById('cnt-agenda');
+  if(agEl){const n=(DB.eventos||[]).filter(e=>!e.deleted&&e.data===hoje&&e.status!=='concluido').length;agEl.textContent=n;agEl.style.display=n?'inline-block':'none';}
+  const orcEl=document.getElementById('cnt-orcamentos');
+  if(orcEl){const n=(DB.orcamentos||[]).filter(o=>!o.deleted&&(o.status==='rascunho'||o.status==='enviado')).length;orcEl.textContent=n;orcEl.style.display=n?'inline-block':'none';}
+  const labEl=document.getElementById('cnt-lab');
+  if(labEl){const n=(DB.pedidos||[]).filter(p=>!p.deleted&&p.labDataEnvio&&p.labStatus!=='recebido').length;labEl.textContent=n;labEl.style.display=n?'inline-block':'none';}
 }
 
 // ── SELECTS ──
@@ -3462,6 +3637,9 @@ function renderDashboard(){
         ${v.comissao>0?`<div style="font-size:10px;color:var(--muted)">Com.: ${fmtMoney(v.comissao)}</div>`:''}
       </div>
     </div>`).join(''):'<div class="empty" style="padding:24px"><div class="empty-text">Sem vendas registradas</div></div>';
+
+  // META DO MÊS
+  if(typeof renderMetaDashboard==='function')renderMetaDashboard();
 
   // CHART FATURAMENTO
   renderFatChart();
@@ -5560,6 +5738,8 @@ window.toggleCrediarioDetalhe=toggleCrediarioDetalhe;
 // ── INIT (after all functions defined) ──
 document.addEventListener('DOMContentLoaded',()=>{
   if(checkAprovacaoLink()) return; // página de aprovação de orçamento
+  // Dark mode persistence
+  try{if(localStorage.getItem('haw_dark')==='1'){document.documentElement.setAttribute('data-theme','dark');const b=document.getElementById('btn-dark-mode');if(b)b.textContent='☀️';}}catch(e){}
   loadFromStorage();
   renderDate();
   renderSidebarUser();
@@ -5801,6 +5981,106 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 <!-- MODAL WHATSAPP -->
 <!-- MODAL CAIXA DIÁRIO -->
+<!-- MODAL EVENTO (AGENDA) -->
+<div class="modal-overlay" id="modal-evento">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title" id="ev-modal-title">Novo Evento</span>
+      <button class="modal-close" onclick="closeModal('modal-evento')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ev-id">
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Data *</label><input class="form-input" id="ev-data" type="date"></div>
+        <div class="form-group"><label class="form-label">Hora</label><input class="form-input" id="ev-hora" type="time" placeholder="09:00"></div>
+      </div>
+      <div class="form-row c1">
+        <div class="form-group"><label class="form-label">Tipo *</label>
+          <select class="form-input form-select" id="ev-tipo">
+            <option value="consulta">👁️ Consulta óptica</option>
+            <option value="retorno">🔄 Retorno / revisão</option>
+            <option value="entrega">📦 Entrega de OS</option>
+            <option value="pagamento">💰 Pagamento de crediário</option>
+            <option value="outro">📌 Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Título / Descrição *</label><input class="form-input" id="ev-titulo" placeholder="Ex: Consulta de adaptação de lentes"></div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Cliente</label>
+        <input class="form-input" id="ev-cliente-nome" placeholder="Digite o nome do cliente…" autocomplete="off" oninput="filtrarClientesEv(this.value)">
+        <input type="hidden" id="ev-cliente-id">
+        <div id="ev-clientes-drop" style="display:none;position:absolute;z-index:9001;background:var(--white);border:1px solid var(--border-light);border-radius:8px;max-height:200px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:280px"></div>
+      </div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="ev-obs" placeholder="Opcional"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-evento')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEvento()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ORÇAMENTO -->
+<div class="modal-overlay" id="modal-orcamento">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <span class="modal-title" id="orc-modal-title">Novo Orçamento</span>
+      <button class="modal-close" onclick="closeModal('modal-orcamento')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="orc-id">
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Cliente *</label>
+          <input class="form-input" id="orc-cliente-nome" placeholder="Digite o nome…" autocomplete="off" oninput="filtrarClientesOrc(this.value)">
+          <input type="hidden" id="orc-cliente-id">
+          <div id="orc-clientes-drop" style="display:none;position:absolute;z-index:9001;background:var(--white);border:1px solid var(--border-light);border-radius:8px;max-height:200px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:280px"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Validade (dias)</label><input class="form-input" id="orc-validade" type="number" min="1" value="15"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Forma de Pagamento</label>
+          <select class="form-input form-select" id="orc-pagamento">
+            <option>À vista</option><option>Cartão de crédito</option><option>2x</option><option>3x</option><option>PIX</option><option>Crediário próprio</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Desconto (R$)</label><input class="form-input" id="orc-desconto" type="number" min="0" step="0.01" value="0" oninput="calcTotalOrc()"></div>
+      </div>
+      <div class="form-divider">Itens do Orçamento</div>
+      <div id="orc-itens-wrap"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addItemOrc()" style="margin-bottom:12px">+ Adicionar item</button>
+      <div class="total-line"><span class="total-label">Total</span><span class="total-val" id="orc-total-display">R$ 0,00</span></div>
+      <div class="form-row c1" style="margin-top:12px"><div class="form-group"><label class="form-label">Observações</label><input class="form-input" id="orc-obs" placeholder="Ex: Inclui armação + lentes multifocais…"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-orcamento')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LAB (envio ao laboratório) -->
+<div class="modal-overlay" id="modal-lab-envio">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title">🔬 Enviar ao Laboratório</span>
+      <button class="modal-close" onclick="closeModal('modal-lab-envio')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="lab-pedido-id">
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Laboratório *</label><input class="form-input" id="lab-nome-input" placeholder="Ex: Orfeu, Indo, Hoya…"></div></div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Data de envio *</label><input class="form-input" id="lab-data-envio" type="date"></div>
+        <div class="form-group"><label class="form-label">Previsão de retorno</label><input class="form-input" id="lab-data-previsao" type="date"></div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="lab-obs-input" placeholder="Código de pedido no lab, instruções…"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-lab-envio')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEnvioLab()">📤 Confirmar Envio</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-caixa">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
@@ -6941,6 +7221,416 @@ function checkAprovacaoLink(){
   }catch(e){return false;}
 }
 window.checkAprovacaoLink=checkAprovacaoLink;
+
+// ══════════════════ DARK MODE ══════════════════
+function toggleDarkMode(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('btn-dark-mode').textContent=dark?'🌙':'☀️';
+  try{localStorage.setItem('haw_dark',dark?'0':'1');}catch(e){}
+}
+(function(){
+  try{if(localStorage.getItem('haw_dark')==='1'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}
+})();
+
+// ══════════════════ AGENDA ══════════════════
+function renderAgenda(){
+  const sel=document.getElementById('agenda-data').value;
+  if(!sel)return;
+  const d=new Date(sel+'T00:00:00');
+  const opts={weekday:'long',day:'numeric',month:'long'};
+  document.getElementById('agenda-dia-label').textContent=d.toLocaleDateString('pt-BR',opts);
+  const eventos=(DB.eventos||[]).filter(e=>!e.deleted);
+  // Dia selecionado
+  const diaEvs=eventos.filter(e=>e.data===sel).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+  document.getElementById('cnt-agenda-dia').textContent=diaEvs.length;
+  document.getElementById('agenda-dia-lista').innerHTML=diaEvs.length?diaEvs.map(e=>evItemHtml(e)).join(''):'<div class="empty" style="padding:20px"><div class="empty-text">Nenhum evento neste dia</div></div>';
+  // Próximos 7 dias
+  const amanha=new Date(d);amanha.setDate(amanha.getDate()+1);
+  const fim7=new Date(d);fim7.setDate(fim7.getDate()+7);
+  const fim7str=fim7.toISOString().slice(0,10);
+  const amanhaStr=amanha.toISOString().slice(0,10);
+  const semanaEvs=eventos.filter(e=>e.data>=amanhaStr&&e.data<=fim7str).sort((a,b)=>a.data.localeCompare(b.data)||(a.hora||'').localeCompare(b.hora||''));
+  document.getElementById('agenda-semana-lista').innerHTML=semanaEvs.length?semanaEvs.map(e=>evItemHtml(e,true)).join(''):'<div class="empty" style="padding:20px"><div class="empty-text">Sem eventos nos próximos 7 dias</div></div>';
+  // Tabela completa
+  const todos=eventos.sort((a,b)=>b.data.localeCompare(a.data)||(b.hora||'').localeCompare(a.hora||''));
+  document.getElementById('agenda-all-tbody').innerHTML=todos.length?todos.map(e=>{
+    const cli=DB.clientes.find(c=>c.id===e.clienteId);
+    const passado=e.data<new Date().toISOString().slice(0,10)&&e.status!=='concluido';
+    return`<tr>
+      <td>${e.data.split('-').reverse().join('/')} ${e.hora||''}</td>
+      <td><span class="badge badge-blue">${evTipoLabel(e.tipo)}</span></td>
+      <td>${e.titulo}</td>
+      <td>${cli?cli.nome:e.clienteNome||'—'}</td>
+      <td><span class="badge ${e.status==='concluido'?'badge-green':passado?'badge-red':'badge-gold'}">${e.status==='concluido'?'Concluído':passado?'Atrasado':'Agendado'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="editarEvento('${e.id}')">✏️</button>
+        ${e.status!=='concluido'?`<button class="btn btn-ghost btn-sm" onclick="concluirEvento('${e.id}')" title="Marcar concluído">✅</button>`:''}
+        ${cli&&cli.telefone?`<button class="btn btn-ghost btn-sm" onclick="abrirWA('${cli.id}')" title="WhatsApp">💬</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="excluirEvento('${e.id}')">🗑</button>
+      </td></tr>`;
+  }).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum evento cadastrado</td></tr>';
+  // Atualizar count sidebar
+  const hoje=new Date().toISOString().slice(0,10);
+  const cntEl=document.getElementById('cnt-agenda');
+  if(cntEl)cntEl.textContent=eventos.filter(e=>e.data===hoje&&e.status!=='concluido').length;
+}
+function evItemHtml(e,showDate=false){
+  const cli=DB.clientes.find(c=>c.id===e.clienteId);
+  const hoje=new Date().toISOString().slice(0,10);
+  const passado=e.data<hoje&&e.status!=='concluido';
+  const cor=e.status==='concluido'?'var(--green)':passado?'var(--red)':'var(--gold)';
+  return`<div class="ev-item" onclick="editarEvento('${e.id}')">
+    <div class="ev-dot" style="background:${cor}"></div>
+    <div class="ev-time">${showDate?e.data.slice(5).replace('-','/'):''}${e.hora||'—'}</div>
+    <div class="ev-body"><div class="ev-title">${e.titulo}</div><div class="ev-sub">${evTipoLabel(e.tipo)}${cli?' · '+cli.nome:''}</div></div>
+  </div>`;
+}
+function evTipoLabel(t){const m={consulta:'👁️ Consulta',retorno:'🔄 Retorno',entrega:'📦 Entrega',pagamento:'💰 Pagamento',outro:'📌 Outro'};return m[t]||t;}
+function agendaNavDia(delta){
+  const el=document.getElementById('agenda-data');
+  const d=new Date((el.value||new Date().toISOString().slice(0,10))+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  el.value=d.toISOString().slice(0,10);
+  renderAgenda();
+}
+function filtrarClientesEv(q){_filtrarCliDrop(q,'ev-cliente-nome','ev-cliente-id','ev-clientes-drop');}
+function _filtrarCliDrop(q,inputId,hidId,dropId){
+  const drop=document.getElementById(dropId);
+  if(!q||q.length<2){drop.style.display='none';return;}
+  const res=DB.clientes.filter(c=>!c.deleted&&c.nome&&c.nome.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!res.length){drop.style.display='none';return;}
+  drop.style.display='block';
+  drop.innerHTML=res.map(c=>`<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-light);font-size:13px" onmousedown="document.getElementById('${inputId}').value='${c.nome.replace(/'/g,"\\'")}';document.getElementById('${hidId}').value='${c.id}';document.getElementById('${dropId}').style.display='none'">${c.nome}<span style="font-size:11px;color:var(--muted);margin-left:8px">${c.telefone||''}</span></div>`).join('');
+}
+function abrirNovoEvento(){
+  document.getElementById('ev-id').value='';
+  document.getElementById('ev-modal-title').textContent='Novo Evento';
+  document.getElementById('ev-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ev-hora').value='';
+  document.getElementById('ev-tipo').value='consulta';
+  document.getElementById('ev-titulo').value='';
+  document.getElementById('ev-cliente-nome').value='';
+  document.getElementById('ev-cliente-id').value='';
+  document.getElementById('ev-obs').value='';
+  openModal('modal-evento');
+}
+function editarEvento(id){
+  const e=(DB.eventos||[]).find(x=>x.id===id);if(!e)return;
+  document.getElementById('ev-id').value=e.id;
+  document.getElementById('ev-modal-title').textContent='Editar Evento';
+  document.getElementById('ev-data').value=e.data;
+  document.getElementById('ev-hora').value=e.hora||'';
+  document.getElementById('ev-tipo').value=e.tipo||'outro';
+  document.getElementById('ev-titulo').value=e.titulo;
+  const cli=DB.clientes.find(c=>c.id===e.clienteId);
+  document.getElementById('ev-cliente-nome').value=cli?cli.nome:e.clienteNome||'';
+  document.getElementById('ev-cliente-id').value=e.clienteId||'';
+  document.getElementById('ev-obs').value=e.obs||'';
+  openModal('modal-evento');
+}
+function salvarEvento(){
+  const titulo=document.getElementById('ev-titulo').value.trim();
+  const data=document.getElementById('ev-data').value;
+  if(!titulo||!data){toast('Preencha título e data.');return;}
+  if(!DB.eventos)DB.eventos=[];
+  const id=document.getElementById('ev-id').value;
+  const obj={titulo,data,hora:document.getElementById('ev-hora').value,tipo:document.getElementById('ev-tipo').value,
+    clienteId:document.getElementById('ev-cliente-id').value,clienteNome:document.getElementById('ev-cliente-nome').value,
+    obs:document.getElementById('ev-obs').value,status:'agendado'};
+  if(id){const i=DB.eventos.findIndex(x=>x.id===id);if(i>=0)Object.assign(DB.eventos[i],obj);}
+  else{obj.id=uid();obj.createdAt=new Date().toISOString();DB.eventos.push(obj);}
+  save();closeModal('modal-evento');renderAgenda();toast('Evento salvo!');
+}
+function concluirEvento(id){
+  const e=(DB.eventos||[]).find(x=>x.id===id);if(!e)return;
+  e.status='concluido';save();renderAgenda();toast('Evento marcado como concluído!');
+}
+function excluirEvento(id){
+  if(!confirm('Excluir este evento?'))return;
+  const i=(DB.eventos||[]).findIndex(x=>x.id===id);if(i>=0){DB.eventos[i].deleted=true;save();renderAgenda();toast('Evento excluído.');}
+}
+
+// ══════════════════ ORÇAMENTOS ══════════════════
+let _orcItens=[];
+function filtrarClientesOrc(q){_filtrarCliDrop(q,'orc-cliente-nome','orc-cliente-id','orc-clientes-drop');}
+function abrirNovoOrcamento(){
+  _orcItens=[{nome:'',qty:1,valor:0}];
+  document.getElementById('orc-id').value='';
+  document.getElementById('orc-modal-title').textContent='Novo Orçamento';
+  document.getElementById('orc-cliente-nome').value='';
+  document.getElementById('orc-cliente-id').value='';
+  document.getElementById('orc-validade').value=DB.settings.empresa&&DB.settings.empresa.validade?DB.settings.empresa.validade:15;
+  document.getElementById('orc-pagamento').value='À vista';
+  document.getElementById('orc-desconto').value=0;
+  document.getElementById('orc-obs').value='';
+  renderItensOrc();
+  openModal('modal-orcamento');
+}
+function editarOrcamento(id){
+  const o=(DB.orcamentos||[]).find(x=>x.id===id);if(!o)return;
+  _orcItens=(o.itens||[]).map(it=>({...it}));
+  if(!_orcItens.length)_orcItens=[{nome:'',qty:1,valor:0}];
+  document.getElementById('orc-id').value=o.id;
+  document.getElementById('orc-modal-title').textContent='Editar Orçamento';
+  const cli=DB.clientes.find(c=>c.id===o.clienteId);
+  document.getElementById('orc-cliente-nome').value=cli?cli.nome:o.clienteNome||'';
+  document.getElementById('orc-cliente-id').value=o.clienteId||'';
+  document.getElementById('orc-validade').value=o.validade||15;
+  document.getElementById('orc-pagamento').value=o.pagamento||'À vista';
+  document.getElementById('orc-desconto').value=o.desconto||0;
+  document.getElementById('orc-obs').value=o.obs||'';
+  renderItensOrc();
+  openModal('modal-orcamento');
+}
+function addItemOrc(){_orcItens.push({nome:'',qty:1,valor:0});renderItensOrc();}
+function renderItensOrc(){
+  const w=document.getElementById('orc-itens-wrap');
+  w.innerHTML=_orcItens.map((it,i)=>`
+    <div class="orcamento-item" style="gap:8px;align-items:flex-start;padding:8px 0">
+      <div style="flex:2"><input class="form-input" placeholder="Produto/serviço" value="${it.nome||''}" oninput="_orcItens[${i}].nome=this.value"></div>
+      <div style="width:60px"><input class="form-input" type="number" min="1" value="${it.qty||1}" oninput="_orcItens[${i}].qty=parseInt(this.value)||1;calcTotalOrc()"></div>
+      <div style="width:100px"><input class="form-input" type="number" min="0" step="0.01" value="${it.valor||0}" oninput="_orcItens[${i}].valor=parseFloat(this.value)||0;calcTotalOrc()" placeholder="R$"></div>
+      <button class="btn btn-danger btn-sm" onclick="_orcItens.splice(${i},1);renderItensOrc()" style="flex-shrink:0">🗑</button>
+    </div>`).join('');
+  calcTotalOrc();
+}
+function calcTotalOrc(){
+  const sub=_orcItens.reduce((s,it)=>s+(it.qty||1)*(it.valor||0),0);
+  const desc=parseFloat(document.getElementById('orc-desconto')?.value||0)||0;
+  const total=Math.max(0,sub-desc);
+  const el=document.getElementById('orc-total-display');
+  if(el)el.textContent='R$ '+total.toFixed(2).replace('.',',');
+  return total;
+}
+function salvarOrcamento(){
+  const clienteNome=document.getElementById('orc-cliente-nome').value.trim();
+  if(!clienteNome){toast('Informe o cliente.');return;}
+  const itensValidos=_orcItens.filter(it=>it.nome);
+  if(!itensValidos.length){toast('Adicione pelo menos 1 item.');return;}
+  if(!DB.orcamentos)DB.orcamentos=[];
+  const id=document.getElementById('orc-id').value;
+  const desc=parseFloat(document.getElementById('orc-desconto').value)||0;
+  const total=calcTotalOrc();
+  const obj={clienteId:document.getElementById('orc-cliente-id').value,clienteNome,
+    validade:parseInt(document.getElementById('orc-validade').value)||15,
+    pagamento:document.getElementById('orc-pagamento').value,
+    desconto:desc,itens:itensValidos,total,obs:document.getElementById('orc-obs').value,status:'rascunho'};
+  if(id){const i=DB.orcamentos.findIndex(x=>x.id===id);if(i>=0)Object.assign(DB.orcamentos[i],obj);}
+  else{obj.id=uid();obj.numero=(_maxOrcNum()+1);obj.createdAt=new Date().toISOString();DB.orcamentos.push(obj);}
+  save();closeModal('modal-orcamento');renderOrcamentos();toast('Orçamento salvo!');
+}
+function _maxOrcNum(){return(DB.orcamentos||[]).reduce((m,o)=>Math.max(m,o.numero||0),0);}
+function renderOrcamentos(){
+  const orcs=(DB.orcamentos||[]).filter(o=>!o.deleted);
+  const q=(document.getElementById('orc-search')?.value||'').toLowerCase();
+  const sf=document.getElementById('orc-status-filter')?.value||'';
+  const filtered=orcs.filter(o=>{
+    const m=!q||(o.clienteNome||'').toLowerCase().includes(q)||(o.numero+'').includes(q);
+    const s=!sf||o.status===sf;
+    return m&&s;
+  }).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  const total=orcs.reduce((s,o)=>s+o.total,0);
+  const aprov=orcs.filter(o=>o.status==='aprovado');
+  const metrEl=document.getElementById('orc-metrics');
+  if(metrEl)metrEl.innerHTML=`
+    <div class="metric ma"><div class="metric-icon">📝</div><div class="ml">Total de Orçamentos</div><div class="mv">${orcs.length}</div></div>
+    <div class="metric mg"><div class="metric-icon">✅</div><div class="ml">Aprovados</div><div class="mv">${aprov.length}</div><div class="ms">${fmtMoney(aprov.reduce((s,o)=>s+o.total,0))}</div></div>
+    <div class="metric mb"><div class="metric-icon">💰</div><div class="ml">Volume Total</div><div class="mv">${fmtMoney(total)}</div></div>`;
+  const tbody=document.getElementById('orc-tbody');
+  const hoje=new Date().toISOString().slice(0,10);
+  if(tbody)tbody.innerHTML=filtered.length?filtered.map(o=>{
+    const venc=new Date(o.createdAt.slice(0,10));venc.setDate(venc.getDate()+(o.validade||15));
+    const vencStr=venc.toISOString().slice(0,10);
+    const expirado=vencStr<hoje&&o.status==='rascunho'||o.status==='enviado';
+    const statusMap={rascunho:'<span class="badge badge-gray">Rascunho</span>',enviado:'<span class="badge badge-blue">Enviado</span>',aprovado:'<span class="badge badge-green">Aprovado</span>',recusado:'<span class="badge badge-red">Recusado</span>',convertido:'<span class="badge badge-amber">Convertido</span>'};
+    return`<tr>
+      <td>#${o.numero}</td>
+      <td>${o.clienteNome}</td>
+      <td>${fmtMoney(o.total)}</td>
+      <td>${o.createdAt.slice(0,10).split('-').reverse().join('/')}</td>
+      <td style="color:${expirado?'var(--red)':'inherit'}">${vencStr.split('-').reverse().join('/')}</td>
+      <td>${statusMap[o.status]||o.status}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="editarOrcamento('${o.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="enviarLinkOrcamento('${o.id}')" title="Enviar link ao cliente">🔗</button>
+        <button class="btn btn-ghost btn-sm" onclick="alterarStatusOrc('${o.id}')" title="Alterar status">🔄</button>
+        <button class="btn btn-danger btn-sm" onclick="excluirOrcamento('${o.id}')">🗑</button>
+      </td></tr>`;
+  }).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Nenhum orçamento</td></tr>';
+  const cntEl=document.getElementById('cnt-orcamentos');
+  if(cntEl)cntEl.textContent=orcs.filter(o=>o.status==='rascunho'||o.status==='enviado').length;
+}
+function enviarLinkOrcamento(id){
+  const o=(DB.orcamentos||[]).find(x=>x.id===id);if(!o)return;
+  const emp=(DB.settings&&DB.settings.empresa)||{nome:'HAW Vision'};
+  const dados={t:'orca',num:o.numero,cli:o.clienteNome,tel:(DB.clientes.find(c=>c.id===o.clienteId)||{}).telefone||'',itens:o.itens.map(it=>({n:it.nome,q:it.qty||1,v:it.valor||0})),total:o.total,emp:emp.nome,pagamento:o.pagamento||''};
+  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
+  const base=window.location.origin+window.location.pathname;
+  const link=`${base}?aprova=${b64}`;
+  navigator.clipboard.writeText(link).then(()=>toast('🔗 Link copiado! Envie ao cliente.')).catch(()=>prompt('Link do orçamento:',link));
+  if(o.status==='rascunho'){o.status='enviado';save();renderOrcamentos();}
+}
+function alterarStatusOrc(id){
+  const o=(DB.orcamentos||[]).find(x=>x.id===id);if(!o)return;
+  const opts=['rascunho','enviado','aprovado','recusado','convertido'];
+  const labels={rascunho:'Rascunho',enviado:'Enviado',aprovado:'Aprovado',recusado:'Recusado',convertido:'Convertido em OS'};
+  const novo=prompt(`Status atual: ${labels[o.status]||o.status}\n\nEscolha:\n0 rascunho\n1 enviado\n2 aprovado\n3 recusado\n4 convertido`);
+  if(novo===null)return;
+  const idx=parseInt(novo);
+  if(isNaN(idx)||!opts[idx]){toast('Opção inválida.');return;}
+  o.status=opts[idx];save();renderOrcamentos();toast('Status atualizado!');
+}
+function excluirOrcamento(id){
+  if(!confirm('Excluir este orçamento?'))return;
+  const i=(DB.orcamentos||[]).findIndex(x=>x.id===id);if(i>=0){DB.orcamentos[i].deleted=true;save();renderOrcamentos();toast('Excluído.');}
+}
+
+// ══════════════════ LABORATÓRIO ══════════════════
+let _labFiltro='todos';
+function setLabFiltro(f,btn){
+  _labFiltro=f;
+  document.querySelectorAll('#lab-filters .fb').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderLab();
+}
+function renderLab(){
+  const hoje=new Date().toISOString().slice(0,10);
+  // Pedidos que tenham dados de lab (status !== entregue/cancelado OU com lab tracking)
+  const todos=(DB.pedidos||[]).filter(p=>!p.deleted&&(p.labNome||p.status==='lab'||p.status==='pronto'||p.labDataEnvio));
+  const metrEl=document.getElementById('lab-metrics');
+  const aguardando=todos.filter(p=>!p.labDataEnvio);
+  const enviados=todos.filter(p=>p.labDataEnvio&&p.labStatus!=='recebido');
+  const atrasados=enviados.filter(p=>p.labDataPrevisao&&p.labDataPrevisao<hoje);
+  const recebidos=todos.filter(p=>p.labStatus==='recebido');
+  if(metrEl)metrEl.innerHTML=`
+    <div class="metric mr"><div class="metric-icon">⏳</div><div class="ml">Aguardando envio</div><div class="mv">${aguardando.length}</div></div>
+    <div class="metric mb"><div class="metric-icon">📤</div><div class="ml">No laboratório</div><div class="mv">${enviados.length}</div><div class="ms">${atrasados.length>0?atrasados.length+' atrasado(s)':''}</div></div>
+    <div class="metric mg"><div class="metric-icon">✅</div><div class="ml">Recebidos</div><div class="mv">${recebidos.length}</div></div>`;
+  let filtrados=todos;
+  if(_labFiltro==='aguardando')filtrados=aguardando;
+  else if(_labFiltro==='enviado')filtrados=enviados.filter(p=>!atrasados.includes(p));
+  else if(_labFiltro==='atrasado')filtrados=atrasados;
+  else if(_labFiltro==='recebido')filtrados=recebidos;
+  const tbody=document.getElementById('lab-tbody');
+  if(tbody)tbody.innerHTML=filtrados.length?filtrados.map(p=>{
+    const cli=DB.clientes.find(c=>c.id===p.clienteId);
+    const atrasado=p.labDataEnvio&&p.labDataPrevisao&&p.labDataPrevisao<hoje&&p.labStatus!=='recebido';
+    const statusBadge=p.labStatus==='recebido'?'<span class="badge badge-green">✅ Recebido</span>':p.labDataEnvio?atrasado?'<span class="badge badge-red">🔴 Atrasado</span>':'<span class="badge badge-blue">📤 Enviado</span>':'<span class="badge badge-amber">⏳ Aguardando</span>';
+    return`<tr>
+      <td><span class="badge badge-gray">OS #${p.num||p.numero||p.id.slice(-4)}</span></td>
+      <td>${cli?cli.nome:p.clienteNome||'—'}</td>
+      <td>${p.labNome||'—'}</td>
+      <td>${p.labDataEnvio?p.labDataEnvio.split('-').reverse().join('/'):'—'}</td>
+      <td style="color:${atrasado?'var(--red)':'inherit'}">${p.labDataPrevisao?p.labDataPrevisao.split('-').reverse().join('/'):'—'}</td>
+      <td>${statusBadge}</td>
+      <td style="white-space:nowrap">
+        ${!p.labDataEnvio?`<button class="btn btn-gold btn-sm" onclick="abrirEnvioLab('${p.id}')">📤 Enviar</button>`:''}
+        ${p.labDataEnvio&&p.labStatus!=='recebido'?`<button class="btn btn-ghost btn-sm" onclick="marcarLabRecebido('${p.id}')">✅ Recebido</button>`:''}
+        ${cli&&cli.telefone?`<button class="btn btn-ghost btn-sm" onclick="abrirWA('${cli.id}')">💬</button>`:''}
+      </td></tr>`;
+  }).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Nenhum pedido no laboratório</td></tr>';
+  const cntEl=document.getElementById('cnt-lab');
+  if(cntEl)cntEl.textContent=enviados.length+aguardando.length;
+}
+function abrirEnvioLab(pedidoId){
+  document.getElementById('lab-pedido-id').value=pedidoId;
+  document.getElementById('lab-nome-input').value='';
+  document.getElementById('lab-data-envio').value=new Date().toISOString().slice(0,10);
+  document.getElementById('lab-data-previsao').value='';
+  document.getElementById('lab-obs-input').value='';
+  openModal('modal-lab-envio');
+}
+function salvarEnvioLab(){
+  const pid=document.getElementById('lab-pedido-id').value;
+  const nome=document.getElementById('lab-nome-input').value.trim();
+  const envio=document.getElementById('lab-data-envio').value;
+  if(!nome||!envio){toast('Informe o laboratório e a data de envio.');return;}
+  const p=(DB.pedidos||[]).find(x=>x.id===pid);if(!p){toast('Pedido não encontrado.');return;}
+  p.labNome=nome;p.labDataEnvio=envio;p.labDataPrevisao=document.getElementById('lab-data-previsao').value;p.labObs=document.getElementById('lab-obs-input').value;p.labStatus='enviado';
+  save();closeModal('modal-lab-envio');renderLab();toast(`📤 Enviado ao lab ${nome}!`);
+}
+function marcarLabRecebido(pedidoId){
+  const p=(DB.pedidos||[]).find(x=>x.id===pedidoId);if(!p)return;
+  p.labStatus='recebido';p.labDataRecebimento=new Date().toISOString().slice(0,10);
+  save();renderLab();toast('✅ Lentes recebidas do laboratório!');
+}
+
+// ══════════════════ ETIQUETAS DE ARMAÇÕES ══════════════════
+function gerarEtiquetasArmacoes(){
+  const prods=(DB.produtos||[]).filter(p=>!p.deleted&&p.ativo&&p.categoria==='armacao');
+  if(!prods.length){toast('Nenhuma armação no catálogo.');return;}
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas — HAW Vision</title>
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#fff;padding:10px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .etiq{border:1px solid #333;border-radius:4px;padding:8px 10px;text-align:center;page-break-inside:avoid}
+  .nome{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .cod{font-size:10px;color:#555;margin:2px 0}.preco{font-size:18px;font-weight:900}
+  .marca{font-size:10px;color:#888}
+  @media print{body{padding:0}button{display:none}}
+  </style></head><body>
+  <button onclick="window.print()" style="margin-bottom:10px;padding:8px 18px;background:#F7CF13;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px">🖨️ Imprimir Etiquetas</button>
+  <div class="grid">
+  ${prods.map(p=>`<div class="etiq">
+    <div class="marca">${p.marca||'HAW Vision'}</div>
+    <div class="nome">${p.nome}</div>
+    <div class="cod">Cód: ${p.codigo||p.id.slice(-6).toUpperCase()}</div>
+    <div class="preco">R$ ${Number(p.preco||0).toFixed(2).replace('.',',')}</div>
+    ${p.estoque!=null?`<div class="cod">Estoque: ${p.estoque} un.</div>`:''}
+  </div>`).join('')}
+  </div>
+  <script>window.onload=()=>setTimeout(window.print,400)<\/script>
+  </body></html>`;
+  const w=window.open('','_blank','width=800,height=900');
+  if(!w){toast('Permita pop-ups para gerar as etiquetas.');return;}
+  w.document.write(html);w.document.close();
+}
+window.gerarEtiquetasArmacoes=gerarEtiquetasArmacoes;
+
+// ══════════════════ BACKUP — RESTAURAR ══════════════════
+function restaurarBackup(file){
+  if(!file)return;
+  if(!confirm('⚠️ ATENÇÃO: Restaurar um backup irá sobrescrever TODOS os dados atuais do sistema. Esta ação não pode ser desfeita.\n\nDeseja continuar?'))return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      let dados=JSON.parse(e.target.result);
+      // Suporte a dois formatos: backup completo {id,dados:{DB}} ou DB direto
+      if(dados.dados&&typeof dados.dados==='object')dados=dados.dados;
+      const camposEsperados=['clientes','pedidos','produtos','usuarios'];
+      if(!camposEsperados.some(k=>k in dados)){toast('❌ Arquivo inválido: não parece ser um backup do HAW Vision.');return;}
+      // Restaurar
+      Object.keys(dados).forEach(k=>{if(k in DB)DB[k]=dados[k];});
+      save();toast('✅ Backup restaurado com sucesso! Recarregando…');
+      setTimeout(()=>location.reload(),1200);
+    }catch(err){toast('❌ Erro ao ler o arquivo JSON: '+err.message);}
+  };
+  reader.readAsText(file);
+}
+window.restaurarBackup=restaurarBackup;
+
+// ══════════════════ META NO DASHBOARD ══════════════════
+function renderMetaDashboard(){
+  const mesAtual=DB.settings.mesAtual||new Date().toISOString().slice(0,7);
+  // Total faturado no mês
+  const fat=(DB.pedidos||[]).filter(p=>!p.deleted&&(p.status==='entregue'||p.status==='pos')&&p.dataEntrega&&p.dataEntrega.startsWith(mesAtual)).reduce((s,p)=>s+Number(p.total||0),0);
+  // Meta: soma das metas dos usuários ativos, ou meta global em settings
+  const metaGlobal=Number((DB.settings&&DB.settings.metaMensal)||0);
+  const metaUsuarios=(DB.usuarios||[]).filter(u=>!u.deleted&&u.ativo&&u.meta).reduce((s,u)=>s+Number(u.meta||0),0);
+  const meta=metaGlobal||metaUsuarios;
+  const card=document.getElementById('meta-dashboard-card');
+  if(!card)return;
+  if(!meta){card.style.display='none';return;}
+  card.style.display='';
+  const pct=Math.min(100,Math.round(fat/meta*100));
+  const fill=document.getElementById('meta-bar-fill');
+  if(fill){fill.style.width=pct+'%';fill.style.background=pct>=100?'var(--green)':pct>=70?'var(--gold)':'var(--red)';}
+  const label=document.getElementById('meta-dash-label');
+  if(label)label.textContent=`${pct}% atingido`;
+  const nums=document.getElementById('meta-bar-nums');
+  if(nums)nums.innerHTML=`<span>${fmtMoney(fat)} realizado</span><span>Meta: ${fmtMoney(meta)}</span>`;
+}
+window.renderMetaDashboard=renderMetaDashboard;
 </script>
 
 <script src="supabase-layer.js?v=5" onerror="console.warn('[HAW] supabase-layer offline')"></script>
