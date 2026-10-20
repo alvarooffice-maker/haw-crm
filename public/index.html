@@ -479,14 +479,7 @@ tr:hover td{background:#FAFAF5}
   <button class="sb-item active" onclick="nav('dashboard')"><span class="si">📊</span><span>Dashboard</span></button>
   <button class="sb-item" onclick="nav('pipeline')"><span class="si">🏷️</span><span>Pipeline</span><span class="sb-count" id="cnt-pipeline">0</span></button>
   <button class="sb-item" onclick="nav('agenda')"><span class="si">📅</span><span>Agenda</span><span class="sb-count" id="cnt-agenda">0</span></button>
-  <button class="sb-item" onclick="nav('vendas')"><span class="si">🚀</span><span>Portal de Vendas</span></button>
-
-  <div class="sb-section">Vendas</div>
   <button class="sb-item" onclick="nav('clientes')"><span class="si">👥</span><span>Clientes</span><span class="sb-count" id="cnt-clientes">0</span></button>
-  <button class="sb-item" onclick="nav('pedidos')"><span class="si">🛍️</span><span>Pedidos</span><span class="sb-count" id="cnt-pedidos">0</span></button>
-  <button class="sb-item" onclick="nav('orcamentos')"><span class="si">📝</span><span>Orçamentos</span><span class="sb-count" id="cnt-orcamentos">0</span></button>
-  <button class="sb-item" onclick="nav('receitas')"><span class="si">👁️</span><span>Receitas</span></button>
-  <button class="sb-item" onclick="nav('os')"><span class="si">🗂️</span><span>Ordens de Serviço</span><span class="sb-count" id="cnt-os">0</span></button>
 
   <div class="sb-section">Gestão</div>
   <button class="sb-item" onclick="nav('financeiro')"><span class="si">💰</span><span>Financeiro</span></button>
@@ -636,55 +629,7 @@ tr:hover td{background:#FAFAF5}
       <div class="pipeline-board" id="pipeline-board"></div>
     </div>
 
-    <!-- ══════════════════ PORTAL DE VENDAS ══════════════════ -->
-    <div class="tab-panel" id="tab-vendas">
-      <div style="display:flex;flex-direction:column;align-items:center;padding:28px 24px 24px;background:linear-gradient(160deg,#0d1120 0%,#13182C 60%,#1a2240 100%);border-radius:16px;margin:0;min-height:calc(100vh - 120px)">
-        <div style="text-align:center;margin-bottom:28px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:.18em;color:#F7CF13;text-transform:uppercase;margin-bottom:8px">HAW Vision — Portal de Vendas</div>
-          <div style="font-size:26px;font-weight:800;color:#fff;line-height:1.2">O que vamos fazer hoje?</div>
-          <div style="font-size:13px;color:#8899bb;margin-top:6px">Selecione uma operação para começar</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;width:100%;max-width:800px;flex:1">
-          <!-- Novo Cliente -->
-          <button onclick="openModal('modal-cliente')" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
-            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">👥</div>
-            <div>
-              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Novo Cliente</div>
-              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Cadastrar um novo cliente<br>no sistema</div>
-            </div>
-            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
-          </button>
-          <!-- Novo Pedido -->
-          <button onclick="openModal('modal-pedido')" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
-            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">🛍️</div>
-            <div>
-              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Novo Pedido</div>
-              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Registrar um pedido e<br>entrar no pipeline</div>
-            </div>
-            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
-          </button>
-          <!-- Nova Receita -->
-          <button onclick="openModal('modal-receita')" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
-            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">👁️</div>
-            <div>
-              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Nova Receita</div>
-              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Lançar prescrição óptica<br>do paciente</div>
-            </div>
-            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
-          </button>
-          <!-- Nova OS -->
-          <button onclick="novaOrdemServico()" style="all:unset;cursor:pointer;background:linear-gradient(135deg,#13182C 0%,#1e2a50 100%);border:2px solid #2d3a6e;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all .2s;box-shadow:0 4px 24px rgba(0,0,0,.35)" onmouseover="this.style.borderColor='#F7CF13';this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 36px rgba(247,207,19,.18)'" onmouseout="this.style.borderColor='#2d3a6e';this.style.transform='';this.style.boxShadow='0 4px 24px rgba(0,0,0,.35)'">
-            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2a50,#2d3a6e);border:2px solid #F7CF13;display:flex;align-items:center;justify-content:center;font-size:28px">📋</div>
-            <div>
-              <div style="font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Nova OS</div>
-              <div style="font-size:12px;color:#8899bb;text-align:center;line-height:1.5">Gerar ordem de serviço<br>com PDF automático</div>
-            </div>
-            <div style="background:#F7CF13;color:#13182C;font-size:11px;font-weight:800;padding:5px 18px;border-radius:20px;letter-spacing:.06em">ABRIR</div>
-          </button>
-        </div>
-        <div style="margin-top:24px;font-size:10px;color:#2a3a5e;letter-spacing:.08em;text-transform:uppercase">HAW Vision · Sistema de Gestão Óptica</div>
-      </div>
-    </div>
+    <div class="tab-panel" id="tab-vendas"></div>
 
     <!-- ══════════════════ CLIENTE HUB ══════════════════ -->
     <div class="tab-panel" id="tab-cliente">
@@ -1624,15 +1569,6 @@ ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
 </div>
 
 <!-- MODAL PERFIL CLIENTE -->
-<div class="modal-overlay" id="modal-perfil">
-  <div class="modal" style="max-width:680px">
-    <div class="modal-header">
-      <span class="modal-title" id="perfil-nome-header">Perfil do Cliente</span>
-      <button class="modal-close" onclick="closeModal('modal-perfil')">×</button>
-    </div>
-    <div class="modal-body" id="perfil-body"></div>
-  </div>
-</div>
 
 <!-- MODAL STATUS PEDIDO -->
 <div class="modal-overlay" id="modal-status">
@@ -1739,8 +1675,8 @@ let chartFat = null, chartFunil = null, chartVendedor = null, chartFatMensal = n
 
 // ── ACCESS CONTROL ──
 const PAGE_ACCESS = {
-  vendedor:   ['dashboard','pipeline','vendas','clientes','cliente','pedidos','receitas','os','catalogo','crediario'],
-  gestor:     ['dashboard','pipeline','vendas','clientes','cliente','pedidos','receitas','os','catalogo','financeiro','relatorios','crediario'],
+  vendedor:   ['dashboard','pipeline','clientes','cliente','pedidos','receitas','os','catalogo','crediario'],
+  gestor:     ['dashboard','pipeline','clientes','cliente','pedidos','receitas','os','catalogo','financeiro','relatorios','crediario'],
   financeiro: ['dashboard','financeiro','relatorios','crediario','cliente'],
   dono:       null, // acesso total
 };
@@ -2015,7 +1951,6 @@ function loadFromStorage(){
 const navConfig = {
   dashboard:{title:'Dashboard',sub:'Visão geral do negócio',btn:'+ Novo Pedido',action:'openModal("modal-pedido")'},
   pipeline:{title:'Pipeline',sub:'Jornada de atendimento',btn:'+ Novo Pedido',action:'openModal("modal-pedido")'},
-  vendas:{title:'Portal de Vendas',sub:'Acesso rápido às operações do dia a dia',btn:''},
   os:{title:'Ordens de Serviço',sub:'Histórico de OSs geradas',btn:'+ Nova OS',action:'novaOrdemServico()'},
   clientes:{title:'Clientes',sub:'Cadastro e gestão de clientes',btn:'+ Novo Cliente',action:'openModal("modal-cliente")'},
   pedidos:{title:'Pedidos',sub:'Todos os pedidos',btn:'+ Novo Pedido',action:'openModal("modal-pedido")'},
@@ -2352,132 +2287,7 @@ function excluirCliente(id){
 }
 
 // ── PERFIL CLIENTE ──
-function verPerfil(id){
-  const c=DB.clientes.find(x=>x.id===id);if(!c)return;
-  const peds=DB.pedidos.filter(p=>!p.deleted&&p.clienteId===id);
-  const recs=DB.receitas.filter(r=>!r.deleted&&r.clienteId===id).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
-  const creds=(DB.crediarios||[]).filter(cr=>!cr.deleted&&cr.clienteId===id);
-  const ordens=(DB.ordens||[]).filter(o=>!o.deleted&&o.paciente&&DB.clientes.find(cl=>cl.id===id)&&(o.paciente.toLowerCase()===c.nome.toLowerCase()||o.clienteId===id)).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
-  const evts=(DB.eventos||[]).filter(e=>!e.deleted&&e.clienteId===id).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
-  const orcs=(DB.orcamentos||[]).filter(o=>!o.deleted&&o.clienteId===id).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  const pedsComGar=peds.filter(p=>p.garantiaMeses&&p.garantiaMeses>0);
-  const ult=peds.filter(p=>p.status==='entregue').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
-  const totalGasto=peds.filter(p=>p.status==='entregue'||p.status==='pos_venda').reduce((s,p)=>s+Number(p.total||0),0);
-  document.getElementById('perfil-nome-header').textContent=c.nome;
-  document.getElementById('perfil-body').innerHTML=`
-    <div class="perfil-header">
-      <div class="perfil-avatar">${initials(c.nome)}</div>
-      <div>
-        <div class="perfil-nome">${c.nome}</div>
-        <div class="perfil-meta">${c.telefone||''}${c.email?' · '+c.email:''}</div>
-        <div class="perfil-tags">
-          <span class="badge badge-gold">${c.status||'ativo'}</span>
-          ${ult?`<span class="badge badge-gray">Última compra: ${fmtDate(ult.createdAt)}</span>`:''}
-          ${totalGasto>0?`<span class="badge badge-green">Total gasto: ${fmtMoney(totalGasto)}</span>`:''}
-        </div>
-      </div>
-      <div style="margin-left:auto;display:flex;gap:8px">
-        ${c.telefone?`<button class="btn btn-sm" onclick="abrirWA('${id}')" style="background:#25D366;border-color:#25D366;color:#fff" title="Enviar mensagem via WhatsApp">📱 WhatsApp</button>`:''}
-        <button class="btn btn-ghost btn-sm" onclick="editarCliente('${id}');closeModal('modal-perfil')">✏️ Editar</button>
-        <button class="btn btn-gold btn-sm" onclick="abrirPedidoParaCliente('${id}');closeModal('modal-perfil')">+ Pedido</button>
-      </div>
-    </div>
-    <div class="inner-tabs">
-      <button class="inner-tab active" onclick="perfilTab('pedidos-${id}',this)">Pedidos (${peds.length})</button>
-      <button class="inner-tab" onclick="perfilTab('receitas-${id}',this)">Receitas (${recs.length})</button>
-      <button class="inner-tab" onclick="perfilTab('crediario-${id}',this)">Crediário (${creds.length})</button>
-      <button class="inner-tab" onclick="perfilTab('os-${id}',this)">OS (${ordens.length})</button>
-      <button class="inner-tab" onclick="perfilTab('eventos-${id}',this)">Eventos (${evts.length})</button>
-      <button class="inner-tab" onclick="perfilTab('orcamentos-${id}',this)">Orçamentos (${orcs.length})</button>
-      ${pedsComGar.length?`<button class="inner-tab" onclick="perfilTab('garantias-${id}',this)">Garantias (${pedsComGar.length})</button>`:''}
-    </div>
-    <div id="perfil-tab-pedidos-${id}">
-      ${peds.length?`<table><thead><tr><th>#</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody>
-        ${peds.map(p=>`<tr><td>#${p.numero}</td><td>${fmtDate(p.createdAt)}</td><td>${fmtMoney(p.total)}</td><td><span class="badge ${(STATUS_BADGE[p.status]||{cls:'badge-gray'}).cls}">${(STATUS_BADGE[p.status]||{label:p.status}).label}</span></td></tr>`).join('')}
-      </tbody></table>`:`<div class="empty"><div class="empty-icon">🛍️</div><div class="empty-title">Nenhum pedido ainda</div></div>`}
-    </div>
-    <div id="perfil-tab-receitas-${id}" style="display:none">
-      ${recs.length?`<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-gold btn-sm" onclick="openModal('modal-receita',{clienteId:'${id}'})">+ Nova Receita</button></div>`+recs.map(r=>`
-        <div class="card" style="margin-bottom:12px">
-          <div class="ch"><span class="ct">Receita de ${fmtDate(r.dataReceita)}${r.medico?' — '+r.medico:''}</span><div style="display:flex;align-items:center;gap:8px">${r.isAtual?'<span class="badge badge-green">Atual</span>':''}<button class="btn btn-ghost btn-sm" onclick="editarReceita('${r.id}');closeModal('modal-perfil')" title="Editar receita">✏️</button><button class="btn btn-ghost btn-sm" onclick="excluirReceita('${r.id}');verPerfil('${id}')" title="Excluir receita" style="color:var(--red)">🗑</button></div></div>
-          <div style="padding:12px 16px">
-            <div class="receita-grid">
-              <div><div class="rg-label">Olho</div><div></div></div>
-              <div><div class="rg-label">Esférico</div></div>
-              <div><div class="rg-label">Cilíndrico</div></div>
-              <div><div class="rg-label">Eixo</div></div>
-              <div><div class="rg-label">Adição</div></div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:12px;margin-top:4px">
-              <div style="font-weight:600;color:var(--muted)">OD</div>
-              <div style="text-align:center">${r.odEsf!=null?fmt(r.odEsf):'—'}</div>
-              <div style="text-align:center">${r.odCil!=null?fmt(r.odCil):'—'}</div>
-              <div style="text-align:center">${r.odEixo!=null?r.odEixo+'°':'—'}</div>
-              <div style="text-align:center">${r.odAdi!=null?fmt(r.odAdi):'—'}</div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:12px;margin-top:6px">
-              <div style="font-weight:600;color:var(--muted)">OE</div>
-              <div style="text-align:center">${r.oeEsf!=null?fmt(r.oeEsf):'—'}</div>
-              <div style="text-align:center">${r.oeCil!=null?fmt(r.oeCil):'—'}</div>
-              <div style="text-align:center">${r.oeEixo!=null?r.oeEixo+'°':'—'}</div>
-              <div style="text-align:center">${r.oeAdi!=null?fmt(r.oeAdi):'—'}</div>
-            </div>
-            ${r.dnp?`<div style="margin-top:8px;font-size:11px;color:var(--muted)">DNP: ${r.dnp}mm</div>`:''}
-          </div>
-        </div>`).join(''):`<div class="empty"><div class="empty-icon">👁️</div><div class="empty-title">Nenhuma receita cadastrada</div><button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="openModal('modal-receita',{clienteId:'${id}'})">+ Nova Receita</button></div>`}
-    </div>
-    <div id="perfil-tab-os-${id}" style="display:none">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-gold btn-sm" onclick="closeModal('modal-perfil');novaOrdemServico();setTimeout(()=>{const el=document.getElementById('os-paciente');const cli=DB.clientes.find(c=>c.id==='${id}');if(el&&cli)el.value=cli.nome;osImportarReceita(cli?.nome||'')},80)">+ Nova OS</button></div>
-      ${ordens.length?`<table><thead><tr><th>Nº OS</th><th>Data</th><th>Entrega</th><th>Valor</th><th></th></tr></thead><tbody>
-        ${ordens.map(o=>`<tr>
-          <td style="font-weight:700;color:var(--navy)">${o.num||'—'}</td>
-          <td>${o.data?.split('-').reverse().join('/')||'—'}</td>
-          <td>${o.entrega?.split('-').reverse().join('/')||'—'}</td>
-          <td>${o.valor?'R$ '+Number(o.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
-          <td><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-perfil');editarOS('${o.id}')">✏️</button></td>
-        </tr>`).join('')}
-      </tbody></table>`:`<div class="empty"><div class="empty-icon">🔬</div><div class="empty-title">Nenhuma OS cadastrada</div></div>`}
-    </div>
-    <div id="perfil-tab-crediario-${id}" style="display:none">
-      ${creds.length?creds.map(cr=>{
-        const venc=(cr.parcelas||[]).filter(p=>!p.pago&&p.dataVenc&&new Date(p.dataVenc)<new Date()).length;
-        const pagas=(cr.parcelas||[]).filter(p=>p.pago).length;
-        const total=cr.parcelas?.length||cr.numParcelas||0;
-        return`<div class="card" style="margin-bottom:12px">
-          <div class="ch">
-            <span class="ct">${cr.descricao||'Crediário'}</span>
-            ${venc?`<span class="badge badge-red">${venc} vencida${venc>1?'s':''}</span>`:`<span class="badge badge-green">${pagas}/${total} pagas</span>`}
-          </div>
-          <div style="padding:12px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
-            <div><div style="color:var(--muted);font-size:10px">Total</div><div style="font-weight:700">${fmtMoney(cr.total||0)}</div></div>
-            <div><div style="color:var(--muted);font-size:10px">Parcelas</div><div style="font-weight:700">${pagas}/${total} pagas</div></div>
-            <div><div style="color:var(--muted);font-size:10px">Status</div><div style="font-weight:700;color:${cr.status==='quitado'?'var(--green)':venc?'var(--red)':'var(--amber)'}">${cr.status==='quitado'?'Quitado':venc?'Em atraso':'Em dia'}</div></div>
-          </div>
-          <div style="padding:0 16px 12px;display:flex;gap:8px">
-            <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-perfil');nav('crediario')">Ver detalhes</button>
-            <button class="btn btn-ghost btn-sm" onclick="imprimirCrediario('${cr.id}')">🖨️ Imprimir</button>
-          </div>
-        </div>`;
-      }).join(''):`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Nenhum crediário</div></div>`}
-    </div>
-    <div id="perfil-tab-eventos-${id}" style="display:none">
-      ${evts.length?`<table><thead><tr><th>Data</th><th>Tipo</th><th>Título</th><th>Status</th></tr></thead><tbody>
-        ${evts.map(e=>`<tr><td>${fmtDate(e.data)}</td><td>${e.tipo||'—'}</td><td>${e.titulo||'—'}</td><td><span class="badge badge-blue">${e.status||'agendado'}</span></td></tr>`).join('')}
-      </tbody></table>`:`<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">Nenhum evento</div></div>`}
-    </div>
-    <div id="perfil-tab-orcamentos-${id}" style="display:none">
-      ${orcs.length?`<table><thead><tr><th>#</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody>
-        ${orcs.map(o=>`<tr><td>#${o.numero||'—'}</td><td>${fmtDate(o.createdAt)}</td><td>${fmtMoney(o.total||0)}</td><td><span class="badge badge-gray">${o.status||'rascunho'}</span></td></tr>`).join('')}
-      </tbody></table>`:`<div class="empty"><div class="empty-icon">📝</div><div class="empty-title">Nenhum orçamento</div></div>`}
-    </div>
-    ${pedsComGar.length?`<div id="perfil-tab-garantias-${id}" style="display:none">
-      <table><thead><tr><th>Pedido</th><th>Data</th><th>Garantia</th><th>Vencimento</th><th>Status</th></tr></thead><tbody>
-        ${pedsComGar.map(p=>{const badge=_garantiaBadge(p);return`<tr><td>#${p.numero}</td><td>${fmtDate(p.createdAt)}</td><td>${p.garantiaMeses} meses</td><td>${p.createdAt?fmtDate(new Date(new Date(p.createdAt).setMonth(new Date(p.createdAt).getMonth()+p.garantiaMeses)).toISOString().slice(0,10)):'—'}</td><td>${badge}</td></tr>`;}).join('')}
-      </tbody></table>
-    </div>`:''}
-    `;
-  openModal('modal-perfil');
-}
+function verPerfil(id){abrirCliente(id);}
 function perfilTab(tabId,btn){
   const base=tabId.replace(/^(pedidos|receitas|crediario|os|eventos|orcamentos|garantias)-/,'');
   ['pedidos','receitas','crediario','os','eventos','orcamentos','garantias'].forEach(t=>{
