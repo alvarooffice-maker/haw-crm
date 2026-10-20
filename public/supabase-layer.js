@@ -152,9 +152,9 @@
 
   // ── LOAD: Supabase → localStorage ────────────────────────
 
-  async function loadFromSupabase() {
+  async function loadFromSupabase(background = false) {
     if (!sb) return false;
-    setSyncStatus('syncing');
+    if (!background) setSyncStatus('syncing');
     try {
       const [clis, recs, prods, peds, itens, users] = await Promise.all([
         sb.from('clientes').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
@@ -312,11 +312,12 @@
 
       // Salvar localmente como cache
       if (typeof save === 'function') save();
-      setSyncStatus('online');
+      if (!background) setSyncStatus('online');
+      else if (syncStatus !== 'online') setSyncStatus('online');
       return true;
     } catch (e) {
       console.error('[HAW] Erro ao carregar Supabase:', e);
-      setSyncStatus('offline');
+      if (!background) setSyncStatus('offline');
       return false;
     }
   }
@@ -327,7 +328,7 @@
     if (!sb) return;
     sb.channel('haw-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
-        loadFromSupabase().then(() => {
+        loadFromSupabase(true).then(() => {
           if (typeof renderDashboard === 'function') renderDashboard();
           if (typeof renderPipeline  === 'function') renderPipeline();
           if (typeof renderPedidos   === 'function') renderPedidos();
@@ -335,14 +336,14 @@
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, () => {
-        loadFromSupabase().then(() => {
+        loadFromSupabase(true).then(() => {
           if (typeof renderClientes === 'function') renderClientes();
           if (typeof updateNavCounts === 'function') updateNavCounts();
           if (typeof populateSelects === 'function') populateSelects();
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ordens' }, () => {
-        loadFromSupabase().then(() => {
+        loadFromSupabase(true).then(() => {
           if (typeof renderOS === 'function') renderOS();
           if (typeof updateNavCounts === 'function') updateNavCounts();
         });
@@ -524,8 +525,8 @@
     // Re-sincroniza ao voltar para a aba (pega dados novos de outros usuários)
     document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible' && sb) {
-        const ok = await loadFromSupabase();
-        if (ok) { _reRenderAll(); setSyncStatus('online'); }
+        const ok = await loadFromSupabase(true); // background: não altera badge
+        if (ok) { _reRenderAll(); }
         else if (syncStatus !== 'online') _tentarReconectar();
       }
     });
