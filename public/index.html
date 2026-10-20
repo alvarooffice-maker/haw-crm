@@ -2358,7 +2358,7 @@ function verPerfil(id){
       </tbody></table>`:`<div class="empty"><div class="empty-icon">🛍️</div><div class="empty-title">Nenhum pedido ainda</div></div>`}
     </div>
     <div id="perfil-tab-receitas-${id}" style="display:none">
-      ${recs.length?recs.map(r=>`
+      ${recs.length?`<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-gold btn-sm" onclick="openModal('modal-receita',{clienteId:'${id}'})">+ Nova Receita</button></div>`+recs.map(r=>`
         <div class="card" style="margin-bottom:12px">
           <div class="ch"><span class="ct">Receita de ${fmtDate(r.dataReceita)}${r.medico?' — '+r.medico:''}</span><div style="display:flex;align-items:center;gap:8px">${r.isAtual?'<span class="badge badge-green">Atual</span>':''}<button class="btn btn-ghost btn-sm" onclick="editarReceita('${r.id}');closeModal('modal-perfil')" title="Editar receita">✏️</button><button class="btn btn-ghost btn-sm" onclick="excluirReceita('${r.id}');verPerfil('${id}')" title="Excluir receita" style="color:var(--red)">🗑</button></div></div>
           <div style="padding:12px 16px">
@@ -2388,6 +2388,7 @@ function verPerfil(id){
         </div>`).join(''):`<div class="empty"><div class="empty-icon">👁️</div><div class="empty-title">Nenhuma receita cadastrada</div><button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="openModal('modal-receita',{clienteId:'${id}'})">+ Nova Receita</button></div>`}
     </div>
     <div id="perfil-tab-os-${id}" style="display:none">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-gold btn-sm" onclick="closeModal('modal-perfil');novaOrdemServico();setTimeout(()=>{const el=document.getElementById('os-paciente');const cli=DB.clientes.find(c=>c.id==='${id}');if(el&&cli)el.value=cli.nome;osImportarReceita(cli?.nome||'')},80)">+ Nova OS</button></div>
       ${ordens.length?`<table><thead><tr><th>Nº OS</th><th>Data</th><th>Entrega</th><th>Valor</th><th></th></tr></thead><tbody>
         ${ordens.map(o=>`<tr>
           <td style="font-weight:700;color:var(--navy)">${o.num||'—'}</td>
@@ -2461,8 +2462,8 @@ let _editingRecId = null;
 function editarReceita(id) {
   const r = (DB.receitas||[]).find(x => x.id === id);
   if (!r) return;
-  _editingRecId = id;
   openModal('modal-receita');
+  _editingRecId = id;
   document.getElementById('rec-cliente').value = r.clienteId || '';
   document.getElementById('rec-data').value = r.dataReceita || '';
   document.getElementById('rec-medico').value = r.medico || '';
