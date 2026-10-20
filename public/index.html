@@ -1792,6 +1792,12 @@ function doLogin(){
   _aplicarNomeOtica();
   const first=(PAGE_ACCESS[currentUser.perfil]||['dashboard'])[0]||'dashboard';
   nav(first);
+  // Reconecta ao Supabase se ainda offline (comum no primeiro carregamento)
+  if(window.HAW_SB&&!window.HAW_SB.isOnline()){
+    window.HAW_SB.load().then(ok=>{
+      if(ok){window.HAW_SB.setupRealtime();if(typeof renderDashboard==='function')renderDashboard();}
+    });
+  }
 }
 
 function doLogout(){
