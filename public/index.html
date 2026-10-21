@@ -2063,6 +2063,7 @@ function maskCPF(el){let v=el.value.replace(/\D/g,'');if(v.length>11)v=v.slice(0
 function maskTel(el){let v=el.value.replace(/\D/g,'');if(v.length>11)v=v.slice(0,11);if(v.length>10)v=v.replace(/^(\d{2})(\d{5})(\d{4})$/,'($1) $2-$3');else v=v.replace(/^(\d{2})(\d{4})(\d{0,4})$/,'($1) $2-$3');el.value=v.trim().replace(/-$/,'')}
 function fmtMoney(v){return'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function fmtDate(iso){if(!iso)return'—';return new Date(iso+'T12:00:00').toLocaleDateString('pt-BR')}
+function norm(s){return(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function nextNumero(){const nums=DB.pedidos.map(p=>parseInt(p.numero)||0);return(Math.max(0,...nums)+1).toString().padStart(4,'0')}
 function initials(n){return n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}
@@ -2161,14 +2162,14 @@ function globalSearch(q){
     if(drop)drop.style.display='none';
     return;
   }
-  const term=q.toLowerCase();
-  const clis=DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))).slice(0,5);
-  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term))).slice(0,4);
-  const creds=(DB.crediarios||[]).filter(c=>!c.deleted&&((c.clienteNome||'').toLowerCase().includes(term)||(c.descricao||'').toLowerCase().includes(term))).slice(0,3);
-  const oss=(DB.ordens||[]).filter(o=>!o.deleted&&((o.paciente||'').toLowerCase().includes(term)||(o.num||'').toLowerCase().includes(term))).slice(0,3);
-  const recs=(DB.receitas||[]).filter(r=>!r.deleted&&((DB.clientes.find(c=>c.id===r.clienteId)||{}).nome||'').toLowerCase().includes(term)).slice(0,3);
-  renderClientesData(DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))));
-  renderPedidosData(DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||(DB.clientes.find(c=>c.id===p.clienteId)||{}).nome?.toLowerCase().includes(term))));
+  const term=norm(q);
+  const clis=DB.clientes.filter(c=>!c.deleted&&(norm(c.nome).includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))).slice(0,5);
+  const peds=DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||norm((DB.clientes.find(c=>c.id===p.clienteId)||{}).nome||'').includes(term))).slice(0,4);
+  const creds=(DB.crediarios||[]).filter(c=>!c.deleted&&(norm(c.clienteNome||'').includes(term)||norm(c.descricao||'').includes(term))).slice(0,3);
+  const oss=(DB.ordens||[]).filter(o=>!o.deleted&&(norm(o.paciente||'').includes(term)||norm(o.num||'').includes(term))).slice(0,3);
+  const recs=(DB.receitas||[]).filter(r=>!r.deleted&&norm((DB.clientes.find(c=>c.id===r.clienteId)||{}).nome||'').includes(term)).slice(0,3);
+  renderClientesData(DB.clientes.filter(c=>!c.deleted&&(norm(c.nome).includes(term)||(c.telefone||'').includes(term)||(c.cpf||'').includes(term))));
+  renderPedidosData(DB.pedidos.filter(p=>!p.deleted&&(p.numero.includes(term)||norm((DB.clientes.find(c=>c.id===p.clienteId)||{}).nome||'').includes(term))));
   if(!drop)return;
   if(!clis.length&&!peds.length&&!creds.length&&!oss.length&&!recs.length){
     drop.innerHTML='<div class="search-drop-empty">Nenhum resultado para "<strong>'+q+'</strong>"</div>';
@@ -2326,8 +2327,8 @@ function dashBuscaCliente(term){
   const resultsEl=document.getElementById('dash-busca-results');
   if(!resultsEl)return;
   if(!term||!term.trim()){resultsEl.innerHTML='';return;}
-  const t=term.toLowerCase();
-  const matches=DB.clientes.filter(c=>!c.deleted&&(c.nome.toLowerCase().includes(t)||(c.telefone||'').includes(t))).slice(0,6);
+  const t=norm(term);
+  const matches=DB.clientes.filter(c=>!c.deleted&&(norm(c.nome).includes(t)||(c.telefone||'').includes(t))).slice(0,6);
   if(!matches.length){
     resultsEl.innerHTML=`<div style="text-align:center;padding:16px 0"><div style="color:#8899bb;font-size:13px;margin-bottom:10px">Nenhum cliente encontrado para "${term}"</div><button class="btn btn-gold btn-sm" onclick="openModal('modal-cliente')">+ Cadastrar novo cliente</button></div>`;
     return;
