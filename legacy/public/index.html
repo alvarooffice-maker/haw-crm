@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com unpkg.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; connect-src https://ckjaxalhbyaukiumjvbe.supabase.co wss://ckjaxalhbyaukiumjvbe.supabase.co; img-src 'self' data: blob:; worker-src blob:;">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#13182C">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1732,9 +1735,6 @@ function _setPinUsuario(user, pin){
     p[user.nome]=pin;
     localStorage.setItem('haw_pins',JSON.stringify(p));
   }catch(e){}
-  // Também grava no objeto local para funcionar offline
-  const i=DB.usuarios.findIndex(u=>u.id===user.id);
-  if(i>=0){DB.usuarios[i].senha=pin; save();}
 }
 
 // Atualiza o hint abaixo do campo PIN conforme o usuário selecionado

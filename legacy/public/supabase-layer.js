@@ -162,8 +162,8 @@
         sb.from('produtos').select('*').is('deleted_at', null).order('nome'),
         sb.from('pedidos').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
         sb.from('pedido_itens').select('*').order('created_at'),
-        // Busca TODOS os usuários — filtro de ativo e demo é feito em JS
-        sb.from('usuarios').select('*'),
+        // Busca usuários sem senha — PIN fica exclusivamente no localStorage
+        sb.from('usuarios').select('id,nome,email,perfil,meta_mensal,ativo,created_at,updated_at'),
       ]);
 
       // Merge clientes: preserva registros locais que ainda não chegaram ao Supabase
@@ -226,9 +226,6 @@
           const camel = toCamel('usuarios', r);
           // ativo=null no Supabase tratado como true (campo pode não ter DEFAULT)
           if (camel.ativo === null || camel.ativo === undefined) camel.ativo = true;
-          const local = localUsers.find(u => u.id === camel.id)
-                     || localUsers.find(u => u.nome === camel.nome);
-          if (local && local.senha) camel.senha = local.senha;
           return camel;
         });
         // Mantém usuários locais reais que ainda não estão no Supabase
