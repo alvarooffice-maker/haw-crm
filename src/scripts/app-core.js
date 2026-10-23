@@ -369,10 +369,14 @@ function renderSidebarUser(){
 
 // ── COUNTS ──
 function updateNavCounts(){
-  document.getElementById('cnt-clientes').textContent=DB.clientes.filter(c=>!c.deleted).length;
-  document.getElementById('cnt-pedidos').textContent=DB.pedidos.filter(p=>!p.deleted).length;
+  // Contadores podem não existir na sidebar (ex.: Pedidos saiu do menu) — checar antes de escrever
+  const cliEl=document.getElementById('cnt-clientes');
+  if(cliEl)cliEl.textContent=DB.clientes.filter(c=>!c.deleted).length;
+  const pedEl=document.getElementById('cnt-pedidos');
+  if(pedEl)pedEl.textContent=DB.pedidos.filter(p=>!p.deleted).length;
   const open=DB.pedidos.filter(p=>!p.deleted&&!['entregue','pos_venda','perdido'].includes(p.status)).length;
-  document.getElementById('cnt-pipeline').textContent=open;
+  const pipEl=document.getElementById('cnt-pipeline');
+  if(pipEl)pipEl.textContent=open;
   const credAtivos=(DB.crediarios||[]).filter(c=>{const st=computeStatusCrediario(c);return st==='ativo'||st==='atrasado';}).length;
   const credEl=document.getElementById('cnt-crediario');
   if(credEl){credEl.textContent=credAtivos;credEl.style.display=credAtivos?'inline-block':'none';}
