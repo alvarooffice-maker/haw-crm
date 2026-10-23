@@ -1,0 +1,22 @@
+<!-- MODAL ENTRADA DE ESTOQUE -->
+<div class="modal-overlay" id="modal-estoque-entrada">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <span class="modal-title">📦 Entrada de Estoque</span>
+      <button class="modal-close" onclick="closeModal('modal-estoque-entrada')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="estoque-prod-id">
+      <div style="background:var(--bg-alt);border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;color:var(--gold-deep)" id="estoque-prod-nome">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Estoque atual: <strong id="estoque-prod-atual">0</strong> unidades</div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Quantidade a adicionar *</label><input class="form-input" id="estoque-quantidade" type="number" min="1" step="1" placeholder="Ex: 5"></div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="estoque-obs" placeholder="Fornecedor, NF, data de validade…"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-estoque-entrada')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEntradaEstoque()">✅ Adicionar ao Estoque</button>
+    </div>
+  </div>
+</div>

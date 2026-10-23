@@ -1,0 +1,40 @@
+<!-- MODAL WHATSAPP -->
+<!-- MODAL CAIXA DIÁRIO -->
+<!-- MODAL EVENTO (AGENDA) -->
+<div class="modal-overlay" id="modal-evento">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title" id="ev-modal-title">Novo Evento</span>
+      <button class="modal-close" onclick="closeModal('modal-evento')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ev-id">
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Data *</label><input class="form-input" id="ev-data" type="date"></div>
+        <div class="form-group"><label class="form-label">Hora</label><input class="form-input" id="ev-hora" type="time" placeholder="09:00"></div>
+      </div>
+      <div class="form-row c1">
+        <div class="form-group"><label class="form-label">Tipo *</label>
+          <select class="form-input form-select" id="ev-tipo">
+            <option value="consulta">👁️ Consulta óptica</option>
+            <option value="retorno">🔄 Retorno / revisão</option>
+            <option value="entrega">📦 Entrega de OS</option>
+            <option value="pagamento">💰 Pagamento de crediário</option>
+            <option value="outro">📌 Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Título / Descrição *</label><input class="form-input" id="ev-titulo" placeholder="Ex: Consulta de adaptação de lentes"></div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Cliente</label>
+        <input class="form-input" id="ev-cliente-nome" placeholder="Digite o nome do cliente…" autocomplete="off" oninput="filtrarClientesEv(this.value)">
+        <input type="hidden" id="ev-cliente-id">
+        <div id="ev-clientes-drop" style="display:none;position:absolute;z-index:9001;background:var(--white);border:1px solid var(--border-light);border-radius:8px;max-height:200px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:280px"></div>
+      </div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="ev-obs" placeholder="Opcional"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-evento')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEvento()">💾 Salvar</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,78 @@
+<!-- MODAL IMPORTAR TABELA LAB -->
+<div class="modal-overlay" id="modal-import-lab">
+  <div class="modal" style="max-width:860px;width:96vw">
+    <div class="modal-header">
+      <span class="modal-title" id="import-lab-title">📋 Importar Tabela de Laboratório</span>
+      <button class="modal-close" onclick="closeModal('modal-import-lab')">×</button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+
+      <!-- Passo 1: upload -->
+      <div id="import-lab-step1">
+        <div class="form-row c2" style="margin-bottom:16px">
+          <div class="form-group">
+            <label class="form-label">Nome do laboratório</label>
+            <input class="form-input" id="lab-nome" placeholder="Ex: Orfeu, Indo, Zeiss…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Markup (multiplicador)</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input class="form-input" id="lab-markup" type="number" min="1" max="10" step="0.1" value="2.5" style="width:90px" oninput="atualizarPreviewMarkup()">
+              <span id="lab-markup-desc" style="font-size:12px;color:var(--muted)">= 150% de margem</span>
+            </div>
+          </div>
+        </div>
+        <div id="lab-drop-zone" style="border:2px dashed #2A3560;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:border-color .2s;background:#0d1426"
+             onclick="document.getElementById('lab-pdf-input').click()"
+             ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+             ondragleave="this.style.borderColor='#2A3560'"
+             ondrop="event.preventDefault();this.style.borderColor='#2A3560';processarPDFLab(event.dataTransfer.files[0])">
+          <div style="font-size:40px;margin-bottom:10px">📄</div>
+          <div style="font-weight:600;color:#fff;margin-bottom:6px">Clique ou arraste o PDF aqui</div>
+          <div style="font-size:12px;color:var(--muted)">Tabela de preços do laboratório em PDF com texto selecionável</div>
+          <input type="file" id="lab-pdf-input" accept=".pdf" style="display:none" onchange="processarPDFLab(this.files[0])">
+        </div>
+        <div id="lab-parse-status" style="margin-top:12px;font-size:13px;text-align:center;min-height:20px"></div>
+      </div>
+
+      <!-- Passo 2: preview tabela -->
+      <div id="import-lab-step2" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div>
+            <span id="lab-preview-info" style="font-weight:600;font-size:14px"></span>
+            <span style="font-size:12px;color:var(--muted);margin-left:10px" id="lab-preview-count"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;color:var(--muted)">Markup:</label>
+            <input class="form-input" id="lab-markup2" type="number" min="1" max="10" step="0.1" value="2.5" style="width:80px;padding:6px 8px" oninput="reRenderPreviewLab()">
+            <span id="lab-markup2-desc" style="font-size:12px;color:var(--muted)"></span>
+          </div>
+        </div>
+        <div style="max-height:380px;overflow-y:auto;border:1px solid #2A3560;border-radius:8px">
+          <table style="table-layout:auto;width:100%">
+            <thead style="position:sticky;top:0;z-index:2">
+              <tr>
+                <th style="width:36px;text-align:center"><input type="checkbox" id="lab-sel-all" onchange="labToggleAll(this.checked)" title="Selecionar todos"></th>
+                <th>Produto</th>
+                <th style="width:130px">Categoria</th>
+                <th style="width:85px;text-align:right">Custo Lab</th>
+                <th style="width:85px;text-align:right">Montado</th>
+                <th style="width:95px;text-align:right;color:var(--gold)">Venda</th>
+              </tr>
+            </thead>
+            <tbody id="lab-preview-tbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+          💡 "Custo Lab" = preço do laboratório. "Venda" = Custo Lab × Markup. Desmarque itens que não quer importar.
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-import-lab')">Cancelar</button>
+      <button class="btn btn-ghost btn-sm" id="btn-lab-voltar" style="display:none" onclick="labVoltarStep1()">← Voltar</button>
+      <button class="btn btn-gold" id="btn-lab-importar" style="display:none" onclick="confirmarImportacaoLab()">✅ Importar para Catálogo</button>
+    </div>
+  </div>
+</div>

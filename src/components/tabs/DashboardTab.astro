@@ -1,0 +1,98 @@
+<!-- ══════════════════ DASHBOARD ══════════════════ -->
+<div class="tab-panel active" id="tab-dashboard">
+  <!-- BUSCA RÁPIDA -->
+  <div class="dash-busca-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:4px">Atendimento</div>
+        <div style="font-size:18px;font-weight:700;color:#fff">Buscar ou cadastrar cliente</div>
+      </div>
+      <button class="btn btn-gold" onclick="openModal('modal-cliente')">+ Novo Cliente</button>
+    </div>
+    <input type="text" class="dash-busca-input" id="dash-busca-cli" placeholder="Digite o nome ou telefone do cliente…" oninput="dashBuscaCliente(this.value)" autocomplete="off">
+    <div class="dash-busca-results" id="dash-busca-results"></div>
+  </div>
+  <div class="sl">Métricas do mês</div>
+  <div class="metrics c4" style="margin-bottom:20px">
+    <div class="metric ma">
+      <div class="metric-icon">💰</div>
+      <div class="ml">Faturamento</div>
+      <div class="mv" id="d-fat">R$ 0</div>
+      <div class="ms" id="d-fat-sub">0 pedidos fechados</div>
+    </div>
+    <div class="metric mg">
+      <div class="metric-icon">📋</div>
+      <div class="ml">Ticket Médio</div>
+      <div class="mv" id="d-ticket">R$ 0</div>
+      <div class="ms">Por pedido entregue</div>
+    </div>
+    <div class="metric mb">
+      <div class="metric-icon">🏷️</div>
+      <div class="ml">Em Aberto</div>
+      <div class="mv" id="d-aberto">0</div>
+      <div class="ms">Pedidos no pipeline</div>
+    </div>
+    <div class="metric mr">
+      <div class="metric-icon">⚠️</div>
+      <div class="ml">Prontos p/ Entrega</div>
+      <div class="mv" id="d-prontos">0</div>
+      <div class="ms">Aguardando cliente</div>
+    </div>
+  </div>
+  <div class="metrics c2" style="margin-bottom:20px">
+    <div class="metric" style="border-top:3px solid var(--green)">
+      <div class="metric-icon">📅</div>
+      <div class="ml">Faturamento Hoje</div>
+      <div class="mv" id="d-fat-hoje">R$ 0</div>
+      <div class="ms" id="d-fat-hoje-sub">0 pedidos hoje</div>
+    </div>
+    <div class="metric" style="border-top:3px solid var(--red);cursor:pointer" onclick="nav('crediario')" title="Ver crediários">
+      <div class="metric-icon">📋</div>
+      <div class="ml">Crediários Vencidos</div>
+      <div class="mv" id="d-cred-vencidos">0</div>
+      <div class="ms" id="d-cred-vencidos-sub">parcelas em atraso</div>
+    </div>
+  </div>
+
+  <!-- META DO MÊS -->
+  <div class="card" style="margin-bottom:16px" id="meta-dashboard-card">
+    <div class="ch"><span class="ct">🎯 Meta do Mês</span><span id="meta-dash-label" style="font-size:12px;color:var(--muted)"></span></div>
+    <div style="padding:14px 18px" id="meta-dash-body">
+      <div class="meta-bar-wrap"><div class="meta-bar"><div class="meta-bar-fill" id="meta-bar-fill" style="width:0%"></div></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)" id="meta-bar-nums"></div>
+    </div>
+  </div>
+
+  <!-- ANIVERSARIANTES DO MÊS -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="ch"><span class="ct">🎂 Aniversariantes do Mês</span><span class="badge badge-blue" id="cnt-aniversar">0</span></div>
+    <div id="aniversar-list" style="padding:4px 0">
+      <div class="empty"><div class="empty-text">Nenhum aniversariante este mês</div></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <!-- ALERTAS -->
+    <div class="card">
+      <div class="ch"><span class="ct">⚠️ Alertas de Ação</span><span class="badge badge-red" id="cnt-alertas">0</span></div>
+      <div class="alert-list" id="alert-list">
+        <div class="empty"><div class="empty-icon">✅</div><div class="empty-title">Tudo em dia!</div><div class="empty-text">Nenhum alerta no momento</div></div>
+      </div>
+    </div>
+    <!-- RANKING -->
+    <div class="card">
+      <div class="ch"><span class="ct">🏆 Ranking do Mês</span></div>
+      <div id="ranking-list"></div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card">
+    <div class="ch"><span class="ct">📊 Faturamento — Últimos 6 meses</span></div>
+    <div class="chart-wrap"><canvas id="chart-fat"></canvas></div>
+  </div>
+
+  <!-- PIPELINE MINI -->
+  <div class="sl">Funil de conversão</div>
+  <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:8px" id="funnel-grid"></div>
+</div>

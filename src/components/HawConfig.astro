@@ -1,0 +1,12 @@
+---
+// Substitui o antigo config.js gerado no deploy: os valores vêm de PUBLIC_SUPABASE_URL /
+// PUBLIC_SUPABASE_ANON_KEY (.env local ou secrets no GitHub Actions) e entram no HTML no build.
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+if (import.meta.env.PROD && (!supabaseUrl || !supabaseKey)) {
+  console.warn('[HAW] PUBLIC_SUPABASE_URL/PUBLIC_SUPABASE_ANON_KEY ausentes — o app vai abrir em modo offline');
+}
+---
+<script is:inline define:vars={{ supabaseUrl, supabaseKey }}>
+window.HAW_CONFIG = { supabaseUrl, supabaseKey, appVersion: '1.0.0', appName: 'HAW CRM' };
+</script>

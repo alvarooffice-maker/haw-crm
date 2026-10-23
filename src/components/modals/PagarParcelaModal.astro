@@ -1,0 +1,84 @@
+<!-- ══════════════════ MODAL PAGAR PARCELA ══════════════════ -->
+<div class="modal-overlay" id="modal-pagar-parcela">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-pp-title">Registrar Pagamento</span>
+      <button class="modal-close" onclick="closeModal('modal-pagar-parcela')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pp-cred-id">
+      <input type="hidden" id="pp-parcela-idx">
+      <!-- Info da parcela -->
+      <div style="background:var(--off);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:var(--muted)">Parcela</span><strong id="pp-info-num">—</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:var(--muted)">Vencimento</span><strong id="pp-info-venc">—</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:var(--muted)">Valor original</span><strong id="pp-info-orig">—</strong>
+        </div>
+        <div id="pp-juros-row" style="display:none;flex-wrap:wrap">
+          <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:4px">
+            <span style="color:var(--red)">Multa (2%)</span><strong id="pp-info-multa" style="color:var(--red)">—</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:4px">
+            <span style="color:var(--red)">Juros mora</span><strong id="pp-info-juros" style="color:var(--red)">—</strong>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border-light);padding-top:8px;margin-top:4px">
+          <span style="color:var(--muted)">Total a pagar</span><strong id="pp-info-total" style="color:var(--gold-deep);font-size:16px">—</strong>
+        </div>
+        <div id="pp-saldo-anterior-row" style="display:none;justify-content:space-between;margin-top:6px">
+          <span style="color:var(--muted)">Já recebido</span><strong id="pp-info-ja-recebido" style="color:var(--green)">—</strong>
+        </div>
+        <div id="pp-saldo-row" style="display:none;justify-content:space-between;margin-top:6px">
+          <span style="color:var(--muted)">Falta receber</span><strong id="pp-info-falta" style="color:var(--gold-deep)">—</strong>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor recebido (R$) *</label>
+        <input class="form-input" id="pp-valor" type="number" min="0" step="0.01" oninput="ppCalcTroco()" placeholder="0,00" style="font-size:18px;font-weight:700">
+      </div>
+      <div id="pp-troco-box" style="display:none;background:var(--green-l);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
+        <div style="display:flex;justify-content:space-between">
+          <span id="pp-troco-label" style="color:var(--green)">Troco</span>
+          <strong id="pp-troco-val" style="color:var(--green)">R$ 0,00</strong>
+        </div>
+      </div>
+      <div id="pp-deficit-box" style="display:none;background:var(--red-l);border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px">
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--red)">Falta</span>
+          <strong id="pp-deficit-val" style="color:var(--red)">R$ 0,00</strong>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Parcela permanecerá em aberto com saldo reduzido</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Forma de pagamento *</label>
+          <select class="form-input" id="pp-forma">
+            <option value="pix">Pix</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cartao_debito">Cartão Débito</option>
+            <option value="cartao_credito">Cartão Crédito</option>
+            <option value="transferencia">Transferência</option>
+            <option value="cheque">Cheque</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data do pagamento</label>
+          <input class="form-input" id="pp-data" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observação</label>
+        <input class="form-input" id="pp-obs" placeholder="Opcional">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pagar-parcela')">Cancelar</button>
+      <button class="btn btn-gold" onclick="registrarPagamento()">✅ Confirmar Recebimento</button>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,9 @@
 // HAW Vision — Service Worker (Offline First)
-const CACHE = 'haw-v2';
+// v3: build Astro — JS/CSS agora em /haw-crm/_astro/ com hash no nome (entram no cache em runtime)
+const CACHE = 'haw-v3';
 const CORE = [
   '/haw-crm/',
   '/haw-crm/index.html',
-  '/haw-crm/supabase-layer.js',
   'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',

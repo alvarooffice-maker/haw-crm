@@ -24,18 +24,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Gerar config.js com secrets
-        run: |
-          cat > public/config.js << 'CONFIGEOF'
-          window.HAW_CONFIG = {
-            supabaseUrl: 'SUPABASE_URL_PLACEHOLDER',
-            supabaseKey: 'SUPABASE_KEY_PLACEHOLDER',
-            appVersion:  '1.0.0',
-            appName:     'HAW CRM',
-          };
-          CONFIGEOF
-          sed -i "s|SUPABASE_URL_PLACEHOLDER|${{ secrets.SUPABASE_URL }}|g" public/config.js
-          sed -i "s|SUPABASE_KEY_PLACEHOLDER|${{ secrets.SUPABASE_ANON_KEY }}|g" public/config.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build Astro (Supabase via secrets)
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: npm run build
 
       - name: Criar tabelas no Supabase (migration)
         env:
@@ -82,7 +84,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ckjaxalhbyaukiumjvbe
         run: |
-          SQL=$(cat public/seeds/catalog.sql)
+          SQL=$(cat supabase/seeds/catalog.sql)
           curl -s -X POST \
             "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
@@ -97,7 +99,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public/
+          path: dist/
 
       - name: Deploy to GitHub Pages
         id: deployment

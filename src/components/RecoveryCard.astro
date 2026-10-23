@@ -1,0 +1,22 @@
+<div class="card">
+  <div class="logo">HAW Vision</div>
+  <div class="sub" id="card-sub">Selecione o usuário para redefinir o PIN</div>
+
+  <div id="loading">⏳ Carregando usuários…</div>
+  <div id="user-list" style="display:none"></div>
+
+  <div id="pin-section">
+    <div id="selected-display" class="selected-box"></div>
+    <div class="section-title">Definir novo PIN</div>
+    <label class="field-label">Novo PIN (4 dígitos)</label>
+    <input class="field-input" id="new-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+    <label class="field-label">Confirmar PIN</label>
+    <input class="field-input" id="new-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+    <button class="btn-gold" onclick="salvarPin()">💾 Salvar PIN e Entrar</button>
+    <button class="btn-ghost" onclick="voltarLista()">← Voltar</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <hr class="divider">
+  <div class="note">Redefina o PIN de qualquer usuário ativo.<br>A alteração é salva no banco de dados.</div>
+</div>

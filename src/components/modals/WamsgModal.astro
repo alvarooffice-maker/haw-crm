@@ -1,0 +1,20 @@
+<div class="modal-overlay" id="modal-wamsg">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><span id="wamsg-title">📱 Enviar via WhatsApp</span><button class="modal-close" onclick="closeModal('modal-wamsg')">×</button></div>
+    <div style="padding:16px">
+      <div id="wamsg-cliente-info" style="font-size:13px;color:var(--muted);margin-bottom:12px"></div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Modelo de mensagem</div>
+        <div style="display:grid;gap:6px" id="wamsg-templates"></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Mensagem (editável)</div>
+        <textarea id="wamsg-texto" rows="4" style="width:100%;border:1px solid var(--border-light);border-radius:6px;padding:10px;font-size:13px;font-family:inherit;background:var(--off);color:var(--black);resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeModal('modal-wamsg')">Cancelar</button>
+        <button class="btn btn-gold" onclick="enviarWA()" style="background:#25D366;border-color:#25D366;color:#fff">📱 Abrir WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>

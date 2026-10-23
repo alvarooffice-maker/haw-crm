@@ -1,0 +1,16 @@
+<div class="modal-overlay" id="modal-alterar-pin">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <span class="modal-title">🔐 Alterar meu PIN</span>
+      <button class="modal-close" onclick="closeModal('modal-alterar-pin')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Novo PIN (4 dígitos)</label><input class="form-input" id="mpin-novo" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+      <div class="form-group"><label class="form-label">Confirmar PIN</label><input class="form-input" id="mpin-conf" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-alterar-pin')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarMeuPin()">💾 Salvar PIN</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<!-- ══════════════════ CLIENTES ══════════════════ -->
+<div class="tab-panel" id="tab-clientes">
+  <div class="filters" style="justify-content:flex-start">
+    <button class="fb active" onclick="filterClientes('todos',this)">Todos</button>
+    <button class="fb" onclick="filterClientes('ativo',this)">Ativos</button>
+    <button class="fb" onclick="filterClientes('retorno',this)">Retorno próximo</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin-left:auto" title="Importar clientes de arquivo CSV">📥 Importar CSV<input type="file" accept=".csv,.txt" style="display:none" onchange="importarClientesCSV(this.files[0]);this.value=''"></label>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Clientes cadastrados</span>
+      <span class="badge badge-gold" id="cnt-cli-badge">0</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th style="width:35%">Nome</th>
+          <th style="width:15%">Telefone</th>
+          <th style="width:15%">Último pedido</th>
+          <th style="width:15%">Status</th>
+          <th style="width:20%">Ações</th>
+        </tr></thead>
+        <tbody id="clientes-tbody">
+          <tr><td colspan="5"><div class="empty"><div class="empty-icon">👥</div><div class="empty-title">Nenhum cliente ainda</div><div class="empty-text">Clique em "Novo Cliente" para começar</div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

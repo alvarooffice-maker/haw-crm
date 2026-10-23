@@ -1,0 +1,39 @@
+<!-- ══════════════════ CREDIÁRIO ══════════════════ -->
+<div class="tab-panel" id="tab-crediario">
+  <!-- Stats -->
+  <div class="metrics c4" style="margin-bottom:20px">
+    <div class="metric ma"><div class="ml">A receber</div><div class="mv" id="cred-stat-areceber">R$ 0</div><div class="ms">Saldo total em aberto</div></div>
+    <div class="metric" style="background:var(--red-l);border:1px solid var(--red)"><div class="ml" style="color:var(--red)">Vencido</div><div class="mv" id="cred-stat-vencido" style="color:var(--red)">R$ 0</div><div class="ms" style="color:var(--red)">Parcelas em atraso</div></div>
+    <div class="metric mb"><div class="ml">Vence em 30 dias</div><div class="mv" id="cred-stat-30d">R$ 0</div><div class="ms">Próximos vencimentos</div></div>
+    <div class="metric mg"><div class="ml">Quitados no mês</div><div class="mv" id="cred-stat-quitados">R$ 0</div><div class="ms">Total recebido mês atual</div></div>
+  </div>
+  <!-- Filtros -->
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-sm cred-filtro active" data-f="todos" onclick="setCreditFilter('todos',this)">Todos</button>
+      <button class="btn btn-sm cred-filtro" data-f="atrasado" onclick="setCreditFilter('atrasado',this)" style="color:var(--red);border-color:var(--red)">Atrasados</button>
+      <button class="btn btn-sm cred-filtro" data-f="ativo" onclick="setCreditFilter('ativo',this)">A vencer</button>
+      <button class="btn btn-sm cred-filtro" data-f="quitado" onclick="setCreditFilter('quitado',this)">Quitados</button>
+    </div>
+    <input type="text" id="cred-busca" placeholder="Buscar cliente..." oninput="renderCrediario()" style="flex:1;min-width:180px;max-width:280px;padding:6px 10px;border-radius:6px;border:1px solid var(--border-light);background:var(--white);color:var(--black);font-size:13px">
+  </div>
+  <!-- Lista -->
+  <div class="card" style="padding:0">
+    <div style="overflow-x:auto">
+      <table id="cred-table">
+        <thead><tr>
+          <th>Cliente</th>
+          <th>Descrição / Pedido</th>
+          <th style="text-align:right">Total</th>
+          <th style="text-align:right">Entrada</th>
+          <th style="text-align:center">Parcelas</th>
+          <th>Próx. Venc.</th>
+          <th style="text-align:right">Saldo Devedor</th>
+          <th style="text-align:center">Status</th>
+          <th style="width:80px"></th>
+        </tr></thead>
+        <tbody id="cred-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>

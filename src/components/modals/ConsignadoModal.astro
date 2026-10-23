@@ -1,0 +1,29 @@
+<div class="modal-overlay" id="modal-consignado">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">📋 Novo Consignado</span>
+      <button class="modal-close" onclick="closeModal('modal-consignado')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="csg-id">
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Fornecedor *</label><input class="form-input" id="csg-fornecedor" placeholder="Nome do fornecedor"></div>
+        <div class="form-group"><label class="form-label">Produto / Referência *</label><input class="form-input" id="csg-produto" placeholder="Modelo, ref…"></div>
+      </div>
+      <div class="form-row c3">
+        <div class="form-group"><label class="form-label">Qtd recebida *</label><input class="form-input" id="csg-recebido" type="number" min="1" value="1"></div>
+        <div class="form-group"><label class="form-label">Data recebimento *</label><input class="form-input" id="csg-data-receb" type="date"></div>
+        <div class="form-group"><label class="form-label">Prazo devolução</label><input class="form-input" id="csg-prazo-dev" type="date"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Qtd devolvida</label><input class="form-input" id="csg-devolvido" type="number" min="0" value="0"></div>
+        <div class="form-group"><label class="form-label">Qtd comprada</label><input class="form-input" id="csg-comprado" type="number" min="0" value="0"></div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="csg-obs" placeholder="Notas adicionais"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-consignado')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarConsignado()">💾 Salvar</button>
+    </div>
+  </div>
+</div>

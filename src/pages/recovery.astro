@@ -1,0 +1,21 @@
+---
+// Migrado de legacy/public/recovery.html
+import HawConfig from '../components/HawConfig.astro';
+import RecoveryCard from '../components/RecoveryCard.astro';
+import recoveryScript from '../scripts/recovery.js?url';
+import '../styles/recovery.css';
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>HAW Vision — Recuperação de Acesso</title>
+<script is:inline src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<HawConfig />
+</head>
+<body>
+<RecoveryCard />
+
+<script is:inline src={recoveryScript}></script>
+</body>
+</html>

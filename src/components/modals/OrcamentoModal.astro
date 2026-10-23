@@ -1,0 +1,37 @@
+<!-- MODAL ORÇAMENTO -->
+<div class="modal-overlay" id="modal-orcamento">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <span class="modal-title" id="orc-modal-title">Novo Orçamento</span>
+      <button class="modal-close" onclick="closeModal('modal-orcamento')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="orc-id">
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Cliente *</label>
+          <input class="form-input" id="orc-cliente-nome" placeholder="Digite o nome…" autocomplete="off" oninput="filtrarClientesOrc(this.value)">
+          <input type="hidden" id="orc-cliente-id">
+          <div id="orc-clientes-drop" style="display:none;position:absolute;z-index:9001;background:var(--white);border:1px solid var(--border-light);border-radius:8px;max-height:200px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:280px"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Validade (dias)</label><input class="form-input" id="orc-validade" type="number" min="1" value="15"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Forma de Pagamento</label>
+          <select class="form-input form-select" id="orc-pagamento">
+            <option>À vista</option><option>Cartão de crédito</option><option>2x</option><option>3x</option><option>PIX</option><option>Crediário próprio</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Desconto (R$)</label><input class="form-input" id="orc-desconto" type="number" min="0" step="0.01" value="0" oninput="calcTotalOrc()"></div>
+      </div>
+      <div class="form-divider">Itens do Orçamento</div>
+      <div id="orc-itens-wrap"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addItemOrc()" style="margin-bottom:12px">+ Adicionar item</button>
+      <div class="total-line"><span class="total-label">Total</span><span class="total-val" id="orc-total-display">R$ 0,00</span></div>
+      <div class="form-row c1" style="margin-top:12px"><div class="form-group"><label class="form-label">Observações</label><input class="form-input" id="orc-obs" placeholder="Ex: Inclui armação + lentes multifocais…"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-orcamento')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
+    </div>
+  </div>
+</div>

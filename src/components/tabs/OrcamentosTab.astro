@@ -1,0 +1,20 @@
+<!-- ══════════════════ ORÇAMENTOS ══════════════════ -->
+<div class="tab-panel" id="tab-orcamentos">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="search-wrap" style="max-width:280px"><input type="text" placeholder="Buscar orçamento…" id="orc-search" oninput="renderOrcamentos()"></div>
+    <select class="form-input form-select" id="orc-status-filter" style="width:160px;padding:6px 10px" onchange="renderOrcamentos()">
+      <option value="">Todos os status</option>
+      <option value="rascunho">Rascunho</option>
+      <option value="enviado">Enviado</option>
+      <option value="aprovado">Aprovado</option>
+      <option value="recusado">Recusado</option>
+      <option value="convertido">Convertido em OS</option>
+    </select>
+    <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="openModal('modal-orcamento')">+ Novo Orçamento</button>
+  </div>
+  <div class="metrics c3" style="margin-bottom:16px" id="orc-metrics"></div>
+  <div class="card">
+    <table><thead><tr><th>Nº</th><th>Cliente</th><th>Valor</th><th>Criado em</th><th>Validade</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody id="orc-tbody"></tbody></table>
+  </div>
+</div>

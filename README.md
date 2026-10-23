@@ -70,43 +70,57 @@ https://SEU-USUARIO.github.io/haw-crm/
 
 ## 🖥️ Desenvolvimento local
 
+Requer Node ≥ 22.12 (Astro 6).
+
 ```bash
-# Clone o repositório
 git clone https://github.com/SEU-USUARIO/haw-crm.git
 cd haw-crm
+npm install
 
-# Configure as credenciais locais
-cp public/config.example.js public/config.js
-# Edite public/config.js com suas credenciais
+# Credenciais locais (a anon key é pública; a RLS protege os dados)
+cp .env.example .env   # edite PUBLIC_SUPABASE_URL e PUBLIC_SUPABASE_ANON_KEY
 
-# Sirva localmente (qualquer servidor HTTP)
-npx serve public
-# ou
-python3 -m http.server 8080 --directory public
-# Acesse: http://localhost:8080
+npm run dev            # http://localhost:4321/haw-crm/
+npm run build          # gera dist/ (o que vai para o GitHub Pages)
+npm run preview
 ```
 
-> ⚠️ `public/config.js` está no `.gitignore` — nunca commite credenciais reais.
+Para testar sem tocar no banco real, rode com a URL de exemplo — o app abre em modo offline (localStorage), login `Admin HAW` / PIN `0000`:
+
+```bash
+PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co PUBLIC_SUPABASE_ANON_KEY=offline npm run dev
+```
+
+> ⚠️ Ao conectar no Supabase, o app envia para o banco registros que só existem no localStorage daquele endereço. Não abra o modo online numa origem (porta) que tenha dados de teste salvos.
 
 ---
 
-## 📁 Estrutura do projeto
+## 📁 Estrutura do projeto (Astro)
 
 ```
 haw-crm/
-├── public/
-│   ├── index.html          # App completo (SPA)
-│   ├── config.js           # 🔒 NÃO commitar — credenciais locais
-│   ├── config.example.js   # Template de configuração
-│   └── supabase-layer.js   # Camada de dados (sync, realtime, RLS)
+├── src/
+│   ├── layouts/AppLayout.astro     # <head>, CDNs, config do Supabase
+│   ├── pages/
+│   │   ├── index.astro             # App (SPA) — monta telas, modais e scripts na ordem original
+│   │   └── recovery.astro          # Redefinição de PIN (recovery.html)
+│   ├── components/
+│   │   ├── HawConfig.astro         # window.HAW_CONFIG a partir de PUBLIC_SUPABASE_*
+│   │   ├── LoginScreen.astro
+│   │   ├── layout/                 # Sidebar, Topbar
+│   │   ├── tabs/                   # Uma tela por arquivo (Dashboard, Pedidos, Financeiro…)
+│   │   └── modals/                 # Um modal por arquivo (Pedido, OS, Crediário…)
+│   ├── scripts/                    # JS do app (scripts clássicos, ver abaixo) + register-sw.ts
+│   └── styles/                     # app.css, recovery.css
+├── public/                         # manifest.json, sw.js, logo.png (copiados como estão)
 ├── supabase/
-│   └── migrations/
-│       ├── 001_schema.sql  # Tabelas, índices, triggers, funções
-│       └── 002_rls.sql     # Row Level Security por perfil
-└── .github/
-    └── workflows/
-        └── deploy.yml      # CI/CD → GitHub Pages
+│   ├── migrations/                 # 001_schema.sql, 002_rls.sql
+│   └── seeds/catalog.sql           # Seed do catálogo (rodado no deploy)
+├── legacy/public/                  # Versão vanilla anterior, só para referência
+└── .github/workflows/deploy.yml    # npm ci → build → dist/ → GitHub Pages
 ```
+
+**Por que os JS de `src/scripts` são carregados como scripts clássicos** (`?url` + `<script is:inline>`) e não como módulos ES: o HTML tem centenas de `onclick="funcao()"` e o código sobrescreve funções globais (`window.save`, `window.nav`) esperando que todas as chamadas passem a usar a nova versão. Em módulo ES as funções deixam de ser globais e esses dois mecanismos quebram. O Vite ainda processa os arquivos (nome com hash, cache do service worker sempre atualizado); o código é idêntico ao original. Código novo deve ser escrito como módulo (`<script>` normal do Astro), como `register-sw.ts`.
 
 ---
 
@@ -132,7 +146,7 @@ haw-crm/
 
 ## 🛠️ Stack
 
-- **Frontend:** HTML + Vanilla JS + CSS (single-page, zero build)
+- **Frontend:** [Astro](https://astro.build) (`output: 'static'`) + Vanilla JS + CSS (single-page)
 - **Backend:** [Supabase](https://supabase.com) (PostgreSQL + Auth + RLS + Realtime)
 - **PDF:** [html2pdf.js](https://github.com/eKoopmans/html2pdf.js)
 - **Charts:** [Chart.js](https://chartjs.org)

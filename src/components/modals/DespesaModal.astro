@@ -1,0 +1,31 @@
+<!-- MODAL CONTAS A PAGAR -->
+<div class="modal-overlay" id="modal-despesa">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title" id="desp-modal-title">Nova Conta a Pagar</span>
+      <button class="modal-close" onclick="closeModal('modal-despesa')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="desp-id">
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Descrição *</label><input class="form-input" id="desp-descricao" placeholder="Ex: Aluguel, Fornecedor ABC…"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Valor (R$) *</label><input class="form-input" id="desp-valor" type="number" step="0.01" min="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label class="form-label">Vencimento</label><input class="form-input" id="desp-vencimento" type="date"></div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Categoria</label>
+        <select class="form-input form-select" id="desp-categoria">
+          <option value="">— Selecione —</option>
+          <option>Fornecedor</option><option>Aluguel</option><option>Energia/Água/Gás</option>
+          <option>Telefone/Internet</option><option>Salário</option><option>Imposto/Taxa</option>
+          <option>Marketing</option><option>Material de Escritório</option><option>Equipamento</option>
+          <option>Manutenção</option><option>Outros</option>
+        </select>
+      </div></div>
+      <div class="form-row c1"><div class="form-group" style="padding:6px 0"><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="desp-pago-check"> Já pago</label></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-despesa')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarDespesa()">💾 Salvar</button>
+    </div>
+  </div>
+</div>

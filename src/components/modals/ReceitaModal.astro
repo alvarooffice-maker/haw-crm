@@ -1,0 +1,65 @@
+<!-- MODAL RECEITA -->
+<div class="modal-overlay" id="modal-receita">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-rec-title">Nova Receita Óptica</span>
+      <button class="modal-close" onclick="closeModal('modal-receita')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rec-cli-id">
+      <div class="form-row"><div class="form-group"><label class="form-label">Cliente *</label><select class="form-input form-select" id="rec-cliente"></select></div>
+      <div class="form-group"><label class="form-label">Data da receita *</label><input class="form-input" id="rec-data" type="date"></div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Médico / Clínica</label><input class="form-input" id="rec-medico" placeholder="Dr. João Silva"></div></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;color:var(--navy,#13182C)">Corrige:</span>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="ambos" checked> Ambos os olhos</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="od"> Olho Direito</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="oe"> Olho Esquerdo</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="rec-corrige" value="sem"> Sem Receita</label>
+      </div>
+      <div class="os-sec-title">Para Longe</div>
+      <div class="os-rx-grid" style="grid-template-columns:48px repeat(3,1fr)">
+        <div class="rh"></div><div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="rec-od-esf" placeholder="+/-0.00">
+        <input type="text" id="rec-od-cil" placeholder="-0.00">
+        <input type="text" id="rec-od-eixo" placeholder="0°">
+        <div class="rl">O.E.</div>
+        <input type="text" id="rec-oe-esf" placeholder="+/-0.00">
+        <input type="text" id="rec-oe-cil" placeholder="-0.00">
+        <input type="text" id="rec-oe-eixo" placeholder="0°">
+      </div>
+      <div class="os-sec-title" style="margin-top:10px">Para Perto / Adição</div>
+      <div class="os-rx-grid" style="grid-template-columns:48px 1fr 1fr">
+        <div class="rh"></div><div class="rh">Adição</div><div class="rh">Esf. Perto</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="rec-od-adi" placeholder="+0.00">
+        <input type="text" id="rec-od-esf-perto" placeholder="+/-0.00">
+        <div class="rl">O.E.</div>
+        <input type="text" id="rec-oe-adi" placeholder="+0.00">
+        <input type="text" id="rec-oe-esf-perto" placeholder="+/-0.00">
+      </div>
+      <div class="os-sec-title" style="margin-top:10px">Outros Dados</div>
+      <div class="os-rx-grid" style="grid-template-columns:48px repeat(4,1fr) 60px">
+        <div class="rh"></div><div class="rh">DNP</div><div class="rh">Altura</div><div class="rh">Base</div><div class="rh">Desc.</div><div class="rh">Prisma</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="rec-od-dnp" placeholder="0.0">
+        <input type="text" id="rec-od-alt" placeholder="0.0">
+        <input type="text" id="rec-od-base" placeholder="—">
+        <input type="text" id="rec-od-desc" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="rec-od-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
+        <div class="rl">O.E.</div>
+        <input type="text" id="rec-oe-dnp" placeholder="0.0">
+        <input type="text" id="rec-oe-alt" placeholder="0.0">
+        <input type="text" id="rec-oe-base" placeholder="—">
+        <input type="text" id="rec-oe-desc" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="rec-oe-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observações clínicas</label><input class="form-input" id="rec-obs" placeholder="Ex: Astigmatismo moderado, usar óculos de leitura"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-receita')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarReceita()">💾 Salvar Receita</button>
+    </div>
+  </div>
+</div>

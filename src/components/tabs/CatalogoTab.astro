@@ -1,0 +1,57 @@
+<!-- ══════════════════ CATÁLOGO ══════════════════ -->
+<div class="tab-panel" id="tab-catalogo">
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="setCatTab('armacoes',this)">Armações</button>
+    <button class="inner-tab" onclick="setCatTab('lentes',this)">Lentes</button>
+    <button class="inner-tab" onclick="setCatTab('acessorios',this)">Acessórios</button>
+    <button class="inner-tab" onclick="setCatTab('consignado',this)">📋 Consignado</button>
+  </div>
+  <div id="cat-panel-armacoes">
+    <div class="card">
+      <div class="ch"><span class="ct">Armações</span><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="gerarEtiquetasArmacoes()" title="Imprimir etiquetas">🏷️ Etiquetas</button><button class="btn btn-ghost btn-sm" onclick="abrirEntradaEstoqueLista('armacao')" title="Registrar entrada de estoque">📦 Entrada</button><button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'armacao'})">+ Adicionar</button></div></div>
+      <table><thead><tr><th>Nome / Código</th><th>Preço</th><th style="text-align:center">Estoque</th><th style="text-align:center">Mín.</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="cat-armacoes-tbody"></tbody></table>
+    </div>
+  </div>
+  <div id="cat-panel-lentes" style="display:none">
+    <div class="card">
+      <div class="ch" style="flex-wrap:wrap;gap:8px">
+        <span class="ct">Lentes</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <select class="form-input form-select" id="cat-lentes-lab-filter" onchange="renderCatalogo()" style="width:auto;padding:5px 10px;font-size:12px">
+            <option value="">Todos os laboratórios</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="abrirEntradaEstoqueLista('lente')" title="Registrar entrada de estoque">📦 Entrada</button>
+          <button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'lente'})">+ Adicionar</button>
+        </div>
+      </div>
+      <table><thead><tr><th>Descrição</th><th>Subcategoria</th><th>Laboratório</th><th>Custo Lab</th><th>Venda</th><th style="text-align:center">Estoque</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="cat-lentes-tbody"></tbody></table>
+    </div>
+  </div>
+  <div id="cat-panel-acessorios" style="display:none">
+    <div class="card">
+      <div class="ch"><span class="ct">Acessórios</span><button class="btn btn-gold btn-sm" onclick="openModal('modal-produto',{cat:'acessorio'})">+ Adicionar</button></div>
+      <table><thead><tr><th>Nome</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="cat-acess-tbody"></tbody></table>
+    </div>
+  </div>
+  <!-- CONSIGNADO -->
+  <div id="cat-panel-consignado" style="display:none">
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Armações em Consignação</span>
+        <div style="display:flex;gap:6px">
+          <select class="form-input form-select" id="csg-filtro" style="width:150px;padding:5px 10px;font-size:12px" onchange="renderConsignados()">
+            <option value="">Todos</option><option value="ativo">Ativo</option>
+            <option value="devolvido">Devolvido</option><option value="comprado">Comprado</option>
+          </select>
+          <button class="btn btn-gold btn-sm" onclick="openModal('modal-consignado')">+ Novo Consignado</button>
+        </div>
+      </div>
+      <div class="metrics c3" style="padding:12px 16px" id="csg-metrics"></div>
+      <table><thead><tr><th>Fornecedor</th><th>Produto</th><th>Recebido</th><th>Devolvido</th><th>Comprado</th><th>Saldo</th><th>Prazo dev.</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="csg-tbody"></tbody></table>
+    </div>
+  </div>
+</div>

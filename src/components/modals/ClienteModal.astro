@@ -1,0 +1,29 @@
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-cli-title">Novo Cliente</span>
+      <button class="modal-close" onclick="closeModal('modal-cliente')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cli-id">
+      <div class="form-row"><div class="form-group"><label class="form-label">Nome completo *</label><input class="form-input" id="cli-nome" placeholder="Maria da Silva"></div>
+      <div class="form-group"><label class="form-label">CPF</label><input class="form-input" id="cli-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Telefone *</label><input class="form-input" id="cli-tel" placeholder="(92) 99999-9999" oninput="maskTel(this)"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="cli-email" placeholder="maria@email.com" type="email"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Data de nascimento</label><input class="form-input" id="cli-nasc" type="date"></div>
+      <div class="form-group"><label class="form-label">Vendedor responsável</label><select class="form-input form-select" id="cli-vendedor"></select></div></div>
+      <div class="form-divider">Endereço</div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Rua</label><input class="form-input" id="cli-rua" placeholder="Rua das Flores"></div>
+      <div class="form-group"><label class="form-label">Número</label><input class="form-input" id="cli-num" placeholder="123"></div></div>
+      <div class="form-row c3"><div class="form-group"><label class="form-label">Bairro</label><input class="form-input" id="cli-bairro"></div>
+      <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="cli-cidade" value="Belém"></div>
+      <div class="form-group"><label class="form-label">UF</label><input class="form-input" id="cli-uf" value="AM" maxlength="2"></div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observações</label><input class="form-input" id="cli-obs" placeholder="Informações adicionais..."></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarCliente()">💾 Salvar Cliente</button>
+    </div>
+  </div>
+</div>

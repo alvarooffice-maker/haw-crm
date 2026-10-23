@@ -1,0 +1,41 @@
+<!-- ══════════════════ AGENDA ══════════════════ -->
+<div class="tab-panel" id="tab-agenda">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <input type="date" id="agenda-data" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="if(_agendaView==='list')renderAgenda();else renderCalendarioMes()">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('agenda-data').value=new Date().toISOString().slice(0,10);if(_agendaView==='list')renderAgenda();else renderCalendarioMes()">Hoje</button>
+    <button class="btn btn-ghost btn-sm" id="btn-ag-prev" onclick="agendaNavDia(-1)">← Anterior</button>
+    <button class="btn btn-ghost btn-sm" id="btn-ag-next" onclick="agendaNavDia(1)">Próximo →</button>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" id="btn-ag-lista" onclick="toggleAgendaView('list')" style="border-color:var(--gold);color:var(--gold-deep)">☰ Lista</button>
+      <button class="btn btn-ghost btn-sm" id="btn-ag-cal" onclick="toggleAgendaView('cal')">📅 Mês</button>
+      <button class="btn btn-gold btn-sm" onclick="openModal('modal-evento')">+ Novo Evento</button>
+    </div>
+  </div>
+  <!-- VISTA LISTA -->
+  <div id="agenda-view-list">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="ch"><span class="ct" id="agenda-dia-label">Hoje</span><span class="badge badge-blue" id="cnt-agenda-dia">0</span></div>
+        <div id="agenda-dia-lista" style="min-height:80px"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">📅 Próximos 7 dias</span></div>
+        <div id="agenda-semana-lista" style="min-height:80px"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="ch"><span class="ct">📋 Todos os eventos</span></div>
+      <table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Título</th><th>Cliente</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="agenda-all-tbody"></tbody></table>
+    </div>
+  </div>
+  <!-- VISTA CALENDÁRIO -->
+  <div id="agenda-view-cal" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <button class="btn btn-ghost btn-sm" onclick="calNavMes(-1)">← Mês anterior</button>
+      <span id="cal-mes-label" style="font-weight:700;font-size:14px;flex:1;text-align:center"></span>
+      <button class="btn btn-ghost btn-sm" onclick="calNavMes(1)">Próximo mês →</button>
+    </div>
+    <div id="cal-grid-wrap"></div>
+  </div>
+</div>

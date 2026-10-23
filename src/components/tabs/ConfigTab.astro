@@ -1,0 +1,191 @@
+<!-- ══════════════════ CONFIGURAÇÕES ══════════════════ -->
+<div class="tab-panel" id="tab-config">
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="setCfgTab('usuarios',this)">👤 Usuários</button>
+    <button class="inner-tab" onclick="setCfgTab('metas',this)">🎯 Metas</button>
+    <button class="inner-tab" onclick="setCfgTab('empresa',this)">🏢 Empresa</button>
+    <button class="inner-tab" onclick="setCfgTab('supabase',this)">☁️ Sincronização</button>
+    <button class="inner-tab" onclick="setCfgTab('tabelas',this)">🔬 Tabelas Lab</button>
+    <button class="inner-tab" id="cfg-tab-backups" onclick="setCfgTab('backups',this)">💾 Backups</button>
+  </div>
+
+  <!-- ── USUÁRIOS ── -->
+  <div id="cfg-usuarios">
+    <div class="card" style="margin-bottom:12px">
+      <div style="padding:14px 20px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Perfis de acesso disponíveis</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
+          <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;border-left:3px solid var(--navy)">
+            <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">🧑‍💼 Vendedor</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.4">Dashboard · Pipeline · Clientes · Pedidos · Receitas · Catálogo</div>
+          </div>
+          <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;border-left:3px solid #4a90d9">
+            <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">👔 Gestor</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.4">Tudo do Vendedor + Financeiro e Relatórios</div>
+          </div>
+          <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;border-left:3px solid #27ae60">
+            <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">💰 Financeiro</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.4">Dashboard · Financeiro · Relatórios apenas</div>
+          </div>
+          <div style="background:#fffbea;border-radius:8px;padding:10px 12px;border-left:3px solid var(--gold)">
+            <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:3px">👑 Dono</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.4">Acesso total a todas as áreas do sistema</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Usuários do sistema</span><button class="btn btn-gold btn-sm" onclick="abrirNovoUsuario()">+ Novo usuário</button></div>
+      <table id="tbl-usuarios" style="table-layout:auto">
+        <thead><tr>
+          <th>Usuário</th>
+          <th>Email</th>
+          <th style="width:90px">Perfil</th>
+          <th style="width:50px;text-align:center">PIN</th>
+          <th style="width:100px">Meta/mês</th>
+          <th style="width:80px;text-align:center">Status</th>
+          <th style="width:120px;text-align:center">Ações</th>
+        </tr></thead>
+        <tbody id="cfg-users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── METAS ── -->
+  <div id="cfg-metas" style="display:none">
+    <div class="card">
+      <div class="ch"><span class="ct">Metas mensais — <span id="metas-mes-label" style="color:var(--muted);font-weight:400"></span></span></div>
+      <div style="padding:20px">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+          📊 As metas aparecem no <strong>Ranking do Dashboard</strong> e nos <strong>Relatórios de desempenho</strong>. Configure o valor mensal de vendas esperado para cada vendedor e gestor.
+        </p>
+        <div class="form-row c2" id="metas-form"></div>
+        <button class="btn btn-gold" onclick="salvarMetas()">Salvar metas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EMPRESA ── -->
+  <div id="cfg-empresa" style="display:none">
+    <div class="card">
+      <div class="ch"><span class="ct">Dados da Empresa</span></div>
+      <div style="padding:20px">
+        <div style="background:#f0f7ff;border:1px solid #cde;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2c5f8a;line-height:1.5">
+          🧾 Estes dados aparecem no <strong>rodapé dos orçamentos em PDF</strong> gerados pelo sistema. Mantenha-os atualizados para que os clientes tenham as informações corretas.
+        </div>
+        <div class="form-row c2">
+          <div class="form-group"><label class="form-label">Nome Fantasia</label><input class="form-input" id="emp-nome" placeholder="HAW Vision"></div>
+          <div class="form-group"><label class="form-label">CNPJ</label><input class="form-input" id="emp-cnpj" placeholder="00.000.000/0001-00"></div>
+        </div>
+        <div class="form-row c2">
+          <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input class="form-input" id="emp-tel" placeholder="(91) 99801-9092"></div>
+          <div class="form-group"><label class="form-label">Validade do Orçamento (dias)</label><input class="form-input" id="emp-validade" type="number" placeholder="15" min="1"></div>
+        </div>
+        <div class="form-row c2">
+          <div class="form-group"><label class="form-label">Cidade</label><input class="form-input" id="emp-cidade" placeholder="Belém"></div>
+          <div class="form-group"><label class="form-label">Estado (sigla)</label><input class="form-input" id="emp-estado" placeholder="PA" maxlength="2"></div>
+        </div>
+        <button class="btn btn-gold" onclick="salvarEmpresa()">Salvar dados da empresa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TABELAS LAB ── -->
+  <div id="cfg-tabelas" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div class="ch">
+        <span class="ct">Tabelas de Preços dos Laboratórios</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('input-json-labs').click()">📥 Importar JSON</button>
+          <input type="file" id="input-json-labs" accept=".json" style="display:none" onchange="importarJSONLabs(this.files[0]);this.value=''">
+          <button class="btn btn-gold btn-sm" onclick="abrirImportarLab()">+ Importar PDF</button>
+        </div>
+      </div>
+      <div style="padding:16px 20px">
+        <div style="background:#f0f7ff;border:1px solid #cde;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2c5f8a;line-height:1.5">
+          📋 Importe a tabela de preços do laboratório (PDF). O sistema lê os produtos, aplica sua margem e gera os preços de venda automaticamente. Os itens podem ser adicionados ao catálogo com um clique.
+        </div>
+        <div id="lab-tabelas-lista"><div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Nenhuma tabela importada ainda.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SINCRONIZAÇÃO / SUPABASE ── -->
+  <div id="cfg-supabase" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div style="padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <div style="font-weight:600;font-size:14px;margin-bottom:5px">Status da Sincronização</div>
+          <div id="sb-live-status" style="font-size:13px;color:var(--muted)">Verificando…</div>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="testarConexao()">🔄 Testar conexão</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Configuração Supabase</span></div>
+      <div style="padding:20px">
+        <div style="background:#fffbea;border:1px solid #f7cf1366;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#7a6000;line-height:1.6">
+          ☁️ <strong>O que é o Supabase?</strong> É o banco de dados na nuvem que mantém todos os dados sincronizados entre os computadores da loja. Sem ele, cada computador salva os dados apenas localmente.<br>
+          <strong>Em produção (GitHub Pages)</strong>, as credenciais são configuradas automaticamente via variáveis de ambiente — normalmente não é necessário alterar aqui.
+        </div>
+        <div class="form-row c1"><div class="form-group"><label class="form-label">Supabase URL</label><input class="form-input" id="cfg-sb-url" placeholder="https://xxx.supabase.co" value=""></div></div>
+        <div class="form-row c1"><div class="form-group"><label class="form-label">Anon Key</label><input class="form-input" id="cfg-sb-key" placeholder="eyJ..." value="" type="password"></div></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="salvarSupabase()">💾 Salvar configuração</button>
+          <button class="btn btn-ghost btn-sm" onclick="(function(){const el=document.getElementById('cfg-sb-key');el.type=el.type==='password'?'text':'password'})()">👁 Mostrar/ocultar chave</button>
+        </div>
+        <div id="sb-status" style="margin-top:12px;font-size:12px;color:var(--muted)">Não conectado — dados salvos localmente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BACKUPS ── -->
+  <div id="cfg-backups" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div class="ch">
+        <span class="ct">Backups do Sistema</span>
+        <div style="display:flex;gap:8px">
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer">📥 Restaurar Backup<input type="file" accept=".json" style="display:none" onchange="restaurarBackup(this.files[0]);this.value=''"></label>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importar clientes de CSV">📤 Importar CSV<input type="file" accept=".csv" style="display:none" onchange="importarClientesCSV(this.files[0]);this.value=''"></label>
+          <button class="btn btn-gold btn-sm" id="btn-backup-manual" onclick="fazerBackupManual()">💾 Fazer Backup Agora</button>
+        </div>
+      </div>
+      <div style="padding:12px 20px 16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div style="background:#0d1426;border:1px solid #1e2a46;border-radius:8px;padding:12px 16px">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">🤖 Backup automático</div>
+            <div style="font-size:13px;font-weight:600" id="backup-auto-status">—</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Diário entre 01h–04h (enquanto o sistema estiver aberto)</div>
+          </div>
+          <div style="background:#0d1426;border:1px solid #1e2a46;border-radius:8px;padding:12px 16px">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">🖐 Último backup manual</div>
+            <div style="font-size:13px;font-weight:600" id="backup-manual-status">—</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Somente o admin pode criar manualmente</div>
+          </div>
+        </div>
+        <div id="backup-lista">
+          <div style="color:var(--muted);text-align:center;padding:20px">Carregando backups…</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct" style="font-size:13px">📋 Configuração Supabase — criar tabela de backups (primeira vez)</span></div>
+      <div style="padding:16px 20px">
+        <div style="background:#fffbea;border:1px solid #f7cf1366;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#7a6000;line-height:1.5">
+          ☁️ Execute o SQL abaixo <strong>uma única vez</strong> no <strong>Supabase → SQL Editor</strong>. Sem isso os backups ficam apenas no navegador local (limitado).
+        </div>
+        <pre id="backup-sql" style="background:#0a0f1f;border:1px solid #2A3560;border-radius:8px;padding:14px;font-size:11px;color:#a8c8ff;overflow-x:auto;line-height:1.7;margin:0;white-space:pre">CREATE TABLE IF NOT EXISTS backups (
+  id           TEXT PRIMARY KEY,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  tipo         TEXT NOT NULL DEFAULT 'manual',
+  usuario_nome TEXT,
+  versao       INT DEFAULT 1,
+  dados        JSONB NOT NULL
+);
+ALTER TABLE backups DISABLE ROW LEVEL SECURITY;</pre>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="navigator.clipboard.writeText(document.getElementById('backup-sql').textContent).then(()=>toast('SQL copiado! ✅'))">📋 Copiar SQL</button>
+      </div>
+    </div>
+  </div><!-- /cfg-backups -->
+
+</div>

@@ -1,0 +1,21 @@
+<!-- ══════════════════ LABORATÓRIO ══════════════════ -->
+<div class="tab-panel" id="tab-lab">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="filters" id="lab-filters" style="margin-bottom:0">
+      <button class="fb active" onclick="setLabFiltro('todos',this)">Todos</button>
+      <button class="fb" onclick="setLabFiltro('aguardando',this)">⏳ Aguardando</button>
+      <button class="fb" onclick="setLabFiltro('enviado',this)">📤 Enviados</button>
+      <button class="fb" onclick="setLabFiltro('recebido',this)">✅ Recebidos</button>
+      <button class="fb" onclick="setLabFiltro('atrasado',this)">🔴 Atrasados</button>
+    </div>
+  </div>
+  <div class="metrics c3" style="margin-bottom:16px" id="lab-metrics"></div>
+  <div class="card">
+    <div class="ch"><span class="ct">🔬 Pedidos com Lentes no Laboratório</span></div>
+    <table style="table-layout:auto"><thead><tr>
+      <th>OS / Pedido</th><th>Cliente</th><th>Laboratório</th>
+      <th>Envio ao Lab</th><th>Previsão Retorno</th><th>Status Lab</th><th>Ações</th>
+    </tr></thead>
+    <tbody id="lab-tbody"></tbody></table>
+  </div>
+</div>
