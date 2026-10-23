@@ -421,6 +421,55 @@ tr:hover td{background:#FAFAF5}
 .etiqueta .et-nome{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .etiqueta .et-cod{font-size:10px;color:#555;margin:2px 0}
 
+/* ═══════════════ REFINAMENTOS VISUAIS ═══════════════ */
+
+/* Background com gradiente diagonal sutil */
+body{background:linear-gradient(160deg,#edf1f9 0%,#F0F2F8 55%,#e8edf6 100%)}
+
+/* Topbar com efeito vidro */
+.topbar{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(0,0,0,.06),0 4px 20px rgba(0,0,0,.04)}
+
+/* Cards com profundidade real */
+.card{box-shadow:0 2px 12px rgba(0,0,0,.06),0 0 1px rgba(0,0,0,.05);transition:box-shadow .22s,transform .22s}
+.card:hover{box-shadow:0 6px 24px rgba(0,0,0,.1),0 0 1px rgba(0,0,0,.08)}
+
+/* Metric cards com gradiente tonal + hover lift */
+.metric{box-shadow:0 2px 8px rgba(0,0,0,.05);transition:transform .2s,box-shadow .2s}
+.metric:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.metric.mg{background:linear-gradient(135deg,#fff 0%,#f3fbf6 100%)}
+.metric.ma{background:linear-gradient(135deg,#fff 0%,#fffef2 100%)}
+.metric.mb{background:linear-gradient(135deg,#fff 0%,#f3f7ff 100%)}
+.metric.mr{background:linear-gradient(135deg,#fff 0%,#fff3f3 100%)}
+.metric-icon{opacity:.2;font-size:26px}
+.mv{font-size:26px}
+
+/* Botão gold com gradiente e glow */
+.btn-gold,.tb-btn-gold{background:linear-gradient(135deg,#FFE040 0%,#F7CF13 100%);box-shadow:0 3px 14px rgba(247,207,19,.4)}
+.btn-gold:hover,.tb-btn-gold:hover{box-shadow:0 6px 22px rgba(247,207,19,.55);transform:translateY(-1px)}
+
+/* Sidebar mais rica */
+.sidebar{background:linear-gradient(180deg,#161c34 0%,#13182C 35%,#111726 100%)}
+.sb-item.active{background:rgba(247,207,19,.14);box-shadow:inset 0 0 24px rgba(247,207,19,.06)}
+
+/* Pipeline cards com sombra suave */
+.pipeline-card{box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.pipeline-card:hover{box-shadow:0 5px 18px rgba(247,207,19,.18)}
+
+/* Modal com sombra profunda */
+.modal{box-shadow:0 28px 80px rgba(0,0,0,.32),0 0 0 1px rgba(0,0,0,.07)}
+
+/* Badges ligeiramente mais fortes */
+.badge{font-weight:700;letter-spacing:.02em}
+
+/* Search input mais polido */
+.search-wrap input{box-shadow:0 1px 4px rgba(0,0,0,.04)}
+
+/* Botão ghost mais limpo */
+.btn-ghost,.tb-btn-ghost{border-color:rgba(0,0,0,.12)}
+
+/* Seção do sidebar com mais ar */
+.sb-section{padding-top:20px}
+
 /* ═══════════════ MOBILE (≤640px) ═══════════════ */
 .sb-toggle{display:none}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
