@@ -319,6 +319,7 @@ const navConfig = {
 let _currentPage = 'dashboard';
 function nav(page){
   if(!canAccess(page))return;
+  if(window.innerWidth<=640)closeSidebar();
   _currentPage = page;
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -4221,6 +4222,21 @@ window.registrarPagamento=registrarPagamento;
 window.toggleCrediarioDetalhe=toggleCrediarioDetalhe;
 
 // (delegação de usuários removida — botões usam .onclick direto em renderConfig)
+
+// ── SIDEBAR MOBILE ──
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sb-overlay');
+  if(!sb)return;
+  const open=sb.classList.toggle('open');
+  if(ov)ov.classList.toggle('open',open);
+}
+function closeSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sb-overlay');
+  if(sb)sb.classList.remove('open');
+  if(ov)ov.classList.remove('open');
+}
 
 // ── INIT (after all functions defined) ──
 document.addEventListener('DOMContentLoaded',()=>{

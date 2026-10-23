@@ -420,4 +420,71 @@ tr:hover td{background:#FAFAF5}
 .etiqueta{border:1px solid #333;border-radius:4px;padding:8px 10px;text-align:center;font-size:11px;background:#fff;color:#000}
 .etiqueta .et-nome{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .etiqueta .et-cod{font-size:10px;color:#555;margin:2px 0}
+
+/* ═══════════════ MOBILE (≤640px) ═══════════════ */
+.sb-toggle{display:none}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.sb-overlay.open{display:block}
+
+@media(max-width:640px){
+  /* Hamburger */
+  .sb-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:transparent;cursor:pointer;font-size:20px;color:var(--muted);border-radius:var(--rad);flex-shrink:0;order:-1;margin-right:6px}
+  .sb-toggle:hover{background:var(--off)}
+
+  /* Sidebar como drawer full */
+  .shell{overflow-x:hidden}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:200;width:260px;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:none}
+  .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.45)}
+  /* Restaura todos os itens da sidebar (colapsados em 900px) */
+  .sb-brand,.sb-tagline,.sb-badge,.sb-section,.sb-item span:not(.si),.sb-uname,.sb-urole,.sb-date,.sb-count{display:initial}
+  .sb-item{justify-content:flex-start;padding:11px 14px;margin:1px 8px;width:calc(100% - 16px)}
+  .sb-bottom{padding:16px}
+  .sb-user{justify-content:flex-start}
+  .sb-avatar{margin:0}
+  .sb-count{display:inline-block}
+  .sb-section{display:block}
+
+  /* Main ocupa tudo */
+  .main{width:100%}
+
+  /* Topbar compacto */
+  .topbar{padding:0 12px;height:50px}
+  .page-title{font-size:15px}
+  .page-sub{display:none}
+  .search-wrap{display:none}
+  .topbar-right{gap:4px}
+  .tb-btn{padding:6px 10px;font-size:11px}
+
+  /* Conteúdo com mais respiro lateral */
+  .content{padding:12px}
+
+  /* Métricas: 2 colunas */
+  .metrics.c4,.metrics.c3{grid-template-columns:repeat(2,1fr)}
+  .metric{padding:12px 12px}
+  .mv{font-size:19px}
+
+  /* Cards com scroll horizontal para tabelas */
+  .card{overflow-x:auto}
+  table{min-width:460px}
+
+  /* Hub actions: 2 colunas */
+  .hub-actions{grid-template-columns:repeat(2,1fr);gap:8px}
+  .hub-action-btn{padding:14px 10px}
+  .hub-action-icon{width:40px;height:40px;font-size:18px}
+  .hub-action-label{font-size:11px}
+  .hub-action-sub{display:none}
+
+  /* Receita grid: 3 colunas */
+  .receita-grid{grid-template-columns:repeat(3,1fr)}
+
+  /* Modais como bottom sheet */
+  .modal-overlay{padding:0;align-items:flex-end}
+  .modal{max-width:100%;width:100%;border-radius:var(--rad-xl) var(--rad-xl) 0 0;max-height:93vh}
+
+  /* Pipeline */
+  .pipeline-col{min-width:155px}
+
+  /* Login box responsivo */
+  .login-box{width:100%;padding:32px 24px;border-radius:0}
+}
 .etiqueta .et-preco{font-size:16px;font-weight:900;color:#000}
