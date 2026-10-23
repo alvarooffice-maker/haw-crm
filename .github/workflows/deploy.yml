@@ -24,13 +24,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Configurar credenciais Supabase
+        run: |
+          SB_URL="${{ secrets.SUPABASE_URL }}"
+          SB_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+          if [ -z "$SB_URL" ]; then
+            SB_URL=$(grep -o 'supabaseUrl:"[^"]*"' legacy/public/index.html | cut -d'"' -f2 | head -1)
+          fi
+          if [ -z "$SB_KEY" ]; then
+            SB_KEY=$(grep -o 'supabaseKey:"[^"]*"' legacy/public/index.html | cut -d'"' -f2 | head -1)
+          fi
+          echo "PUBLIC_SUPABASE_URL=$SB_URL" >> $GITHUB_ENV
+          echo "PUBLIC_SUPABASE_ANON_KEY=$SB_KEY" >> $GITHUB_ENV
+
+      - name: Build Astro
+        run: npm run build
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: legacy/public/
+          path: dist/
 
       - name: Deploy to GitHub Pages
         id: deployment
