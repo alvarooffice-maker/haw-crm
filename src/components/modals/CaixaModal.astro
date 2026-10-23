@@ -1,0 +1,20 @@
+<div class="modal-overlay" id="modal-caixa">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title" id="caixa-modal-title">Abertura de Caixa</span>
+      <button class="modal-close" onclick="closeModal('modal-caixa')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="caixa-tipo">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Data *</label><input class="form-input" id="caixa-data" type="date"></div>
+        <div class="form-group"><label class="form-label">Valor (R$) *</label><input class="form-input" id="caixa-valor" type="number" step="0.01" min="0.01" placeholder="0,00"></div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="caixa-descricao" placeholder="Observação opcional"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-caixa')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarMovimentoCaixa()">💾 Salvar</button>
+    </div>
+  </div>
+</div>

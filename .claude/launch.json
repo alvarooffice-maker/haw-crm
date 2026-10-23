@@ -1,0 +1,43 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "haw-crm",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "4803"
+      ],
+      "port": 4803
+    },
+    {
+      "name": "haw-crm-offline",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co",
+        "PUBLIC_SUPABASE_ANON_KEY=offline",
+        "npm",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "4802"
+      ],
+      "port": 4802
+    },
+    {
+      "name": "haw-crm-legacy",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serve",
+        "legacy/public",
+        "-l",
+        "4801"
+      ],
+      "port": 4801
+    }
+  ]
+}

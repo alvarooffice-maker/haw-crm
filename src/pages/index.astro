@@ -1,0 +1,157 @@
+---
+// Gerado a partir de legacy/public/index.html (ver README → Estrutura Astro).
+import AppLayout from '../layouts/AppLayout.astro';
+import LoginScreen from '../components/LoginScreen.astro';
+import Sidebar from '../components/layout/Sidebar.astro';
+import Topbar from '../components/layout/Topbar.astro';
+import DashboardTab from '../components/tabs/DashboardTab.astro';
+import PipelineTab from '../components/tabs/PipelineTab.astro';
+import ClienteTab from '../components/tabs/ClienteTab.astro';
+import ClientesTab from '../components/tabs/ClientesTab.astro';
+import PedidosTab from '../components/tabs/PedidosTab.astro';
+import ReceitasTab from '../components/tabs/ReceitasTab.astro';
+import CrediarioTab from '../components/tabs/CrediarioTab.astro';
+import OsTab from '../components/tabs/OsTab.astro';
+import FinanceiroTab from '../components/tabs/FinanceiroTab.astro';
+import CatalogoTab from '../components/tabs/CatalogoTab.astro';
+import RelatoriosTab from '../components/tabs/RelatoriosTab.astro';
+import ConfigTab from '../components/tabs/ConfigTab.astro';
+import AgendaTab from '../components/tabs/AgendaTab.astro';
+import OrcamentosTab from '../components/tabs/OrcamentosTab.astro';
+import LabTab from '../components/tabs/LabTab.astro';
+import ImportLabModal from '../components/modals/ImportLabModal.astro';
+import ClienteModal from '../components/modals/ClienteModal.astro';
+import ReceitaModal from '../components/modals/ReceitaModal.astro';
+import PedidoModal from '../components/modals/PedidoModal.astro';
+import ProdutoModal from '../components/modals/ProdutoModal.astro';
+import StatusModal from '../components/modals/StatusModal.astro';
+import UsuarioModal from '../components/modals/UsuarioModal.astro';
+import CrediarioModal from '../components/modals/CrediarioModal.astro';
+import PagarParcelaModal from '../components/modals/PagarParcelaModal.astro';
+import EditarParcelaModal from '../components/modals/EditarParcelaModal.astro';
+import EventoModal from '../components/modals/EventoModal.astro';
+import OrcamentoModal from '../components/modals/OrcamentoModal.astro';
+import LabEnvioModal from '../components/modals/LabEnvioModal.astro';
+import ConsignadoModal from '../components/modals/ConsignadoModal.astro';
+import CaixaModal from '../components/modals/CaixaModal.astro';
+import DespesaModal from '../components/modals/DespesaModal.astro';
+import EstoqueEntradaModal from '../components/modals/EstoqueEntradaModal.astro';
+import WamsgModal from '../components/modals/WamsgModal.astro';
+import AlterarPinModal from '../components/modals/AlterarPinModal.astro';
+import OsModal from '../components/modals/OsModal.astro';
+import PdfLogoTemplate from '../components/PdfLogoTemplate.astro';
+import appCore from '../scripts/app-core.js?url';
+import appCrediarioOs from '../scripts/app-crediario-os.js?url';
+import appFinanceiroExtras from '../scripts/app-financeiro-extras.js?url';
+import supabaseLayer from '../scripts/supabase-layer.js?url';
+---
+<AppLayout>
+
+<LoginScreen />
+
+<div class="shell">
+<!-- SIDEBAR -->
+<Sidebar />
+
+<!-- MAIN -->
+<main class="main">
+  <!-- TOPBAR -->
+  <Topbar />
+
+  <div class="content">
+
+    <DashboardTab />
+
+    <PipelineTab />
+
+    <div class="tab-panel" id="tab-vendas"></div>
+
+    <ClienteTab />
+
+    <ClientesTab />
+
+    <PedidosTab />
+
+    <ReceitasTab />
+
+    <CrediarioTab />
+
+    <OsTab />
+
+    <FinanceiroTab />
+
+    <CatalogoTab />
+
+    <RelatoriosTab />
+
+    <ConfigTab />
+
+    <AgendaTab />
+
+    <OrcamentosTab />
+
+    <LabTab />
+
+  </div><!-- /content -->
+</main>
+</div><!-- /shell -->
+
+<!-- ══════════════════ MODAIS ══════════════════ -->
+
+<ImportLabModal />
+
+<ClienteModal />
+
+<ReceitaModal />
+
+<PedidoModal />
+
+<ProdutoModal />
+
+<!-- MODAL PERFIL CLIENTE -->
+
+<StatusModal />
+
+<UsuarioModal />
+
+
+
+
+
+<script is:inline src={appCore}></script>
+
+<CrediarioModal />
+
+<PagarParcelaModal />
+
+<EditarParcelaModal />
+
+<EventoModal />
+
+<OrcamentoModal />
+
+<LabEnvioModal />
+
+<ConsignadoModal />
+
+<CaixaModal />
+
+<DespesaModal />
+
+<EstoqueEntradaModal />
+
+<WamsgModal />
+
+<AlterarPinModal />
+
+<script is:inline src={appCrediarioOs}></script>
+
+<OsModal />
+
+<script is:inline src={appFinanceiroExtras}></script>
+
+<script is:inline src={supabaseLayer} onerror="console.warn('[HAW] supabase-layer offline')"></script>
+<script>import "../scripts/register-sw.ts";</script>
+
+<PdfLogoTemplate />
+</AppLayout>

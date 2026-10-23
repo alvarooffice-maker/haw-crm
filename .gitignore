@@ -1,0 +1,22 @@
+# Nunca commitar credenciais reais
+.env
+.env.*
+!.env.example
+public/config.js
+legacy/public/config.js
+
+# Astro
+node_modules/
+dist/
+.astro/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log

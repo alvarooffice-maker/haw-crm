@@ -1,0 +1,13 @@
+<div class="topbar">
+  <div>
+    <div class="page-title" id="page-title">Dashboard</div>
+    <div class="page-sub" id="page-sub">Visão geral do negócio</div>
+  </div>
+  <div class="topbar-right">
+    <div class="search-wrap"><input type="text" placeholder="Buscar… (Ctrl+K)" id="global-search" oninput="globalSearch(this.value)" onblur="setTimeout(closeSearchDrop,200)" onfocus="globalSearch(this.value)"><div id="search-drop" class="search-drop"></div></div>
+    <button class="tb-btn tb-btn-gold" id="tb-action-btn" onclick="tbAction()">+ Novo Pedido</button>
+    <button onclick="toggleDarkMode()" id="btn-dark-mode" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:14px;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600" title="Modo escuro">🌙</button>
+    <button onclick="abrirAlterarPin()" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600" title="Alterar meu PIN">🔐 PIN</button>
+    <button onclick="doLogout()" style="background:transparent;border:1px solid #E2E8F4;color:#888;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600" title="Sair">↩ Sair</button>
+  </div>
+</div>

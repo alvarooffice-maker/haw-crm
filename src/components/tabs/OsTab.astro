@@ -1,0 +1,19 @@
+<!-- ══════════════════ ORDENS DE SERVIÇO ══════════════════ -->
+<div class="tab-panel" id="tab-os">
+  <div class="card">
+    <div class="ch" style="flex-wrap:wrap;gap:8px">
+      <span class="ct">🗂️ Ordens de Serviço</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto">
+        <button class="btn btn-sm os-filtro active" data-sf="todos" onclick="setOsFiltro('todos',this)">Todos</button>
+        <button class="btn btn-sm os-filtro" data-sf="em_producao" onclick="setOsFiltro('em_producao',this)" style="color:var(--amber)">Em Produção</button>
+        <button class="btn btn-sm os-filtro" data-sf="pronto" onclick="setOsFiltro('pronto',this)" style="color:var(--blue)">Pronto</button>
+        <button class="btn btn-sm os-filtro" data-sf="entregue" onclick="setOsFiltro('entregue',this)" style="color:var(--green)">Entregue</button>
+        <input type="month" id="os-list-mes" style="border:1px solid var(--border-light);border-radius:6px;padding:4px 8px;font-size:12px;background:var(--white);color:var(--black)" oninput="renderOS()" title="Filtrar por mês">
+        <input type="text" id="os-list-search" placeholder="Buscar paciente / Nº OS…" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;width:220px" oninput="renderOS()">
+      </div>
+    </div>
+    <div style="overflow-x:auto" id="os-list-wrap">
+      <div style="text-align:center;padding:40px;color:var(--muted)">Nenhuma OS salva ainda.</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo"><img src="logo.png" alt="HAW Vision"></div>
+    <div class="login-title">HAW Vision CRM</div>
+    <div class="login-sub">Faça login para continuar</div>
+    <label class="login-label">Usuário</label>
+    <select class="login-select" id="login-user" onchange="_loginHint()"></select>
+    <div id="login-loading" style="font-size:11px;color:rgba(255,255,255,.45);margin:-10px 0 10px;min-height:16px;text-align:center"></div>
+    <label class="login-label">PIN (4 dígitos)</label>
+    <input class="login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')doLogin()" oninput="_loginHint()">
+    <div id="login-hint" style="font-size:11px;color:#F7CF13;margin:-12px 0 10px;min-height:16px"></div>
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>

@@ -1,0 +1,38 @@
+<!-- MODAL PRODUTO (CATÁLOGO) -->
+<div class="modal-overlay" id="modal-produto">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-prod-title">Novo Produto</span>
+      <button class="modal-close" onclick="closeModal('modal-produto')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prod-id">
+      <input type="hidden" id="prod-cat">
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Nome / Descrição *</label><input class="form-input" id="prod-nome" placeholder="Ex: Armação Ray-Ban RB3025"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Código</label><input class="form-input" id="prod-codigo" placeholder="RB3025"></div>
+      <div class="form-group"><label class="form-label">Preço de venda (R$) *</label><input class="form-input" id="prod-preco" type="number" step="0.01" min="0" placeholder="350.00"></div></div>
+      <div id="prod-extra-armacao" style="display:none">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Estoque (unidades)</label><input class="form-input" id="prod-estoque" type="number" min="0" step="1" placeholder="Ex: 3"></div>
+          <div class="form-group"><label class="form-label">Estoque mínimo</label><input class="form-input" id="prod-estoque-min" type="number" min="0" step="1" placeholder="Ex: 1"></div>
+        </div>
+      </div>
+      <div id="prod-extra-lente" style="display:none">
+        <div class="form-divider">Especificações da lente</div>
+        <div class="form-row c3">
+          <div class="form-group"><label class="form-label">Tipo</label><select class="form-input form-select" id="prod-sub"><option value="monofocal">Monofocal</option><option value="bifocal">Bifocal</option><option value="progressiva">Progressiva</option><option value="ocupacional">Ocupacional</option></select></div>
+          <div class="form-group"><label class="form-label">Material</label><select class="form-input form-select" id="prod-material"><option value="resina">Resina 1.5</option><option value="poly">Policarbonato</option><option value="alto_indice">Alto Índice 1.67</option><option value="trivex">Trivex</option></select></div>
+          <div class="form-group"><label class="form-label">Tratamento</label><select class="form-input form-select" id="prod-trat"><option value="">Sem tratamento</option><option value="ar">Antirreflexo (AR)</option><option value="fotossensivel">Fotossensível</option><option value="blue_cut">Blue Cut</option><option value="ar_blue">AR + Blue Cut</option><option value="transitions">Transitions</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Estoque (unidades)</label><input class="form-input" id="prod-estoque-lente" type="number" min="0" step="1" placeholder="Ex: 10"></div>
+          <div class="form-group"><label class="form-label">Estoque mínimo</label><input class="form-input" id="prod-estoque-min-lente" type="number" min="0" step="1" placeholder="Ex: 2"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-produto')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarProduto()">💾 Salvar</button>
+    </div>
+  </div>
+</div>

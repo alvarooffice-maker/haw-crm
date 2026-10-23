@@ -1,0 +1,88 @@
+<!-- ══════════════════ FINANCEIRO ══════════════════ -->
+<div class="tab-panel" id="tab-financeiro">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600;color:var(--muted)">Período:</span>
+    <input type="month" id="fin-mes" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="renderFinanceiro();var _fp=document.getElementById('fin-panel-caixa');if(_fp&&_fp.style.display!=='none')renderCaixa();var _fd=document.getElementById('fin-panel-despesas');if(_fd&&_fd.style.display!=='none')renderDespesas();var _fdr=document.getElementById('fin-panel-dre');if(_fdr&&_fdr.style.display!=='none')renderDRE()">
+  </div>
+  <div class="inner-tabs" style="margin-bottom:16px" id="fin-inner-tabs">
+    <button class="inner-tab active" onclick="setFinTab('movimento',this)">📋 Movimento</button>
+    <button class="inner-tab" onclick="setFinTab('caixa',this)">🏦 Caixa</button>
+    <button class="inner-tab" onclick="setFinTab('despesas',this)">💸 Contas</button>
+    <button class="inner-tab" onclick="setFinTab('dre',this)">📊 DRE</button>
+  </div>
+
+  <!-- PAINEL MOVIMENTO -->
+  <div id="fin-panel-movimento">
+    <div class="metrics c3" style="margin-bottom:20px">
+      <div class="metric ma"><div class="ml">Recebido no período</div><div class="mv" id="fin-recebido">R$ 0</div><div class="ms">Pedidos + crediário</div></div>
+      <div class="metric mb"><div class="ml">A receber</div><div class="mv" id="fin-areceber">R$ 0</div><div class="ms">Pedidos em aberto</div></div>
+      <div class="metric mg"><div class="ml">Ticket médio</div><div class="mv" id="fin-ticket">R$ 0</div><div class="ms">Média do período</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="ch"><span class="ct">Pedidos — Controle financeiro</span></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:8%">#</th><th style="width:22%">Cliente</th><th style="width:12%">Data</th>
+            <th style="width:12%">Total</th><th style="width:15%">Pagamento</th><th style="width:15%">Status</th>
+          </tr></thead>
+          <tbody id="fin-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Crediário — Recebimentos do período</span></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:25%">Cliente</th><th style="width:20%">Descrição</th>
+            <th style="width:10%;text-align:center">Parcela</th><th style="width:12%">Data</th>
+            <th style="width:12%">Forma</th><th style="width:12%;text-align:right">Valor</th>
+          </tr></thead>
+          <tbody id="fin-cred-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL CAIXA DIÁRIO -->
+  <div id="fin-panel-caixa" style="display:none">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-gold btn-sm" onclick="abrirMovimentoCaixa('abertura')">🟢 Abertura</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirMovimentoCaixa('suprimento')">🔵 Suprimento</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirMovimentoCaixa('sangria')">🔴 Sangria</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirMovimentoCaixa('fechamento')">⚫ Fechamento</button>
+    </div>
+    <div class="metrics c2" style="margin-bottom:16px">
+      <div class="metric" style="border-top:3px solid var(--green)"><div class="ml">Saldo do Período</div><div class="mv" id="caixa-saldo">R$ 0</div><div class="ms">Entradas − Saídas</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Movimentos de Caixa</span></div>
+      <div style="overflow-x:auto">
+        <table><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th style="text-align:right">Valor</th></tr></thead>
+        <tbody id="caixa-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL CONTAS A PAGAR -->
+  <div id="fin-panel-despesas" style="display:none">
+    <div class="metrics c3" style="margin-bottom:16px">
+      <div class="metric"><div class="ml">Total no Período</div><div class="mv" id="desp-total">R$ 0</div><div class="ms">Todas as contas</div></div>
+      <div class="metric" style="border-top:3px solid var(--green)"><div class="ml">Pago</div><div class="mv" id="desp-pago">R$ 0</div><div class="ms">Quitado</div></div>
+      <div class="metric" style="border-top:3px solid var(--red)"><div class="ml">A Pagar</div><div class="mv" id="desp-apagar">R$ 0</div><div class="ms">Pendente</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Contas a Pagar</span><button class="btn btn-gold btn-sm" onclick="abrirNovaDespesa()">+ Nova Conta</button></div>
+      <div style="overflow-x:auto">
+        <table><thead><tr><th>Descrição</th><th>Categoria</th><th>Vencimento</th><th style="text-align:right">Valor</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="desp-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAINEL DRE -->
+  <div id="fin-panel-dre" style="display:none">
+    <div id="dre-content"><div class="empty" style="padding:40px"><div class="empty-icon">📊</div><div class="empty-title">Resultado do Período</div><div class="empty-text">Aguardando carregamento…</div></div></div>
+  </div>
+</div>

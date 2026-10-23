@@ -1,0 +1,46 @@
+<!-- ══════════════════ RELATÓRIOS ══════════════════ -->
+<div class="tab-panel" id="tab-relatorios">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600;color:var(--muted)">Período:</span>
+    <input type="month" id="rel-mes" style="border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--white);color:var(--black)" oninput="renderRelatorios()">
+    <button class="btn btn-ghost btn-sm" onclick="exportarRelatorioCSV()" style="margin-left:auto">⬇️ Exportar CSV</button>
+    <button class="btn btn-ghost btn-sm" onclick="gerarComissoesPDF()">📄 Comissões PDF</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px" id="rel-kpis"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="ch"><span class="ct">Faturamento — Últimos 6 meses</span></div>
+      <div class="chart-wrap"><canvas id="chart-fat-mensal"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Conversão do Pipeline</span></div>
+      <div class="chart-wrap"><canvas id="chart-funil"></canvas></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="ch"><span class="ct">Pedidos por Vendedor</span></div>
+      <div class="chart-wrap"><canvas id="chart-vendedor"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Produtos mais vendidos</span></div>
+      <div style="padding:0 16px 16px">
+        <table><thead><tr><th>Produto</th><th style="text-align:right">Qtd vendida</th><th style="text-align:right">Faturado</th></tr></thead>
+        <tbody id="rel-produtos-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">Clientes para Contatar (11+ meses sem compra)</span></div>
+    <table><thead><tr><th>Cliente</th><th>Último pedido</th><th>Meses sem compra</th><th>Telefone</th><th>Ação</th></tr></thead>
+    <tbody id="rel-retorno-tbody"></tbody></table>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="ch">
+      <span class="ct">Comissões por Vendedor</span>
+      <select class="form-input form-select" id="comis-mes" style="width:160px;padding:5px 10px;font-size:12px" oninput="renderComissoesTabela()"></select>
+    </div>
+    <table><thead><tr><th>Vendedor</th><th style="text-align:right">Pedidos</th><th style="text-align:right">Faturado</th><th style="text-align:right">% Comissão</th><th style="text-align:right">Comissão (R$)</th></tr></thead>
+    <tbody id="comis-tbody"></tbody></table>
+  </div>
+</div>

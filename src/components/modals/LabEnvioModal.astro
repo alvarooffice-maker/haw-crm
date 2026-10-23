@@ -1,0 +1,22 @@
+<!-- MODAL LAB (envio ao laboratório) -->
+<div class="modal-overlay" id="modal-lab-envio">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title">🔬 Enviar ao Laboratório</span>
+      <button class="modal-close" onclick="closeModal('modal-lab-envio')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="lab-pedido-id">
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Laboratório *</label><input class="form-input" id="lab-nome-input" placeholder="Ex: Orfeu, Indo, Hoya…"></div></div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label">Data de envio *</label><input class="form-input" id="lab-data-envio" type="date"></div>
+        <div class="form-group"><label class="form-label">Previsão de retorno</label><input class="form-input" id="lab-data-previsao" type="date"></div>
+      </div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="lab-obs-input" placeholder="Código de pedido no lab, instruções…"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-lab-envio')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEnvioLab()">📤 Confirmar Envio</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,201 @@
+<!-- ══════════════════ MODAL ORDEM DE SERVIÇO ══════════════════ -->
+<div class="modal-overlay" id="modal-os">
+  <div class="modal" style="max-width:760px;width:96vw">
+    <div class="modal-header">
+      <span class="modal-title">📋 Nova Ordem de Serviço</span>
+      <button class="modal-close" onclick="closeModal('modal-os')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:78vh;overflow-y:auto">
+
+      <!-- Paciente / OS / Tel / Data -->
+      <div style="display:grid;grid-template-columns:2fr 1fr 1.5fr 1fr;gap:10px;margin-bottom:6px">
+        <div class="fg">
+          <label class="fl">Paciente</label>
+          <input type="text" id="os-paciente" list="os-cli-list" placeholder="Nome do paciente" autocomplete="off" onchange="osImportarReceita(this.value)">
+          <datalist id="os-cli-list"></datalist>
+        </div>
+        <div class="fg">
+          <label class="fl">Nº OS</label>
+          <input type="text" id="os-num" readonly style="background:var(--off);font-weight:700;color:var(--navy,#13182C)">
+        </div>
+        <div class="fg">
+          <label class="fl">Telefone</label>
+          <input type="text" id="os-tel" placeholder="(91) 9____-____">
+        </div>
+        <div class="fg">
+          <label class="fl">Data</label>
+          <input type="date" id="os-data">
+        </div>
+      </div>
+
+      <!-- Banner de receita importada -->
+      <div id="os-import-banner" style="display:none;background:#fffbe6;border:1.5px solid var(--gold,#F7CF13);border-radius:6px;padding:8px 14px;margin-bottom:8px;font-size:12px;color:var(--navy,#13182C);display:none;align-items:center;gap:10px">
+        <span>📋</span>
+        <span id="os-import-info" style="flex:1;font-weight:600"></span>
+        <span style="font-size:11px;opacity:.75">— edite os campos abaixo se necessário</span>
+      </div>
+
+      <!-- Para Longe -->
+      <div class="os-sec-title">Para Longe</div>
+      <div class="os-rx-grid" id="os-longe-grid" style="grid-template-columns:60px repeat(5,1fr)">
+        <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
+        <div class="rh">Esférico</div><div class="rh">Cilínd.</div><div class="rh">Eixo</div>
+        <div class="rh">DNP</div><div class="rh">Altura</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="os-od-esf" placeholder="+/-0.00"><input type="text" id="os-od-cil" placeholder="-0.00">
+        <input type="text" id="os-od-eix" placeholder="0°">
+        <input type="text" id="os-od-dnp" placeholder="0.0">
+        <input type="text" id="os-od-alt" placeholder="0.0">
+        <div class="rl">O.E.</div>
+        <input type="text" id="os-oe-esf" placeholder="+/-0.00"><input type="text" id="os-oe-cil" placeholder="-0.00">
+        <input type="text" id="os-oe-eix" placeholder="0°">
+        <input type="text" id="os-oe-dnp" placeholder="0.0">
+        <input type="text" id="os-oe-alt" placeholder="0.0">
+      </div>
+
+      <!-- Para Perto -->
+      <div class="os-sec-title">Para Perto / Adição</div>
+      <div class="os-rx-grid" style="grid-template-columns:60px 1fr 1fr">
+        <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
+        <div class="rh">Adição</div><div class="rh">Esf. Perto</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="os-pp-od-adc" placeholder="+0.00">
+        <input type="text" id="os-pp-od-esf" placeholder="+/-0.00">
+        <div class="rl">O.E.</div>
+        <input type="text" id="os-pp-oe-adc" placeholder="+0.00">
+        <input type="text" id="os-pp-oe-esf" placeholder="+/-0.00">
+      </div>
+      <!-- Outros Dados por Olho -->
+      <div class="os-sec-title">Outros Dados por Olho</div>
+      <div class="os-rx-grid" style="grid-template-columns:60px repeat(3,1fr) 72px">
+        <div class="rh" style="background:transparent;color:var(--navy,#13182C)"></div>
+        <div class="rh">Base</div><div class="rh">Descanso</div><div class="rh">Desc.</div><div class="rh">Prisma</div>
+        <div class="rl">O.D.</div>
+        <input type="text" id="os-od-base" placeholder="—">
+        <input type="text" id="os-od-desc" placeholder="—">
+        <input type="text" id="os-od-descanso" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="os-od-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
+        <div class="rl">O.E.</div>
+        <input type="text" id="os-oe-base" placeholder="—">
+        <input type="text" id="os-oe-desc" placeholder="—">
+        <input type="text" id="os-oe-descanso" placeholder="—">
+        <div style="background:var(--white,#fff);display:flex;align-items:center;justify-content:center"><label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px"><input type="checkbox" id="os-oe-prisma" style="accent-color:var(--navy,#13182C)"> Sim</label></div>
+      </div>
+      <div class="os-sec-title">Dados da Armação</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;flex-wrap:wrap">
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">MHA <input type="text" id="os-horz" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Medida Horizontal da Armação"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">MVA <input type="text" id="os-vert" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Medida Vertical da Armação"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">DMA <input type="text" id="os-diag" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Diâmetro Mínimo da Armação"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">Ponte <input type="text" id="os-ponte" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">DPA <input type="text" id="os-dpa" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px" title="Distância Pupilar da Armação"></label>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:600;color:var(--navy,#13182C)">Diâmetro:</span>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">O.D. <input type="text" id="os-diam-od" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <label style="font-size:11px;font-weight:600;color:var(--navy,#13182C);display:flex;align-items:center;gap:4px">O.E. <input type="text" id="os-diam-oe" placeholder="0.0" style="width:52px;border:1px solid var(--border-light);border-radius:4px;padding:3px 7px;font-size:12px"></label>
+        <button type="button" onclick="calcularDiametroOS()" style="padding:3px 12px;font-size:11px;font-weight:700;background:var(--navy,#13182C);color:var(--gold,#F7CF13);border:none;border-radius:4px;cursor:pointer">CALCULAR</button>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;margin-left:8px">
+          <input type="checkbox" id="os-env-montagem" style="accent-color:var(--navy,#13182C)">
+          <span style="font-weight:600;color:var(--navy,#13182C)">Enviada para montagem</span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:700;color:var(--navy,#13182C)">Armação é Clipon?</span>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="os-clipon" value="nao" checked> Não</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="os-clipon" value="sim"> Sim</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="radio" name="os-clipon" value="ni"> Não Informado</label>
+      </div>
+
+      <!-- Condição da Armação / Montagem / Índice -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:4px">
+        <div class="fg">
+          <label class="fl" style="font-weight:800;color:var(--navy,#13182C);font-size:13px">Armação</label>
+          <div style="display:flex;gap:16px;margin-top:5px">
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="os-arm-cond" value="nova" style="accent-color:var(--navy,#13182C)"> Nova</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="os-arm-cond" value="usada" style="accent-color:var(--navy,#13182C)"> Usada</label>
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fl" style="font-weight:800;color:var(--navy,#13182C);font-size:13px">Tipo de Montagem</label>
+          <select id="os-montagem">
+            <option value="">— Selecione —</option>
+            <option>Nylon</option><option>Fechada</option><option>Parafusada</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl" style="font-weight:800;color:var(--navy,#13182C);font-size:13px">Índice de Refração</label>
+          <select id="os-indice">
+            <option value="">— Selecione —</option>
+            <option>1.56</option><option>1.59</option><option>1.60</option>
+            <option>1.61</option><option>1.67</option><option>1.74</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Armação + Tratamentos -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:4px">
+        <div>
+          <div class="os-sec-title">Tipo de Armação</div>
+          <div class="os-cb-grid">
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-acetato"> Acetato</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-metal"> Metal / Aço</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-tr90"> TR-90 / Grilamid</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-titanio"> Titânio</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-nylon"> Nylon (Fio)</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-arm-parafusada"> Parafusada</label>
+          </div>
+        </div>
+        <div>
+          <div class="os-sec-title">Tratamentos Escolhidos</div>
+          <div class="os-cb-grid">
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-ar"> Antirreflexo</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-azul"> Filtro Luz Azul</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-foto"> Fotossensível</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-hidro"> Hidrofóbico</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-risco"> Anti-risco</label>
+            <label class="os-cb-item"><input type="checkbox" id="os-tr-uv"> Proteção UV 400</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observações -->
+      <div class="os-sec-title">Observações Técnicas</div>
+      <textarea id="os-obs" rows="3" placeholder="Recomendações de lentes, cuidados especiais, detalhes do pedido..." style="width:100%;resize:vertical"></textarea>
+
+      <!-- Status / Entrega / Valor / Pagamento -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1.5fr;gap:10px;margin-top:8px">
+        <div class="fg">
+          <label class="fl">Status</label>
+          <select id="os-status" style="width:100%;border:1px solid var(--border-light);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--white);color:var(--black)">
+            <option value="em_producao">Em Produção</option>
+            <option value="pronto">Pronto p/ Retirada</option>
+            <option value="entregue">Entregue</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Data de Entrega</label>
+          <input type="date" id="os-entrega">
+        </div>
+        <div class="fg">
+          <label class="fl">Valor Total (R$)</label>
+          <input type="number" id="os-valor" placeholder="0,00" min="0" step="0.01">
+        </div>
+        <div class="fg">
+          <label class="fl">Forma de Pagamento</label>
+          <select id="os-pagamento">
+            <option value="">— Selecione —</option>
+            <option>Dinheiro</option><option>Cartão de Débito</option>
+            <option>Cartão de Crédito</option><option>Pix</option>
+            <option>Crediário HAW</option><option>Convênio</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-os')">Cancelar</button>
+      <button class="btn btn-ghost" onclick="salvarOS(false)">💾 Salvar</button>
+      <button class="btn btn-gold" onclick="gerarOsPDF()">🖨️ Salvar &amp; Imprimir PDF</button>
+    </div>
+  </div>
+</div>

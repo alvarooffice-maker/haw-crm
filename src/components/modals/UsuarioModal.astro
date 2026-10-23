@@ -1,0 +1,35 @@
+<!-- MODAL USUÁRIO -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title" id="usr-modal-title">Novo Usuário</span>
+      <button class="modal-close" onclick="closeModal('modal-usuario')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="usr-id">
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="usr-nome" placeholder="Ana Lima"></div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="usr-email" type="email" placeholder="ana@hawoticas.com.br"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Perfil *</label>
+          <select class="form-input form-select" id="usr-perfil">
+            <option value="vendedor">Vendedor — Vendas e clientes</option>
+            <option value="gestor">Gestor — Vendas + financeiro</option>
+            <option value="financeiro">Financeiro — Só financeiro</option>
+            <option value="dono">Dono — Acesso total</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Meta mensal (R$)</label><input class="form-input" id="usr-meta" type="number" placeholder="8000"></div>
+        <div class="form-group"><label class="form-label">Comissão (%)</label><input class="form-input" id="usr-comissao" type="number" min="0" max="100" step="0.5" placeholder="Ex: 5"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label class="form-label" id="usr-pin-label">PIN (4 dígitos) *</label><input class="form-input" id="usr-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+        <div class="form-group"><label class="form-label">Confirmar PIN</label><input class="form-input" id="usr-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+      </div>
+      <div id="usr-pin-hint" style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:4px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-usuario')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarUsuario()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
