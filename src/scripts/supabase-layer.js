@@ -305,6 +305,21 @@
         }
       } catch (e) { /* tabela crediarios ainda não criada no Supabase */ }
 
+      // Merge anotações (tabela opcional — falha silenciosa se não existir)
+      try {
+        const ants = await sb.from('anotacoes').select('*').is('deleted_at', null).order('created_at', { ascending: false });
+        if (ants.data) {
+          const sbIds = new Set(ants.data.map(r => r.id));
+          const sbItems = ants.data.map(r => ({ id: r.id, clienteId: r.cliente_id, texto: r.texto, autor: r.autor, createdAt: r.created_at }));
+          const localOnly = (window.DB.anotacoes || []).filter(a => !sbIds.has(a.id) && !a.deleted);
+          window.DB.anotacoes = [...sbItems, ...localOnly];
+          if (localOnly.length) {
+            Promise.resolve(sb.from('anotacoes').upsert(localOnly.map(a => ({ id: a.id, cliente_id: a.clienteId, texto: a.texto, autor: a.autor, created_at: a.createdAt })), { onConflict: 'id' }))
+              .catch(e => console.warn('[HAW] Falha ao sincronizar anotações locais:', e));
+          }
+        }
+      } catch (e) { /* tabela anotacoes ainda não criada no Supabase */ }
+
       // Salvar localmente como cache
       if (typeof save === 'function') save();
       if (!background) setSyncStatus('online');

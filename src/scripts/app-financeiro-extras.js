@@ -487,12 +487,19 @@ function salvarEvento(){
   if(!titulo||!data){toast('Preencha título e data.');return;}
   if(!DB.eventos)DB.eventos=[];
   const id=document.getElementById('ev-id').value;
+  const lembreteEl=document.getElementById('ev-lembrete');
   const obj={titulo,data,hora:document.getElementById('ev-hora').value,tipo:document.getElementById('ev-tipo').value,
     clienteId:document.getElementById('ev-cliente-id').value,clienteNome:document.getElementById('ev-cliente-nome').value,
-    obs:document.getElementById('ev-obs').value,status:'agendado'};
+    obs:document.getElementById('ev-obs').value,lembrete:lembreteEl?lembreteEl.checked:false,status:'agendado'};
+  const clienteId=obj.clienteId;
   if(id){const i=DB.eventos.findIndex(x=>x.id===id);if(i>=0)Object.assign(DB.eventos[i],obj);}
   else{obj.id=uid();obj.createdAt=new Date().toISOString();DB.eventos.push(obj);}
-  save();closeModal('modal-evento');renderAgenda();toast('Evento salvo!');
+  save();closeModal('modal-evento');renderAgenda();
+  if(typeof agendarLembretes==='function')agendarLembretes();
+  // Se veio do hub do cliente, re-renderiza
+  if(clienteId&&typeof renderClienteHub==='function'){renderClienteHub(clienteId);}
+  const isTarefa=['follow_up','visita','ligacao'].includes(obj.tipo);
+  toast(isTarefa?'Tarefa agendada!':'Evento salvo!');
 }
 function concluirEvento(id){
   const e=(DB.eventos||[]).find(x=>x.id===id);if(!e)return;

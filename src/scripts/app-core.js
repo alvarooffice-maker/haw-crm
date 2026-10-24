@@ -6,7 +6,7 @@
 // ── STATE ──
 let DB = {
   clientes:[],pedidos:[],receitas:[],produtos:[],usuarios:[],alertas:[],tabelas_lab:[],crediarios:[],caixa:[],despesas:[],
-  eventos:[],orcamentos:[],consignados:[],
+  eventos:[],orcamentos:[],consignados:[],anotacoes:[],
   settings:{supabaseUrl:'',supabaseKey:'',mesAtual: new Date().toISOString().slice(0,7),
     empresa:{nome:'HAW Vision',cnpj:'32.139.400/0001-79',telefone:'(91) 99801-9092',cidade:'Belém',estado:'PA',validade:15}}
 };
@@ -698,8 +698,8 @@ function dashBuscaCliente(term){
 }
 
 function hubTab(tabId,btn){
-  const base=tabId.replace(/^(pedidos|receitas|crediario|os|eventos|orcamentos|garantias)-/,'');
-  ['pedidos','receitas','crediario','os','eventos','orcamentos','garantias'].forEach(t=>{
+  const base=tabId.replace(/^(pedidos|receitas|crediario|os|eventos|orcamentos|garantias|anotacoes|tarefas)-/,'');
+  ['pedidos','receitas','crediario','os','eventos','orcamentos','garantias','anotacoes','tarefas'].forEach(t=>{
     const el=document.getElementById(`hub-tab-${t}-${base}`);
     if(el)el.style.display='none';
   });
@@ -717,7 +717,9 @@ function renderClienteHub(id){
   const recs=(DB.receitas||[]).filter(r=>!r.deleted&&r.clienteId===id).sort((a,b)=>(b.dataReceita||'').localeCompare(a.dataReceita||''));
   const creds=(DB.crediarios||[]).filter(cr=>!cr.deleted&&cr.clienteId===id);
   const ordens=(DB.ordens||[]).filter(o=>!o.deleted&&(o.clienteId===id||(o.paciente&&o.paciente.toLowerCase()===c.nome.toLowerCase()))).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
-  const evts=(DB.eventos||[]).filter(e=>!e.deleted&&e.clienteId===id).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const evts=(DB.eventos||[]).filter(e=>!e.deleted&&e.clienteId===id&&!['follow_up','visita','ligacao'].includes(e.tipo)).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const tarefas=(DB.eventos||[]).filter(e=>!e.deleted&&e.clienteId===id&&['follow_up','visita','ligacao'].includes(e.tipo)).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const anots=(DB.anotacoes||[]).filter(a=>!a.deleted&&a.clienteId===id).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
   const orcs=(DB.orcamentos||[]).filter(o=>!o.deleted&&o.clienteId===id).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
   const ult=peds.filter(p=>p.status==='entregue').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
   const totalGasto=peds.filter(p=>p.status==='entregue'||p.status==='pos_venda').reduce((s,p)=>s+Number(p.total||0),0);
@@ -770,12 +772,19 @@ function renderClienteHub(id){
         <div><div class="hub-action-label">Orçamento</div><div class="hub-action-sub">Proposta<br>comercial</div></div>
         <div style="background:var(--gold);color:#13182C;font-size:10px;font-weight:800;padding:4px 14px;border-radius:20px">ABRIR</div>
       </button>
+      <button class="hub-action-btn" onclick="agendarTarefa('${id}')">
+        <div class="hub-action-icon">📅</div>
+        <div><div class="hub-action-label">Agendar Tarefa</div><div class="hub-action-sub">Follow-up, visita<br>ou ligação</div></div>
+        <div style="background:var(--gold);color:#13182C;font-size:10px;font-weight:800;padding:4px 14px;border-radius:20px">ABRIR</div>
+      </button>
     </div>
     <div class="inner-tabs">
       <button class="inner-tab active" onclick="hubTab('pedidos-${id}',this)">Pedidos (${peds.length})</button>
       <button class="inner-tab" onclick="hubTab('receitas-${id}',this)">Receitas (${recs.length})</button>
       <button class="inner-tab" onclick="hubTab('os-${id}',this)">OS (${ordens.length})</button>
       <button class="inner-tab" onclick="hubTab('crediario-${id}',this)">Crediário (${creds.length})</button>
+      <button class="inner-tab" onclick="hubTab('tarefas-${id}',this)">Tarefas${tarefas.length?` <span class="sb-count">${tarefas.length}</span>`:' (0)'}</button>
+      <button class="inner-tab" onclick="hubTab('anotacoes-${id}',this)">Anotações${anots.length?` <span class="sb-count">${anots.length}</span>`:''}</button>
       <button class="inner-tab" onclick="hubTab('eventos-${id}',this)">Eventos (${evts.length})</button>
       <button class="inner-tab" onclick="hubTab('orcamentos-${id}',this)">Orçamentos (${orcs.length})</button>
       ${pedsComGar.length?`<button class="inner-tab" onclick="hubTab('garantias-${id}',this)">Garantias (${pedsComGar.length})</button>`:''}
@@ -843,6 +852,56 @@ function renderClienteHub(id){
         ${pedsComGar.map(p=>`<tr><td>#${p.numero}</td><td>${fmtDate(p.createdAt)}</td><td>${p.garantiaMeses} meses</td><td>${_garantiaBadge(p)}</td></tr>`).join('')}
       </tbody></table>
     </div>`:''}
+    <div id="hub-tab-tarefas-${id}" style="display:none">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn btn-gold btn-sm" onclick="agendarTarefa('${id}')">+ Nova Tarefa</button>
+      </div>
+      ${tarefas.length?`<div style="display:flex;flex-direction:column;gap:10px">
+        ${tarefas.map(t=>{
+          const tipoLabel={'follow_up':'📞 Follow-up','visita':'🏠 Visita','ligacao':'📱 Ligação'}[t.tipo]||t.tipo;
+          const vencido=t.data&&t.status!=='concluido'&&new Date(t.data)<new Date();
+          return`<div class="card" style="margin-bottom:0;padding:0">
+            <div class="ch" style="padding:10px 14px">
+              <div style="display:flex;align-items:center;gap:10px;flex:1">
+                <span style="font-size:18px">${t.lembrete?'🔔':'📋'}</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600">${t.titulo}</div>
+                  <div style="font-size:11px;color:var(--muted)">${tipoLabel} · ${t.data?.split('-').reverse().join('/')||'—'}${t.hora?' às '+t.hora:''}</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">
+                ${t.status==='concluido'?'<span class="badge badge-green">✓ Concluída</span>':vencido?'<span class="badge badge-red">Vencida</span>':'<span class="badge badge-blue">Pendente</span>'}
+                ${t.status!=='concluido'?`<button class="btn btn-ghost btn-sm" onclick="concluirEvento('${t.id}');renderClienteHub('${id}')" title="Marcar concluída">✓</button>`:''}
+                <button class="btn btn-ghost btn-sm" onclick="excluirEvento('${t.id}');renderClienteHub('${id}')" title="Excluir" style="color:var(--red)">🗑</button>
+              </div>
+            </div>
+            ${t.obs?`<div style="padding:8px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--border-light)">${t.obs}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`:`<div class="empty"><div class="empty-icon">📅</div><div class="empty-title">Nenhuma tarefa agendada</div><button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="agendarTarefa('${id}')">+ Agendar Tarefa</button></div>`}
+    </div>
+    <div id="hub-tab-anotacoes-${id}" style="display:none">
+      <div class="card" style="margin-bottom:14px;padding:14px 16px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Nova anotação</div>
+        <textarea id="anotacao-input-${id}" class="form-input" rows="3" placeholder="Escreva uma observação, histórico ou detalhe importante sobre este cliente…" style="resize:vertical;min-height:72px"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button class="btn btn-gold btn-sm" onclick="salvarAnotacao('${id}')">💾 Salvar anotação</button>
+        </div>
+      </div>
+      ${anots.length?`<div style="display:flex;flex-direction:column;gap:8px">
+        ${anots.map(a=>`<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-light)">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--dark3),var(--dark4));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0">${initials(a.autor||'?')}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-size:12px;font-weight:600">${a.autor||'Vendedor'}</span>
+              <span style="font-size:10px;color:var(--muted)">${fmtDate(a.createdAt)}</span>
+              <button class="btn btn-ghost btn-sm" onclick="excluirAnotacao('${a.id}','${id}')" style="margin-left:auto;color:var(--muted);padding:2px 6px;font-size:11px">🗑</button>
+            </div>
+            <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${a.texto}</div>
+          </div>
+        </div>`).join('')}
+      </div>`:`<div class="empty"><div class="empty-icon">📝</div><div class="empty-title">Nenhuma anotação ainda</div><div class="empty-text">Use o campo acima para registrar observações sobre este cliente</div></div>`}
+    </div>
   `;
 }
 window.abrirCliente=abrirCliente;
@@ -4223,6 +4282,70 @@ window.toggleCrediarioDetalhe=toggleCrediarioDetalhe;
 
 // (delegação de usuários removida — botões usam .onclick direto em renderConfig)
 
+// ── ANOTAÇÕES ──
+function salvarAnotacao(clienteId){
+  const el=document.getElementById(`anotacao-input-${clienteId}`);
+  if(!el)return;
+  const texto=el.value.trim();
+  if(!texto){toast('Escreva algo antes de salvar.');return;}
+  if(!DB.anotacoes)DB.anotacoes=[];
+  const obj={id:uid(),clienteId,texto,autor:currentUser.nome||'Vendedor',createdAt:new Date().toISOString()};
+  DB.anotacoes.push(obj);
+  save();
+  if(typeof syncAnotacao==='function')syncAnotacao(obj);
+  el.value='';
+  renderClienteHub(clienteId);
+  setTimeout(()=>{const tab=document.getElementById(`hub-tab-anotacoes-${clienteId}`);if(tab)tab.style.display='block';},10);
+  toast('Anotação salva!');
+}
+function excluirAnotacao(id,clienteId){
+  const i=(DB.anotacoes||[]).findIndex(a=>a.id===id);
+  if(i>=0){DB.anotacoes[i].deleted=true;save();renderClienteHub(clienteId);
+    setTimeout(()=>{const tab=document.getElementById(`hub-tab-anotacoes-${clienteId}`);if(tab)tab.style.display='block';},10);}
+}
+window.salvarAnotacao=salvarAnotacao;
+window.excluirAnotacao=excluirAnotacao;
+
+// ── AGENDAR TAREFA ──
+function agendarTarefa(clienteId){
+  pedirPermissaoNotificacao();
+  const c=DB.clientes.find(x=>x.id===clienteId);
+  // Preenche o modal de evento com o cliente e tipo follow_up
+  document.getElementById('ev-id').value='';
+  document.getElementById('ev-modal-title').textContent='Agendar Tarefa';
+  document.getElementById('ev-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ev-hora').value='09:00';
+  document.getElementById('ev-tipo').value='follow_up';
+  document.getElementById('ev-titulo').value='';
+  document.getElementById('ev-obs').value='';
+  document.getElementById('ev-cliente-id').value=clienteId;
+  document.getElementById('ev-cliente-nome').value=c?c.nome:'';
+  const lb=document.getElementById('ev-lembrete');if(lb)lb.checked=true;
+  openModal('modal-evento');
+}
+window.agendarTarefa=agendarTarefa;
+
+// ── LEMBRETES (Notification API) ──
+function pedirPermissaoNotificacao(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='default')Notification.requestPermission();
+}
+function agendarLembretes(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const now=Date.now();
+  const limit=now+24*60*60*1000; // próximas 24h
+  (DB.eventos||[]).filter(e=>!e.deleted&&e.lembrete&&e.status!=='concluido'&&e.data&&e.hora).forEach(e=>{
+    const dt=new Date(`${e.data}T${e.hora}`).getTime();
+    if(dt>now&&dt<=limit){
+      const delay=dt-now;
+      setTimeout(()=>{
+        const cli=e.clienteNome?`\nCliente: ${e.clienteNome}`:'';
+        new Notification(`📅 ${e.titulo}`,{body:`${e.tipo==='follow_up'?'Follow-up':e.tipo==='visita'?'Visita':e.tipo==='ligacao'?'Ligação':e.tipo}${cli}`,icon:'/haw-crm/icon-192.png'});
+      },delay);
+    }
+  });
+}
+
 // ── SIDEBAR MOBILE ──
 function toggleSidebar(){
   const sb=document.getElementById('sidebar');
@@ -4259,4 +4382,5 @@ document.addEventListener('DOMContentLoaded',()=>{
   populateSelects();
   checkSession();
   iniciarSchedulerBackup();
+  agendarLembretes();
 });

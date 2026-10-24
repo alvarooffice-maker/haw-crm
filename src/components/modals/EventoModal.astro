@@ -16,21 +16,34 @@
       <div class="form-row c1">
         <div class="form-group"><label class="form-label">Tipo *</label>
           <select class="form-input form-select" id="ev-tipo">
-            <option value="consulta">👁️ Consulta óptica</option>
-            <option value="retorno">🔄 Retorno / revisão</option>
-            <option value="entrega">📦 Entrega de OS</option>
-            <option value="pagamento">💰 Pagamento de crediário</option>
-            <option value="outro">📌 Outro</option>
+            <optgroup label="📋 Tarefas do vendedor">
+              <option value="follow_up">📞 Follow-up</option>
+              <option value="visita">🏠 Visita ao cliente</option>
+              <option value="ligacao">📱 Ligação</option>
+            </optgroup>
+            <optgroup label="📅 Eventos da loja">
+              <option value="consulta">👁️ Consulta óptica</option>
+              <option value="retorno">🔄 Retorno / revisão</option>
+              <option value="entrega">📦 Entrega de OS</option>
+              <option value="pagamento">💰 Pagamento de crediário</option>
+              <option value="outro">📌 Outro</option>
+            </optgroup>
           </select>
         </div>
       </div>
-      <div class="form-row c1"><div class="form-group"><label class="form-label">Título / Descrição *</label><input class="form-input" id="ev-titulo" placeholder="Ex: Consulta de adaptação de lentes"></div></div>
+      <div class="form-row c1"><div class="form-group"><label class="form-label">Título / Descrição *</label><input class="form-input" id="ev-titulo" placeholder="Ex: Follow-up proposta de lentes progressivas"></div></div>
       <div class="form-row c1"><div class="form-group"><label class="form-label">Cliente</label>
         <input class="form-input" id="ev-cliente-nome" placeholder="Digite o nome do cliente…" autocomplete="off" oninput="filtrarClientesEv(this.value)">
         <input type="hidden" id="ev-cliente-id">
         <div id="ev-clientes-drop" style="display:none;position:absolute;z-index:9001;background:var(--white);border:1px solid var(--border-light);border-radius:8px;max-height:200px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:280px"></div>
       </div></div>
       <div class="form-row c1"><div class="form-group"><label class="form-label">Observação</label><input class="form-input" id="ev-obs" placeholder="Opcional"></div></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;padding:10px 0 2px;border-top:1px solid var(--border-light)">
+        <input type="checkbox" id="ev-lembrete" style="width:16px;height:16px;cursor:pointer;accent-color:var(--gold)">
+        <label for="ev-lembrete" style="font-size:12px;cursor:pointer;user-select:none;color:var(--muted)">
+          🔔 Ativar lembrete — notificação no navegador na hora marcada
+        </label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-evento')">Cancelar</button>
