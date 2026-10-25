@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>HAW Vision · Baixar meus dados</title>
+<style>
+  *{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#13182C;color:#222;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .c{background:#fff;border-radius:14px;max-width:520px;width:100%;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  h1{font-size:19px;margin:0 0 6px;color:#13182C}p{font-size:14px;line-height:1.55;color:#444;margin:8px 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0}td{padding:7px 4px;border-bottom:1px solid #eee;font-size:14px}td:last-child{text-align:right;font-weight:700}
+  tr.d td{color:#13182C;background:#fffbe8}
+  button{width:100%;padding:14px;border:0;border-radius:10px;background:#F7CF13;color:#13182C;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px}
+  .a{background:#fef3c7;border-radius:8px;padding:12px;font-size:13px;margin-top:14px;color:#7a5b00}
+  .ok{background:#dcfce7;color:#14532d}
+</style>
+</head>
+<body>
+<div class="c">
+  <h1>👓 Baixar meus dados do HAW CRM</h1>
+  <p>O HAW CRM mudou para um sistema novo e mais seguro. Esta página guarda uma <b>cópia de tudo o que foi digitado neste computador</b> (clientes, receitas, pedidos, ordens de serviço…) para entrar no sistema novo.</p>
+  <div id="r"></div>
+</div>
+<script>
+(function(){
+  var NOMES={clientes:'Clientes',receitas:'Receitas',pedidos:'Pedidos',ordens:'Ordens de serviço',crediarios:'Crediários',anotacoes:'Anotações',eventos:'Agenda / tarefas',orcamentos:'Orçamentos',caixa:'Caixa',despesas:'Despesas',consignados:'Consignados',produtos:'Produtos'};
+  var DESTAQUE={receitas:1,ordens:1};
+  var el=document.getElementById('r'),db=null;
+  try{db=JSON.parse(localStorage.getItem('haw_crm_v1')||'null');}catch(e){}
+  if(!db){el.innerHTML='<div class="a">Não encontrei dados do HAW CRM neste navegador.<br><br>Abra esta página <b>no mesmo computador e no mesmo navegador</b> (Chrome, Safari…) em que o sistema antigo é usado no dia a dia.</div>';return;}
+  var linhas='',total=0;
+  Object.keys(NOMES).forEach(function(k){var n=(db[k]||[]).filter(function(x){return x&&!x.deleted;}).length;if(k!=='produtos')total+=n;linhas+='<tr'+(DESTAQUE[k]?' class="d"':'')+'><td>'+NOMES[k]+'</td><td>'+n+'</td></tr>';});
+  el.innerHTML='<p>Foi isto que encontrei neste navegador:</p><table>'+linhas+'</table><button id="b">⬇️ Baixar meus dados</button><p style="font-size:12px;color:#777">O arquivo não leva senhas nem PINs. Depois de baixar, envie o arquivo para o dono, que coloca no sistema novo.</p>';
+  document.getElementById('b').onclick=function(){
+    var copia={};
+    Object.keys(db).forEach(function(k){copia[k]=db[k];});
+    // nunca levar PIN/senha
+    if(Array.isArray(copia.usuarios))copia.usuarios=copia.usuarios.map(function(u){var c={};Object.keys(u).forEach(function(x){if(x!=='senha')c[x]=u[x];});return c;});
+    var arq={tipo:'haw-exportacao',versao:1,geradoEm:new Date().toISOString(),dados:copia};
+    var blob=new Blob([JSON.stringify(arq)],{type:'application/json'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='haw-dados-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();
+    el.insertAdjacentHTML('beforeend','<div class="a ok">✅ Arquivo baixado ('+total+' registros). Procure <b>haw-dados-…json</b> na pasta Downloads e envie ao dono.</div>');
+  };
+})();
+</script>
+</body>
+</html>
